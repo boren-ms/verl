@@ -1,0 +1,4 @@
+interface:
+  display_name: "Report Experiment"
+  short_description: "Build a compact verified experiment PDF"
+  default_prompt: "Use $report-experiment to build a compact verified PDF containing only configuration differences, validation, and reward-core, with reproducible evidence."

@@ -138,7 +138,12 @@ class TaskRunnerV1:
 
         from verl.trainer.ppo.v1 import get_trainer_cls
 
-        trainer_cls = get_trainer_cls(config.trainer.v1.trainer_mode)
+        trainer_class_fqn = config.trainer.v1.get("trainer_class", None)
+        trainer_cls = (
+            load_class_from_fqn(trainer_class_fqn)
+            if trainer_class_fqn
+            else get_trainer_cls(config.trainer.v1.trainer_mode)
+        )
 
         config.transfer_queue.enable = True
         pprint(OmegaConf.to_container(config, resolve=True))

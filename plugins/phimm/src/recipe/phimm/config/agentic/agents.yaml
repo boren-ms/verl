@@ -1,0 +1,2 @@
+- name: asr
+  _target_: recipe.phimm.agentic.agent_loop.ASRAgentLoop

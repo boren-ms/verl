@@ -1,0 +1,150 @@
+import re
+
+from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_task_output
+from recipe.phimm.utils.languages import get_language_code
+from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
+    _HFEnglishTextNormalizer,
+)
+
+
+_hf_english_normalizer = _HFEnglishTextNormalizer()
+
+
+def measure_openasr_en_wer(hyp_text, ground_truth):
+    """Measure English WER with the normalization used by ``openasr_en_eval``."""
+    from kaldialign import batch_error_rate
+
+    ref_words = tuple(_hf_english_normalizer(ground_truth.strip()).split())
+    hyp_words = tuple(_hf_english_normalizer(hyp_text.strip()).split())
+    result = batch_error_rate([ref_words], [hyp_words], merge_compounds=True)
+    n_ref = max(result["ref_len"], 1)
+    return {
+        "wer": result["total"] / n_ref,
+        "n_err": result["total"],
+        "n_ref": n_ref,
+        "n_ins": result["ins"],
+        "n_del": result["del"],
+        "n_sub": result["sub"],
+        "normalized_ref": " ".join(ref_words),
+        "normalized_hyp": " ".join(hyp_words),
+    }
+
+
+def measure_openasr_oiwer(hyp_text, lattice, lang):
+    """Measure Hindi lattice OIWER using the same counts as MoE's OIWerScorer."""
+    if (
+        not isinstance(lattice, list)
+        or not lattice
+        or any(
+            not isinstance(variants, list)
+            or not variants
+            or any(not isinstance(variant, str) for variant in variants)
+            for variants in lattice
+        )
+    ):
+        raise ValueError("OIWER requires extra_info['lattice'] to be a non-empty list of non-empty lists of strings.")
+    if lang not in ("hi", "hi_in", "hi-in"):
+        raise ValueError(f"OpenASR lattice OIWER is only configured for Hindi, got language: {lang!r}")
+
+    try:
+        from voi_oiwer import oiwer
+    except ImportError as exc:
+        raise ImportError("Install voi-oiwer==0.1.4 to evaluate OpenASR Hindi lattice references.") from exc
+
+    result = oiwer(hypothesis=hyp_text, reference_lists=lattice, input_language="hindi")
+    n_err = sum(result[4])
+    n_ref = result[5]
+    return {"wer": n_err / n_ref if n_ref else 0.0, "n_err": n_err, "n_ref": n_ref}
+
+
+def non_speech_eval(solution_str, ground_truth, **kwargs):
+    """Evaluate non-speech audio by requiring an empty cleaned hypothesis."""
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    n_err = int(bool(hyp_text.strip()))
+    return {
+        "score": 1.0 - n_err,
+        "wer": float(n_err),
+        "n_err": n_err,
+        "n_ref": 1,
+    }
+
+
+def foreign_language_eval(solution_str, ground_truth=None, **kwargs):
+    """Accept empty text or a foreign-language marker as a correct response."""
+    parsed_text = get_asr_text(parse_task_output(solution_str or "", version=kwargs.get("version")))
+    marker = re.compile(r"</?foreign_language>", re.IGNORECASE)
+    accuracy = int(not parsed_text.strip() or bool(marker.search(parsed_text)))
+    return {
+        "score": float(accuracy),
+        "n_err": 1 - accuracy,
+        "n_ref": 1,
+    }
+
+
+def openasr_eval(solution_str, ground_truth, **kwargs):
+    """Evaluate a response using OpenASR normalization and compound-aware WER."""
+    from recipe.phimm.utils.open_asr_normalizer.eval_utils import measure_wer
+
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
+    # The pinned supplementary snapshots use their own MOE-compatible scorer.
+    # Keep established rows on the existing normalization path.
+    if extra_info.get("source_revision") in {
+        "2a6022fd57eea78ca23a54ec4325644fe248edd6",
+        "c61c0927f63e14b2a4406db505109926438d838e",
+        "7ce7b7e4573abf85ca3c5b099839ab550e727ae5",
+        "4ff2b1e95b0c968ddca586f716305360fe25dad7",
+    }:
+        from recipe.phimm.reward.openasr_expansion import openasr_expansion_eval
+        return openasr_expansion_eval(solution_str, ground_truth, **kwargs)
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    result = measure_wer(
+        hyp_text,
+        ground_truth,
+        lang=get_language_code(tgt_lang),
+        merge_compounds=kwargs.get("merge_compounds", True),
+    )
+
+    return {
+        "score": 1.0 - result["wer"],
+        "wer": result["wer"],
+        "n_err": result["n_err"],
+        "n_ref": result["n_ref"],
+    }
+
+def openasr_hi_in_eval(solution_str, ground_truth, **kwargs):
+    """Evaluate Monsoon Hindi against its lattice with OIWER."""
+    extra_info = kwargs.get("extra_info") or {}
+    tgt_lang = extra_info.get("language", kwargs.get("language", "Hindi")).lower().strip()
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    result = measure_openasr_oiwer(hyp_text, extra_info.get("lattice"), get_language_code(tgt_lang))
+    return {
+        "score": 1.0 - result["wer"],
+        "wer": result["wer"],
+        "n_err": result["n_err"],
+        "n_ref": result["n_ref"],
+    }
+
+
+def openasr_en_eval(solution_str, ground_truth, **kwargs):
+    """Return HF compound-aware WER and keyword error counts."""
+    from recipe.phimm.reward.asr_measure import compute_kw_score
+
+    extra_info = kwargs.get("extra_info") or {}
+    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    result = measure_openasr_en_wer(hyp_text, ground_truth)
+    keyword_result = compute_kw_score(
+        ground_truth,
+        hyp_text,
+        keywords=extra_info.get("keywords"),
+        text_norm="hf_english",
+        tgt_lang="english",
+    )
+    return {
+        "score": 1.0 - result["wer"],
+        "wer": result["wer"],
+        "n_err": result["n_err"],
+        "n_ref": result["n_ref"],
+        "nb_err": keyword_result["kw_nerr"],
+        "nb_ref": keyword_result["kw_nref"],
+    }

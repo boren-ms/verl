@@ -1,0 +1,26 @@
+[
+  {
+    "key": "Producer revision",
+    "reference": "e99efbb through120; resumed965a025",
+    "candidate": "Main662507f9 + required imports; 489bd78dd5",
+    "effect": "Implementation/lineage differs; measure quality."
+  },
+  {
+    "key": "Trainer / rollout",
+    "reference": "Legacy DAPO / synchronous vLLM",
+    "candidate": "V1 sync / AgentLoop + TransferQueue",
+    "effect": "Retain source ReMax objective within main design."
+  },
+  {
+    "key": "data.chunk_load_mode",
+    "reference": "sample",
+    "candidate": "indexed",
+    "effect": "Requested branch setting; six representative real probes matched."
+  },
+  {
+    "key": "Historical training scorer",
+    "reference": "Legacy through120, current thereafter",
+    "candidate": "Requested dffabc scorer from0",
+    "effect": "Uniform validation rescore does not undo historical rewards."
+  }
+]

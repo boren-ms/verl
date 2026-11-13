@@ -1,0 +1,366 @@
+{
+  "source_revision": "dffabc00d8261dd9abf3087958259d5c8944f5a2",
+  "files": [
+    {
+      "path": "plugins/qwen35_audio/src/vllm_qwen35_audio/qwen3_5_audio.py",
+      "sha256": "fef05288ab4d75038f51c9c3b515a3f50c5687c3f1932d503cbce48d28f386d0",
+      "destination": "plugins/qwen35_audio/src/vllm_qwen35_audio/qwen3_5_audio.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/vllm_qwen35_audio/__init__.py",
+      "sha256": "3389c32cb28f3ed6c1d072b20a2ea4f45e3bf0bd59e53985080b5a6dc60fc329",
+      "destination": "plugins/qwen35_audio/src/vllm_qwen35_audio/__init__.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/vllm_qwen35_audio/plugin.py",
+      "sha256": "4ba9a64a7aafc087a61cd7758da6fcfcf811cb3523a57311dfc3cb67cfdb8419",
+      "destination": "plugins/qwen35_audio/src/vllm_qwen35_audio/plugin.py",
+      "hash_verified": false,
+      "destination_sha256": "47e34ce30b5de3c875eda4521e5b856a4f2ca57680287e9dc80899a7e837ef5e",
+      "adaptation": "Invoke unchanged source CUDA helper during general plugin registration"
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/cascade_encoder.py",
+      "sha256": "cf96f040180793731a899510cf97a838cc694bcff0747a8512aa25beded190a0",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/cascade_encoder.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/__init__.py",
+      "sha256": "8ad513e4c3d1fcf6c9c6342887027aa8a047404caa2ce14c1434c0bc93971ba9",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/__init__.py",
+      "hash_verified": false,
+      "destination_sha256": "140e6d15e3eaf0a1f95ff0a8984d009aafa92b5d1ce1afb4558fcd464b363259",
+      "adaptation": "Initialize optional FlashInfer IPC before HF model imports TileLang; required by spawned config-unpickling order"
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/processing_qwen3_5_audio.py",
+      "sha256": "673a6f7874a705e47aea9eaf3415219ccbacb46158d56596f3237d8c8ee53d35",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/processing_qwen3_5_audio.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/modeling_qwen3_5_audio.py",
+      "sha256": "c85b292fbabe989cdc966f0d0bdf9c50db85b93293cec7d2d9dd42a4f195d8aa",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/modeling_qwen3_5_audio.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/flash_encoder.py",
+      "sha256": "80976a3ef71b8bb939640b30639ce945309ae3c292cad718eba20eb281628605",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/flash_encoder.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/audio_embedding.py",
+      "sha256": "f033d8147f7c47413a24013a9958d55c6d9d5140a26cd2c239d5c4f4c05b5f57",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/audio_embedding.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/configuration_qwen3_5_audio.py",
+      "sha256": "c06a05e40484fcdaf0d402b801f13dd9b2ac6af1073cda2c90015bda84dd4eab",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/configuration_qwen3_5_audio.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/convert_verl_to_pt.py",
+      "sha256": "1115031e93e8f4e218035211aa1671ab934861e9058916b9c55a9817386b2985",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/convert_verl_to_pt.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/verify_hf_model.py",
+      "sha256": "b77497002f4a87f374ab567e069dd0972dbb422ba72f4bf757e465a32bedf30a",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/verify_hf_model.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/src/hf_qwen35_audio/convert_checkpoint.py",
+      "sha256": "26c2c57340a3ad692a7bded456f450d45abd4e7ddd9b8ca1a941abdb7ecc845e",
+      "destination": "plugins/qwen35_audio/src/hf_qwen35_audio/convert_checkpoint.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/cache_eval_audio.py",
+      "sha256": "f352617607e1eceefa0a801c19763cf2b0a78e22355884859044260637db3ea6",
+      "destination": "plugins/phimm/src/recipe/phimm/cache_eval_audio.py",
+      "hash_verified": true
+    },
+    {
+      "path": "verl/audio_cache.py",
+      "sha256": "b1349cf89a4304b524806e567da54a7f948b8c1058a7863c83a48b41a7db2a9d",
+      "destination": "verl/audio_cache.py",
+      "hash_verified": true
+    },
+    {
+      "path": "verl/audio_chunk.py",
+      "sha256": "5aab1739b2d0ba860318a0e6fdeca617afff2dd9f084d5c14388fb0915236567",
+      "destination": "verl/audio_chunk.py",
+      "hash_verified": true
+    },
+    {
+      "path": "verl/audio_zip.py",
+      "sha256": "400cb2d17575226735183e8b732d2695a62c2dd892fbaa3d9ed8f1d2913e8616",
+      "destination": "verl/audio_zip.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/env.py",
+      "sha256": "bd623edf09f8111dd873bfbddb0f8a3f5eb6f0fae94d84c642ba17704091b13c",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/env.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/reward/asr_inhouse_measure.py",
+      "sha256": "daaf13ff2892bc9487f9b55cf4e6a526a88294ef1aae9e3fe70ab443be15c833",
+      "destination": "plugins/phimm/src/recipe/phimm/reward/asr_inhouse_measure.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/reward/asr_response.py",
+      "sha256": "474218e1c35f9ea14ae9d41f53340cede07bd03b66d00a25fcb2bb3796cf22bf",
+      "destination": "plugins/phimm/src/recipe/phimm/reward/asr_response.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/languages.py",
+      "sha256": "02600b0126daa3113f895e870c1f7b0b58e7acc83632dfc4529616a6a750ebce",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/languages.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/reward/openasr_expansion.py",
+      "sha256": "4824fd6bf2e71c01de184087925f7d14e365f7ae42defd8cd36d07acb3bbdb25",
+      "destination": "plugins/phimm/src/recipe/phimm/reward/openasr_expansion.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/eval_utils.py",
+      "sha256": "034a5048b0e580bc72b2f6aef9722bb6b1d7717eea2bdab3e5536f34295a8502",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/eval_utils.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/cn_tn.py",
+      "sha256": "e1f57a31d0b22494e57c5109774f2ccc2f0d2960c947c85d53275007badc13dd",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/cn_tn.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/__init__.py",
+      "sha256": "4405f00c552886d322fedad66046edffc9f8991b18561b3744bf4368bbb4c5a5",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/__init__.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/data_utils.py",
+      "sha256": "d8b71dcb8b0c71141a1a3c5358f6f50588c99d2300935e5975dfa8becaef3c94",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/data_utils.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/pt_modernize.py",
+      "sha256": "e1a1b4a292d7e8beadd60d80a816110c351ed0bdc1f5cd895aa4d7ed3bb377c1",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/pt_modernize.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/normalizer.py",
+      "sha256": "87e1945dab7d7c3c491588dfffcf81924063cbc5839775e72bf2276d3606a3a6",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/normalizer.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/english_abbreviations.py",
+      "sha256": "c54e6c37649c1a878630d11ccc96fac7c578f11b937cf01b9d93a38db77bd3a0",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/english_abbreviations.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/hf_english_normalizer.py",
+      "sha256": "68441469a80a2de038badac297d46df0e20b678daaa95e737968964b6a175689",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/hf_english_normalizer.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/expansion_normalizer.py",
+      "sha256": "4d5f8f17b1648a1af4b576f6f004892249aca3dc9aab0bb5d4fc148ed02200e8",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/expansion_normalizer.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/open_asr_normalizer/chinese_normalizer.py",
+      "sha256": "665e54ff8faf6dbf9e062995c5304457f933f9187928d6c330e63d4d32845a4e",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/open_asr_normalizer/chinese_normalizer.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/reward/asr_eval.py",
+      "sha256": "22cb0d21dc5debb99f62d7df14f4a07de02fa5b7323d4cb027a9e22d2b207558",
+      "destination": "plugins/phimm/src/recipe/phimm/reward/asr_eval.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/reward/asr_measure.py",
+      "sha256": "c502a6f94840fa021612ab45b966d9616bbcbcb2ff55cce6f57d8d8cba5a33ee",
+      "destination": "plugins/phimm/src/recipe/phimm/reward/asr_measure.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/reward/asr_edge.py",
+      "sha256": "0e6cd98b6b6edd965b0f25fc4aeb2de3543092b7c4b89fab604ee8007cad0e04",
+      "destination": "plugins/phimm/src/recipe/phimm/reward/asr_edge.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/tn.py",
+      "sha256": "32da0684513c9d74c449caa4981982019b448a5c2fe357c1143a0c8cec69f23a",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/tn.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/shared.py",
+      "sha256": "1e78b0ab9e3ce10ba296d0fa910dd0ee96625e5538dc06a12b565fdf15c2f692",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/shared.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/remote_cache.py",
+      "sha256": "a3d4a433f086607f89ed7cfb8906f68953c5574ab5bbad834d2ddaafc77f044a",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/remote_cache.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/reward/asr_vote.py",
+      "sha256": "582fe4b9115197aa4ea164fd5013c3941f2551cc8e15d7d1d3096abe8507ba63",
+      "destination": "plugins/phimm/src/recipe/phimm/reward/asr_vote.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/rl_dataset.py",
+      "sha256": "7867342852e9d288624028bb2a3e139be9f63dc7d31fef2c729bfa0a2280937f",
+      "destination": "plugins/phimm/src/recipe/phimm/data/rl_dataset.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/audio.py",
+      "sha256": "77f44979d225d210a8e672658dfc5b64ada520267a9f0c7af16fdcf417803b86",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/audio.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/indexed_chunk.py",
+      "sha256": "e110482f226b4dfe165f0adda374d846acf1e21a24ee1dea95c951699f3b53ec",
+      "destination": "plugins/phimm/src/recipe/phimm/data/indexed_chunk.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/chunk.py",
+      "sha256": "dda46540ed80e471a906fc2150ccdc46c2b34d06520d54bbe8c5a0ca1c297920",
+      "destination": "plugins/phimm/src/recipe/phimm/data/chunk.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/dataset.py",
+      "sha256": "7e4b94f6ee70f32b20cdfb2cce46994b5e07c6e3df1b33468da55f4fe61fd01b",
+      "destination": "plugins/phimm/src/recipe/phimm/data/dataset.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/svad/svad.py",
+      "sha256": "fb56b509aa11752aa8081669bde4c0352dbcebd93e417dac38f4529b25cf4904",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/svad/svad.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/svad/featurizer.py",
+      "sha256": "61d2bb4b8c6006e241b5fe1a1170146d7265d0899df338e5e3376b9da8685163",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/svad/featurizer.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/svad/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/svad/__init__.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/trim_silence.py",
+      "sha256": "ffaa82ad1917d13aa29a1b0c6a756b3ea470086a1783a5b2e5afe1a4b5a0e80f",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/trim_silence.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/storage.py",
+      "sha256": "22e555f16caeb94adace6127737de42144c1fb739b6e5a7acbd009640d9b07ec",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/storage.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/audio_augment.py",
+      "sha256": "d67930f1b9a5ca8cbc628a406a1e40da24ad9989ad9691291536496b3e265680",
+      "destination": "plugins/phimm/src/recipe/phimm/data/audio_augment.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/prompts.py",
+      "sha256": "e482c6ead91dbc13d6d7b68db5aeae8164a3dcd3e1e1d84437d13720cca52f60",
+      "destination": "plugins/phimm/src/recipe/phimm/data/prompts.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/biasing.py",
+      "sha256": "816b01c5aebe5899305122ac15045f9ecb0ed701492c0d85e8c0f3d900358930",
+      "destination": "plugins/phimm/src/recipe/phimm/data/biasing.py",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/data/error_simu.py",
+      "sha256": "0dd30a6290be4759741b15e7254c0bcdfa18f075cb253c3a69c451b2dd579a17",
+      "destination": "plugins/phimm/src/recipe/phimm/data/error_simu.py",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/pyproject.toml",
+      "sha256": "4db39b67664b76b406175a5165950f3a34779aa3ce1adab40f38b1357270804b",
+      "destination": "plugins/qwen35_audio/pyproject.toml",
+      "hash_verified": true
+    },
+    {
+      "path": "plugins/qwen35_audio/README.md",
+      "sha256": "e625cf61b8bb0175431a9bf816f43ed581b5ef29ac794dd709ba2f9560c6fc8d",
+      "destination": "plugins/qwen35_audio/README.md",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/svad/resource/mel_filters.npz",
+      "sha256": "dd2cc75e70e36fcbdd8ffbc2499062f30094093e6bf2cbafa9859f59972b420b",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/svad/resource/mel_filters.npz",
+      "hash_verified": true
+    },
+    {
+      "path": "recipe/phimm/utils/svad/resource/svad_seq_quant.onnx",
+      "sha256": "3c2d861af959682278e186dc5f7185fb17f27db9480c0bcb21baf182e75dde39",
+      "destination": "plugins/phimm/src/recipe/phimm/utils/svad/resource/svad_seq_quant.onnx",
+      "hash_verified": true
+    },
+    {
+      "path": "verl/utils/vllm/cuda_runtime.py",
+      "destination": "plugins/qwen35_audio/src/vllm_qwen35_audio/cuda_runtime.py",
+      "sha256": "3c2c1c0a1037077f760656200f57aa9a69c49ddaad6a666a1fbf05fa400f02c5",
+      "hash_verified": true
+    }
+  ],
+  "source_functions": [
+    {
+      "source_path": "verl/trainer/ppo/ray_trainer.py",
+      "function": "_compute_reward_metrics",
+      "sha256": "47aafcaeac417257ac6b3db0aeac4dc315da73603fec6e5c80942973121f7c17",
+      "destination": "plugins/phimm/src/recipe/phimm/agentic/scoring.py",
+      "unchanged": true
+    }
+  ]
+}

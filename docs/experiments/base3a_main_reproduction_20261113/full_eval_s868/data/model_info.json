@@ -1,0 +1,18 @@
+{
+  "Original Base3a@868": {
+    "model_path": "az://orngwus2cresco/data/boren/outputs/v2611/remax_main_base3a_2611r2/global_step_868/qwen_hf/",
+    "config": "recipe/phimm/config/v2611_dev/eval/eval_main_base3a_2611r2_s868_openfull_zip.yaml",
+    "node": "main-base3a-noopenml-n2-critical",
+    "ray_job_id": "raysubmit_wxL1nMu9RXPrAAWC",
+    "wandb_url": "https://msaip.wandb.io/genai/v2611_eval/runs/4e176056e70c607879317fb688b1d78c",
+    "code_snapshot": "965a025ac220c91305aa762bdb176697b55e0fb5"
+  },
+  "Main reproduce@868": {
+    "model_path": "az://orngwus2cresco/data/boren/outputs/v2611/remax_main_base3a_2611r2_main_agentic_20261112/global_step_868/qwen_hf",
+    "config": "plugins/phimm/src/recipe/phimm/config/v2611_dev/eval/eval_openfull_zip.yaml",
+    "node": "main-base3a-noopenml-n2-critical",
+    "ray_job_id": "base3a-main-s868-openfull-20261113-a1",
+    "wandb_url": "https://msaip.wandb.io/genai/v2611_eval/runs/kpnoxci8",
+    "code_snapshot": "489bd78dd537d4282c49fe866340eb536c03710f"
+  }
+}

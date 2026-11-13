@@ -1,0 +1,22 @@
+{
+  "base_model": "az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/",
+  "lora_rank": 320,
+  "lora_alpha": 640,
+  "learning_rate": 6e-07,
+  "training_rows": 55664,
+  "batch_size": 128,
+  "epochs": 2,
+  "target": 868,
+  "rollout_n": 8,
+  "training_response_length": 768,
+  "validation_greedy_response_length": 512,
+  "no_repeat": {
+    "ngram_size": 15,
+    "effective_window": 100
+  },
+  "rollout_seed": 0,
+  "rollout_logprobs_mode": "raw_logprobs",
+  "topology": "2x8 H100",
+  "save_freq": 10,
+  "test_freq": 20
+}

@@ -1,0 +1,512 @@
+[
+  {
+    "step": 0,
+    "datasets": 9,
+    "passes": 7,
+    "failures": [
+      "urgent2024_delta",
+      "zh_fleurs_top500_2611r2"
+    ]
+  },
+  {
+    "step": 20,
+    "datasets": 9,
+    "passes": 8,
+    "failures": [
+      "urgent2024_delta"
+    ]
+  },
+  {
+    "step": 40,
+    "datasets": 9,
+    "passes": 9,
+    "failures": []
+  },
+  {
+    "step": 60,
+    "datasets": 9,
+    "passes": 9,
+    "failures": []
+  },
+  {
+    "step": 80,
+    "datasets": 9,
+    "passes": 6,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "urgent2024_delta"
+    ]
+  },
+  {
+    "step": 100,
+    "datasets": 9,
+    "passes": 8,
+    "failures": [
+      "earning_chunk_verb"
+    ]
+  },
+  {
+    "step": 120,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "urgent2024_delta",
+      "earnings21_u2",
+      "earnings22_u2"
+    ]
+  },
+  {
+    "step": 140,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2",
+      "zh_aishell1_top500_2611r2"
+    ]
+  },
+  {
+    "step": 160,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2"
+    ]
+  },
+  {
+    "step": 180,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "urgent2024_delta",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 200,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 220,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 240,
+    "datasets": 9,
+    "passes": 6,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2"
+    ]
+  },
+  {
+    "step": 260,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 280,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 300,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 320,
+    "datasets": 9,
+    "passes": 3,
+    "failures": [
+      "earning_chunk_verb",
+      "urgent2024_delta",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 340,
+    "datasets": 9,
+    "passes": 3,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 360,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 380,
+    "datasets": 9,
+    "passes": 2,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "urgent2024_delta",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 400,
+    "datasets": 9,
+    "passes": 2,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "urgent2024_delta",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 420,
+    "datasets": 9,
+    "passes": 3,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 440,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 460,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 480,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 500,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 520,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 540,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 560,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 580,
+    "datasets": 9,
+    "passes": 3,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 600,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 620,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 640,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 660,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 680,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 700,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 720,
+    "datasets": 9,
+    "passes": 3,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 740,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 760,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 780,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 800,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 820,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 840,
+    "datasets": 9,
+    "passes": 5,
+    "failures": [
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 860,
+    "datasets": 9,
+    "passes": 3,
+    "failures": [
+      "earning_chunk_verb",
+      "openml_bad",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  },
+  {
+    "step": 868,
+    "datasets": 9,
+    "passes": 4,
+    "failures": [
+      "earning_chunk_verb",
+      "earnings21_u2",
+      "earnings22_u2",
+      "coraal_u2",
+      "earnings22_cleaned_aa_u2"
+    ]
+  }
+]

@@ -1,0 +1,280 @@
+from cachetools import FIFOCache, cached
+import blobfile as bf
+import io
+import logging
+import numpy as np
+from pathlib import Path
+import soundfile as sf
+from recipe.phimm.data.chunk import load_chunk_sample, load_chunk_example
+from verl.audio_cache import localize_audio_source, split_audio_sources
+from verl.audio_zip import read_zip_audio, split_zip_audio_source
+from verl.audio_chunk import read_chunk_audio, split_chunk_audio_source
+
+logger = logging.getLogger(__name__)
+
+
+TARGET_SAMPLE_RATE = 16000
+MIN_AUDIO_DURATION = 0.16
+
+# Default to indexed sample reads without retaining whole decoded chunks.
+_chunk_load_mode = "indexed"
+
+
+def _localize_remote_audio(file_path):
+    return localize_audio_source(file_path)
+
+
+def set_chunk_load_mode(mode: str):
+    """Set the chunk loading strategy.
+
+    Args:
+        mode: "cached" to use load_chunk_example (ChunkManager, full chunk in memory),
+              "sample" to use load_chunk_sample (seek-based, one connection per sample).
+              "indexed" to cache byte offsets and read only the requested sample.
+    """
+    global _chunk_load_mode
+    if mode not in ("cached", "sample", "indexed"):
+        raise ValueError(f"Invalid chunk_load_mode: {mode!r}. Must be 'cached', 'sample' or 'indexed'.")
+    _chunk_load_mode = mode
+    logger.info("Chunk load mode set to: %s", mode)
+
+
+@cached(FIFOCache(maxsize=100))
+def sf_read(file_path):
+    """Load audio from a file."""
+    # print("Audio file:", file_path)
+    if split_chunk_audio_source(file_path) is not None:
+        return sf.read(io.BytesIO(read_chunk_audio(file_path)))
+    if split_zip_audio_source(file_path) is not None:
+        return sf.read(io.BytesIO(read_zip_audio(file_path)))
+    if "://" in file_path:
+        return sf.read(_localize_remote_audio(file_path))
+
+    if not bf.exists(file_path):
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+    with bf.BlobFile(file_path, "rb") as f:
+        return sf.read(f)
+
+
+def sf_write(file_path, audio, sr):
+    """Write audio to a file."""
+    fmt = Path(file_path).suffix.lstrip(".").upper() or "WAV"
+    with bf.BlobFile(file_path, "wb") as f:
+        sf.write(f, audio, sr, format=fmt)
+
+
+def resample_audio(x, fs, target_fs=TARGET_SAMPLE_RATE):
+    """Resample audio to target_fs if needed."""
+    if fs != target_fs:
+        import torch
+        import torchaudio.functional as F
+
+        waveform = torch.from_numpy(x.T if x.ndim > 1 else x)
+        x = F.resample(waveform, fs, target_fs).numpy()
+        fs = target_fs
+    return x, fs
+
+
+def limit_audio(x, fs, max_dur=None, min_dur=MIN_AUDIO_DURATION):
+    """Resample audio to 16 kHz and limit it to max_dur seconds."""
+    assert x.ndim == 1, "Only mono audio is supported."
+    x_dur = len(x) / fs
+    if x_dur < min_dur:
+        print(f"Padding audio {x_dur:.2f} ->  {min_dur:.2f} seconds.")
+        pad_len = int(min_dur * fs) - len(x)
+        pad_mode = "edge" if len(x) > 0 else "constant"
+        x = np.pad(x, (0, pad_len), mode=pad_mode)
+
+    if max_dur is not None and x_dur > max_dur:
+        print(f"Truncating audio {x_dur:.2f} ->  {max_dur} seconds.")
+        x = x[: int(max_dur * fs)]
+
+    x, fs = resample_audio(x, fs)
+    assert fs == TARGET_SAMPLE_RATE, f"Sample rate should be {TARGET_SAMPLE_RATE} Hz."
+
+    return x, fs
+
+
+def _to_mono(data, source):
+    if isinstance(data, np.ndarray) and data.ndim == 2:
+        channels = data.shape[1]
+        logger.warning("Non-mono audio (%d channels) from %s, converting to mono by averaging.", channels, source)
+        data = data.mean(axis=1)
+    return data
+
+
+def _is_chunk_spec(path: str) -> bool:
+    """Return True if ``path`` looks like a chunk spec ``file:<count>:<index>``."""
+    parts = path.rsplit(":", 2)
+    return len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit()
+
+
+def _is_time_chunk_spec(path: str) -> bool:
+    """Return True for ``file#<start>:<end>`` specs in seconds or percentages."""
+    if "#" not in path:
+        return False
+    _, _, tail = path.rpartition("#")
+    if ":" not in tail:
+        return False
+    s, _, e = tail.partition(":")
+    try:
+        _parse_range_endpoint(s)
+        _parse_range_endpoint(e)
+        return True
+    except ValueError:
+        return False
+
+
+def _parse_range_endpoint(value: str, default=None):
+    if not value:
+        return default, False
+    is_percent = value.endswith("%")
+    number = float(value[:-1] if is_percent else value)
+    return number, is_percent
+
+
+def _load_time_chunk(spec):
+    file_path, _, tail = spec.rpartition("#")
+    s_str, _, e_str = tail.partition(":")
+    start, start_is_percent = _parse_range_endpoint(s_str, default=0.0)
+    end, end_is_percent = _parse_range_endpoint(e_str)
+    if start_is_percent != end_is_percent:
+        raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
+
+    chunk_audio = None
+    if split_chunk_audio_source(file_path) is not None or split_zip_audio_source(file_path) is not None:
+        chunk_audio, sr = sf_read(file_path)
+        chunk_audio = np.asarray(chunk_audio)
+        frames = len(chunk_audio)
+    elif _is_chunk_spec(file_path):
+        chunk_audio, sr = _load_chunk(file_path)
+        chunk_audio = np.asarray(chunk_audio)
+        frames = len(chunk_audio)
+    elif "://" in file_path:
+        readable_path = _localize_remote_audio(file_path)
+        info = sf.info(readable_path)
+        sr = info.samplerate
+        frames = info.frames
+    else:
+        if not bf.exists(file_path):
+            raise FileNotFoundError(f"File {file_path} does not exist.")
+        readable_path = file_path
+        info = sf.info(readable_path)
+        sr = info.samplerate
+        frames = info.frames
+    if start_is_percent:
+        end = 100.0 if end is None else end
+        if end < 0:
+            end += 100.0
+        if not 0 <= start < end <= 100.0:
+            raise ValueError(f"Invalid audio range in percent: {tail!r}")
+        start_frame = int(frames * start / 100)
+        stop_frame = int(frames * end / 100)
+    else:
+        duration = frames / sr
+        end = duration if end is None else end
+        if end < 0:
+            end += duration
+        if e_str.startswith("-") and (start >= duration or end <= 0 or end <= start):
+            logger.warning(
+                "Skipping overlapping edge cuts %r for %.3fs audio %s",
+                tail,
+                duration,
+                file_path,
+            )
+            start = 0.0
+            end = duration
+        elif e_str.startswith("-") and end - start < MIN_AUDIO_DURATION:
+            logger.warning(
+                "Skipping edge cuts %r that leave only %.3fs of %.3fs audio %s",
+                tail,
+                end - start,
+                duration,
+                file_path,
+            )
+            start = 0.0
+            end = duration
+        if not 0 <= start < end <= duration:
+            raise ValueError(f"Invalid audio range in seconds: {tail!r}")
+        start_frame = int(start * sr)
+        stop_frame = int(end * sr)
+    stop_frame = max(start_frame + 1, min(stop_frame, frames))
+    if chunk_audio is not None:
+        return chunk_audio[start_frame:stop_frame], sr
+    audio, sr = sf.read(readable_path, start=start_frame, stop=stop_frame)
+    return audio, sr
+
+
+def _load_chunk(spec):
+    if _is_time_chunk_spec(spec):
+        return _load_time_chunk(spec)
+    if _chunk_load_mode == "indexed":
+        from recipe.phimm.data.indexed_chunk import load_chunk_sample_indexed
+
+        result = load_chunk_sample_indexed(spec)
+    elif _chunk_load_mode == "sample":
+        result = load_chunk_sample(spec)
+    else:
+        result = load_chunk_example(spec)
+    if isinstance(result, list):
+        result = result[0]  # "audios" chunk type returns list of (data, sr)
+    return result
+
+
+def _load_audio_source(source):
+    """Load one source, or concatenate semicolon-separated sources in order."""
+    sources = split_audio_sources(source)
+
+    audios = []
+    for path in sources:
+        if _is_chunk_spec(path) or _is_time_chunk_spec(path):
+            data, sr = _load_chunk(path)
+        else:
+            data, sr = sf_read(path)
+        audios.append((_to_mono(data, path), sr))
+
+    if len(audios) == 1:
+        return audios[0]
+    if len({sr for _, sr in audios}) > 1:
+        audios = [resample_audio(data, sr) for data, sr in audios]
+    return np.concatenate([data for data, _ in audios]), audios[0][1]
+
+
+def load_raw_audio(x):
+    """Load audio data from the input dictionary."""
+    audio = x.get("audio")
+    sr = x.get("sr")
+    if audio is not None and sr is not None:
+        return _to_mono(audio, "inline audio"), sr
+    if isinstance(audio, dict):
+        if audio.get("array") is not None and audio.get("sampling_rate") is not None:
+            return _to_mono(np.asarray(audio["array"]), "inline audio"), audio["sampling_rate"]
+        if audio.get("bytes") is not None:
+            data, sr = sf.read(io.BytesIO(audio["bytes"]))
+            return _to_mono(data, audio.get("path") or "embedded audio"), sr
+    source = x.get("audio_path") or x.get("audio_file") or x.get("audio_chunk")
+    if source:
+        return _load_audio_source(source)
+    raise ValueError("No audio data found in the input dictionary.")
+
+
+def load_audio(x, max_dur=None, min_dur=0.16):
+    data, fs = load_raw_audio(x)
+    return limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur)
+
+
+def load_raw_audios(x):  # x is batched
+    from itertools import zip_longest
+
+    audio_paths = x.get("audio_path") or x.get("audio_file") or []
+    audio_chunks = x.get("audio_chunk", [])
+
+    for audio_path, audio_chunk in zip_longest(audio_paths, audio_chunks, fillvalue=None):
+        source = audio_path or audio_chunk
+        if not source:
+            raise ValueError("No audio data found in the input dictionary.")
+        yield _load_audio_source(source)
+
+
+def load_audios(x, max_dur=None, min_dur=0.16):  # x is batched
+    return [limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur) for data, fs in load_raw_audios(x)]

@@ -1,0 +1,56 @@
+# @package data.val_data
+# Exact French supplementary rows from the Base3a reference evaluation (965a025ac2).
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/eslo_telephony_fr/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_eslo_telephony_fr_openasr_ml_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: eslo_telephony_fr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+  val_batch_size: -1
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/accueil_ubs_fr/data_zip.jsonl
+  cache_name: openasr_expansion_18143a6e_accueil_ubs_fr_openasr_ml_verb_langhint_zip
+  add_task_info:
+    task: lang_asr_verb
+    language: French
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: accueil_ubs_fr
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - source_revision
+      - source_row
+      - metric
+      - include_in_average_wer
+      - parent_audio_path
+      - seg_index
+      - n_segments
+      - seg_start
+      - seg_end
+  val_batch_size: -1

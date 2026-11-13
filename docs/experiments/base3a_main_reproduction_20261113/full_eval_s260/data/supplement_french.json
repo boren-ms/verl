@@ -1,0 +1,78 @@
+[
+  {
+    "dataset": "eslo_telephony_fr",
+    "metric": "WER",
+    "reference": {
+      "source": "eslo_telephony_fr",
+      "uri": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_base3a_reference_s260_openfull_main_20261113/val_data_gen/eslo_telephony_fr/0.jsonl",
+      "sha256": "321e657ffe7f63069737f63bca6ed01c65a5bf6f5154fd8e9d7a46dbb5dcaa22",
+      "groups": 36,
+      "segments": 238,
+      "n_err": 4067,
+      "n_ref": 16846,
+      "p_err": 0.24142229609402827,
+      "metric_key": "val-core/eslo_telephony_fr/p_err/mean@1",
+      "scorer": "openasr_expansion",
+      "raw_cohort_sha256": "d00fe5cce1310b4c9bdbef358eab7298ee413e25846ee5be2d7564da1751c60f",
+      "legacy_raw_cohort_sha256": "d15563796c3d488e33f5864c3220d811f9e5f932815f645e167516d792522086"
+    },
+    "candidate": {
+      "source": "eslo_telephony_fr",
+      "uri": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_base3a_reproduce_s260_openfull_main_20261113/val_data_gen/eslo_telephony_fr/0.jsonl",
+      "sha256": "f89430bb37df35e0b05d7f9be779837b0f6db188775f420d0bc9a0266dec2050",
+      "groups": 36,
+      "segments": 238,
+      "n_err": 4002,
+      "n_ref": 16846,
+      "p_err": 0.2375638133681586,
+      "metric_key": "val-core/eslo_telephony_fr/p_err/mean@1",
+      "scorer": "openasr_expansion",
+      "raw_cohort_sha256": "d00fe5cce1310b4c9bdbef358eab7298ee413e25846ee5be2d7564da1751c60f",
+      "legacy_raw_cohort_sha256": "d15563796c3d488e33f5864c3220d811f9e5f932815f645e167516d792522086"
+    },
+    "delta_pp": -0.38584827258696425,
+    "raw_cohort_matches": true,
+    "scoring_code_matches": true,
+    "denominator_matches": true,
+    "numeric_gate_pass": true,
+    "passes": true
+  },
+  {
+    "dataset": "accueil_ubs_fr",
+    "metric": "WER",
+    "reference": {
+      "source": "accueil_ubs_fr",
+      "uri": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_base3a_reference_s260_openfull_main_20261113/val_data_gen/accueil_ubs_fr/0.jsonl",
+      "sha256": "eb8a53c75276f963869faba9c658635327e83366d1915d4237371e1bfcd2387d",
+      "groups": 41,
+      "segments": 119,
+      "n_err": 2102,
+      "n_ref": 7826,
+      "p_err": 0.268591873243036,
+      "metric_key": "val-core/accueil_ubs_fr/p_err/mean@1",
+      "scorer": "openasr_expansion",
+      "raw_cohort_sha256": "c86c1fbcb1c5c5d194f34dd7cf35257a89489cb45f67da87ec9506b483e1d55e",
+      "legacy_raw_cohort_sha256": "da053fe08e23166b93c46cdb9c8f7d27c6a25010ddd722047fb87225cb0eda43"
+    },
+    "candidate": {
+      "source": "accueil_ubs_fr",
+      "uri": "az://orngwus2cresco/data/boren/outputs/v2611_eval/eval_base3a_reproduce_s260_openfull_main_20261113/val_data_gen/accueil_ubs_fr/0.jsonl",
+      "sha256": "3a94ab0e4e424b4f0016de0ada157a642ba2b01352800fccdbc12ea38bb64d93",
+      "groups": 41,
+      "segments": 119,
+      "n_err": 2141,
+      "n_ref": 7826,
+      "p_err": 0.273575261947355,
+      "metric_key": "val-core/accueil_ubs_fr/p_err/mean@1",
+      "scorer": "openasr_expansion",
+      "raw_cohort_sha256": "c86c1fbcb1c5c5d194f34dd7cf35257a89489cb45f67da87ec9506b483e1d55e",
+      "legacy_raw_cohort_sha256": "da053fe08e23166b93c46cdb9c8f7d27c6a25010ddd722047fb87225cb0eda43"
+    },
+    "delta_pp": 0.4983388704318937,
+    "raw_cohort_matches": true,
+    "scoring_code_matches": true,
+    "denominator_matches": true,
+    "numeric_gate_pass": false,
+    "passes": false
+  }
+]

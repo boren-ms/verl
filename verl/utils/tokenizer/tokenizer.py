@@ -228,6 +228,9 @@ def hf_processor(name_or_path, **kwargs):
                 model_class = Glm46VModel
             case "MllamaProcessor":
                 pass  # MllamaProcessor and MllamaModel doesn't have get_rope_index property
+            case "Qwen3_5AudioProcessor":
+                # The audio model uses standard 1D positions; no vision RoPE binding.
+                pass
             case "Gemma4Processor":
                 # Gemma4 uses standard 1D RoPE -> no get_rope_index to bind. Disable its strict
                 # per-image-token check (which Qwen's processor lacks).

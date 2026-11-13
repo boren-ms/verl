@@ -293,7 +293,11 @@ class FSDPCheckpointManager(BaseCheckpointManager):
         # record the previous global step
         self.previous_global_step = global_step
 
-        if self.rank == 0:
+        # With node-local Azure-backed checkpoints, every rank tracks retention
+        # so files on nonzero nodes are removed too. No previous upload is live
+        # here: Azure publication is synchronous and ends with a rank barrier.
+        azure_checkpoint = hdfs_path is not None and hdfs_path.startswith("az://")
+        if self.rank == 0 or azure_checkpoint:
             self.ensure_checkpoint_capacity(max_ckpt_to_keep)
 
         local_path = local_mkdir_safe(local_path)
@@ -472,5 +476,22 @@ class FSDPCheckpointManager(BaseCheckpointManager):
             # wait for rank0 to dump hf_model to local
             torch.distributed.barrier()
 
-        if self.rank == 0:
+        if azure_checkpoint:
+            from verl.utils.azure_io import upload_path
+
+            # Node-local filesystems contain only the shards saved by that node.
+            # Each rank publishes its own files before the driver commits the step.
+            for content in ("model", "optim", "extra_state"):
+                shard = os.path.join(local_path, f"{content}_world_size_{self.world_size}_rank_{self.rank}.pt")
+                if os.path.isfile(shard):
+                    upload_path(shard, hdfs_path.rstrip("/") + "/" + os.path.basename(shard))
+            if self.rank == 0:
+                upload_path(hf_config_tokenizer_path, hdfs_path.rstrip("/") + "/huggingface")
+                for filename in ("fsdp_config.json", "lora_train_meta.json"):
+                    metadata = os.path.join(local_path, filename)
+                    if os.path.isfile(metadata):
+                        upload_path(metadata, hdfs_path.rstrip("/") + "/" + filename)
+            torch.distributed.barrier()
+
+        if self.rank == 0 or azure_checkpoint:
             self.register_checkpoint(local_path, max_ckpt_to_keep)

@@ -1,0 +1,74 @@
+[
+  {
+    "key": "reward-core/char/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  },
+  {
+    "key": "reward-core/fmt/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  },
+  {
+    "key": "reward-core/lang/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  },
+  {
+    "key": "reward-core/score/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  },
+  {
+    "key": "reward-core/word/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  },
+  {
+    "key": "reward-core/word_del/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  },
+  {
+    "key": "reward-core/word_ins/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  },
+  {
+    "key": "reward-core/word_kw/mean",
+    "reference_legacy_n": 122,
+    "reference_current_n": 747,
+    "candidate_n": 868,
+    "plotted": true,
+    "legacy_comparable": false,
+    "reason": "Historical normalizer differs through120; current-scorer reference121..867 only for comparisons."
+  }
+]

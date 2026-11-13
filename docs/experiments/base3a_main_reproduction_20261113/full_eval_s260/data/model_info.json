@@ -1,0 +1,18 @@
+{
+  "Original Base3a@260": {
+    "model_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/base3a_s260_parallel_20261113/exports/reference/qwen_hf",
+    "config": "plugins/phimm/src/recipe/phimm/config/v2611_dev/eval/eval_openfull_zip.yaml",
+    "node": "base3a-ref-s260-openfull-n2-critical",
+    "ray_job_id": "base3a-ref-s260-openfull-20261113-a1",
+    "wandb_url": "https://msaip.wandb.io/genai/v2611_eval/runs/xsdpdku3",
+    "code_snapshot": "489bd78dd537d4282c49fe866340eb536c03710f"
+  },
+  "Main reproduce@260": {
+    "model_path": "az://orngwus2cresco/data/boren/outputs/v2611_eval/base3a_s260_parallel_20261113/exports/reproduce/qwen_hf",
+    "config": "plugins/phimm/src/recipe/phimm/config/v2611_dev/eval/eval_openfull_zip.yaml",
+    "node": "base3a-main-s260-openfull-n2-critical",
+    "ray_job_id": "base3a-main-s260-openfull-20261113-a1",
+    "wandb_url": "https://msaip.wandb.io/genai/v2611_eval/runs/5u4m6lgj",
+    "code_snapshot": "489bd78dd537d4282c49fe866340eb536c03710f"
+  }
+}

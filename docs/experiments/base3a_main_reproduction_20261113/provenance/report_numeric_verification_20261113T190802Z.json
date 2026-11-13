@@ -1,0 +1,23 @@
+{
+  "report": "/mnt/c/Users/boren/.codex/visualizations/2026/11/12/01a1d1ee-de73-7682-940c-1e186fa33324/base3a-regenerated/20261113T190802Z",
+  "numeric_verification": "PASS",
+  "pdf_pages": 15,
+  "latest_validation": 868,
+  "observed_validation_steps": 45,
+  "passes": 4,
+  "datasets": 9,
+  "full_evaluations": {
+    "260": {
+      "all35_exact_gates_verified": true,
+      "workbook_rendering_verified": true,
+      "passes": 31
+    },
+    "868": {
+      "all35_exact_gates_verified": true,
+      "workbook_rendering_verified": true,
+      "passes": 29
+    }
+  },
+  "all_required_pdf_images_pixel_verified": true,
+  "overall_parity_pass": false
+}

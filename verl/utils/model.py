@@ -788,6 +788,14 @@ def extract_multi_modal_inputs(
     for key, values in multi_modal_inputs_collected.items():
         if has_image_bound:  # minicpm-o logic
             multi_modal_inputs[key] = values
+        elif key == "input_audio_embeds":
+            # Qwen/Phi audio features have shape (num_audios, time, mel).
+            # Reuse the variable-length collator with time in its last axis.
+            multi_modal_inputs[key] = _pad_last_dim_and_cat(
+                [value.transpose(-1, -2) for value in values], key
+            ).transpose(-1, -2).contiguous()
+        elif key == "audio_attention_mask":
+            multi_modal_inputs[key] = _pad_last_dim_and_cat(values, key)
         elif key in _VARLEN_MULTI_MODAL_KEYS:
             # some multi-modal keys with variable length are put in non-tensor batch,
             # so we need to pad them manually.

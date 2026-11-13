@@ -1,0 +1,4 @@
+interface:
+  display_name: "Audio Alignment and Subsets"
+  short_description: "Align speech and build auditable audio subsets"
+  default_prompt: "Use $audio-align-subset to align transcripts and create an auditable audio subset."

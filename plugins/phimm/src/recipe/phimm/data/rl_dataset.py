@@ -1,0 +1,547 @@
+import logging
+import math
+import random
+from collections.abc import Mapping, Sequence
+from typing import Optional
+
+import datasets
+import soundfile as sf
+import torch
+from omegaconf import DictConfig
+
+from torch.utils.data import Dataset
+from transformers import PreTrainedTokenizer, ProcessorMixin
+
+import verl.utils.torch_functional as verl_F
+from verl.audio_cache import RemoteAudioCacheError
+from verl.utils.model import compute_position_id_with_mask
+from recipe.phimm.data.dataset import create_audio_dataset, get_num_proc
+from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
+
+logger = logging.getLogger(__name__)
+
+try:
+    from hf_qwen35_audio.processing_qwen3_5_audio import AUDIO_PAD_TOKEN_ID
+except Exception:  # pragma: no cover - fallback if plugin import path differs
+    AUDIO_PAD_TOKEN_ID = 248076
+
+
+def to_numpy(x):
+    if isinstance(x, torch.Tensor):
+        return x.numpy()
+    return x
+
+
+def remove_empty_tensors(batch: dict) -> dict:
+    keys_to_remove = []
+    for key, value in batch.items():
+        if isinstance(value, torch.Tensor) and value.numel() == 0:
+            keys_to_remove.append(key)
+    for key in keys_to_remove:
+        batch.pop(key, None)
+    return batch
+
+
+def _load_audio_with_retries(ds, index, max_dur, max_retries, audio_loader, recoverable_errors):
+    attempted_sources = []
+    retry_stride = max(1, len(ds) // (max_retries + 1))
+    for offset in range(max_retries + 1):
+        sample_index = (int(index) + offset * retry_stride) % len(ds)
+        row_dict = ds[sample_index]
+        source = row_dict.get("audio_path") or row_dict.get("audio_file") or row_dict.get("audio_chunk")
+        try:
+            return row_dict, audio_loader(row_dict, max_dur)
+        except recoverable_errors as exc:
+            attempted_sources.append(str(source))
+            logger.warning(
+                "Skipping unreadable training audio at dataset index %s: %s (%s)",
+                sample_index,
+                source,
+                type(exc).__name__,
+            )
+    raise RuntimeError(
+        f"Unable to load audio after {max_retries + 1} attempt(s): {attempted_sources}"
+    ) from None
+
+
+def _flatten_data_confs(data_confs):
+    if isinstance(data_confs, (str, bytes)) or not isinstance(data_confs, Sequence):
+        return [data_confs]
+
+    flattened = []
+    for data_conf in data_confs:
+        if isinstance(data_conf, Sequence) and not isinstance(data_conf, (str, bytes)):
+            flattened.extend(_flatten_data_confs(data_conf))
+        else:
+            flattened.append(data_conf)
+    return flattened
+
+
+def _promote_null_feature(feat):
+    """Promote ``null``-typed leaves to ``string`` while preserving structure.
+
+    HuggingFace infers ``Value('null')`` / ``List(Value('null'))`` for columns
+    (e.g. ``extra_info.keywords``) that are entirely empty/``None`` in a given
+    data source. Such a source cannot be concatenated/interleaved with another
+    source where the same column carries real strings. This promotes only the
+    ``null`` leaves (bare ``null`` values and lists whose element is ``null``),
+    recursing into struct/``Features`` dicts to reach nested fields, and leaves
+    list-of-struct fields such as the chat ``prompt`` untouched (never turning a
+    ``list<struct>`` into a struct-of-lists).
+    """
+    from datasets import Features, Sequence, Value
+
+    if isinstance(feat, Features):
+        return Features({k: _promote_null_feature(v) for k, v in feat.items()})
+    if isinstance(feat, dict):
+        return {k: _promote_null_feature(v) for k, v in feat.items()}
+    if isinstance(feat, Value) and feat.dtype == "null":
+        return Value("string")
+    if isinstance(feat, Sequence) and isinstance(feat.feature, Value) and feat.feature.dtype == "null":
+        return Sequence(Value("string"), length=feat.length)
+    if hasattr(datasets, "List") and isinstance(feat, datasets.List) and isinstance(feat.feature, Value) and feat.feature.dtype == "null":
+        return datasets.List(Value("string"))
+    if isinstance(feat, list) and len(feat) == 1 and isinstance(feat[0], Value) and feat[0].dtype == "null":
+        return [Value("string")]
+    return feat
+
+
+def _align_null_features(data_sets):
+    """Cast every dataset so ``null``-typed columns become ``string``-typed.
+
+    Ensures sources with all-empty optional fields (e.g. ``keywords``) share a
+    schema with sources that populate them, so ``concatenate_datasets`` /
+    ``interleave_datasets`` can align features.
+    """
+    aligned = []
+    for ds in data_sets:
+        promoted = _promote_null_feature(ds.features)
+        if promoted != ds.features:
+            ds = ds.cast(promoted)
+        aligned.append(ds)
+    return aligned
+
+
+def _collect_datasources(data_sets: Sequence[datasets.Dataset]) -> dict[str, datasets.Dataset]:
+    """Return one combined dataset per datasource in first-seen source order."""
+    grouped = {}
+    for index, ds in enumerate(data_sets):
+        if not len(ds):
+            logger.warning("Skipping empty training dataset %s; its data_source cannot be inferred.", index)
+            continue
+        source = ds[0].get("data_source", "default")
+        grouped.setdefault(source, []).append(ds)
+    return {
+        name: datasets.concatenate_datasets(parts) if len(parts) > 1 else parts[0]
+        for name, parts in grouped.items()
+    }
+
+
+def group_datasets(
+    data_sets: Sequence[datasets.Dataset], source_config: Mapping | None = None
+) -> list[datasets.Dataset]:
+    """Return weighted groups in configured source order; all sources must match."""
+    if not isinstance(source_config, Mapping):
+        raise ValueError("data.data_source must map datasource names to num_epoch/num_sample settings.")
+    grouped = _collect_datasources(data_sets)
+    if set(source_config) != set(grouped):
+        missing = [source for source in source_config if source not in grouped]
+        unlisted = [source for source in grouped if source not in source_config]
+        raise ValueError(
+            "Datasource names do not match: "
+            f"configured names have no non-empty training datasets: {missing}; "
+            f"training datasource names are missing from data.data_source: {unlisted}"
+        )
+
+    sampled = []
+    for source, options in source_config.items():
+        ds = grouped[source]
+        num_epoch, num_sample = options.get("num_epoch"), options.get("num_sample")
+        size = len(ds)
+        if num_epoch is not None:
+            num_sample = math.floor(size * num_epoch)
+        if num_sample is None:
+            num_sample = size
+        if num_sample < 0:
+            raise ValueError(f"Datasource {source} has a negative sampled size: {num_sample}")
+        logger.info("Datasource %s: %s => %s rows", source, size, num_sample)
+        if num_sample == 0:
+            continue
+        if num_sample != size:
+            full_passes, remainder = divmod(num_sample, size)
+            repeated = [ds] * full_passes
+            if remainder:
+                indices = random.sample(range(size), remainder)
+                repeated.append(ds.select(indices))
+            ds = datasets.concatenate_datasets(repeated) if len(repeated) > 1 else repeated[0]
+        if options.get("shuffle", False):
+            ds = ds.shuffle()
+        sampled.append(ds)
+    if not sampled:
+        raise ValueError("No samples remain after applying data.data_source budgets.")
+    return sampled
+
+
+def mix_datasets(
+    data_sets: Sequence[datasets.Dataset],
+    mix: Sequence[Mapping],
+    train_batch_size: int | None = None,
+    seed: int = 42,
+) -> datasets.Dataset:
+    """Concatenate ordered groups with independent source budgets and local shuffling."""
+    if isinstance(mix, (str, bytes)) or not isinstance(mix, Sequence) or not mix:
+        raise ValueError("data.mix must be a non-empty list of groups.")
+    sources = _collect_datasources(data_sets)
+    groups = []
+    for group_index, group in enumerate(mix):
+        context = f"data.mix[{group_index}]"
+        if not isinstance(group, Mapping) or set(group) - {"datasource", "shuffle"}:
+            raise ValueError(f"{context} must contain datasource and optional shuffle only.")
+        entries = group.get("datasource")
+        if isinstance(entries, (str, bytes)) or not isinstance(entries, Sequence) or not entries:
+            raise ValueError(f"{context}.datasource must be a non-empty list.")
+        if not isinstance(group.get("shuffle", False), bool):
+            raise ValueError(f"{context}.shuffle must be a boolean.")
+        parts = []
+        for source_index, options in enumerate(entries):
+            source_context = f"{context}.datasource[{source_index}]"
+            if not isinstance(options, Mapping) or set(options) - {
+                "name", "sample", "batch", "epoch", "shuffle", "range", "shuffle_seed"
+            }:
+                raise ValueError(
+                    f"{source_context} accepts name, sample, batch, epoch, shuffle, range, and shuffle_seed only."
+                )
+            name = options.get("name")
+            if not isinstance(name, str) or name not in sources:
+                raise ValueError(f"{source_context}.name has no non-empty training datasource: {name!r}")
+            if not isinstance(options.get("shuffle", False), bool):
+                raise ValueError(f"{source_context}.shuffle must be a boolean.")
+            budgets = [key for key in ("sample", "batch", "epoch") if options.get(key) is not None]
+            if len(budgets) > 1:
+                raise ValueError(f"{source_context} must use only one of sample, batch, or epoch.")
+            ds = sources[name]
+            size = len(ds)
+            source_range = options.get("range")
+            if source_range is not None:
+                if (
+                    isinstance(source_range, (str, bytes))
+                    or not isinstance(source_range, Sequence)
+                    or len(source_range) != 2
+                    or any(isinstance(bound, bool) or not isinstance(bound, int) for bound in source_range)
+                ):
+                    raise ValueError(f"{source_context}.range must be [start, end] with integer bounds.")
+                start, end = source_range
+                if not 0 <= start <= end <= size:
+                    raise ValueError(
+                        f"{source_context}.range must satisfy 0 <= start <= end <= datasource size ({size})."
+                    )
+                ds = ds.select(range(start, end) if start < end else [])
+                size = len(ds)
+            source_seed = options.get("shuffle_seed", seed + group_index + source_index)
+            if isinstance(source_seed, bool) or not isinstance(source_seed, int) or source_seed < 0:
+                raise ValueError(f"{source_context}.shuffle_seed must be a non-negative integer.")
+            count = size
+            if budgets:
+                key = budgets[0]
+                value = options[key]
+                if (
+                    isinstance(value, bool)
+                    or not isinstance(value, (int, float))
+                    or not math.isfinite(value)
+                    or value < 0
+                ):
+                    raise ValueError(f"{source_context}.{key} must be a finite non-negative number.")
+                if key == "batch":
+                    if (
+                        isinstance(train_batch_size, bool)
+                        or not isinstance(train_batch_size, int)
+                        or train_batch_size <= 0
+                    ):
+                        raise ValueError("data.train_batch_size must be a positive integer for mix batch budgets.")
+                    count = value * train_batch_size
+                elif key == "epoch":
+                    count = size * value
+                else:
+                    count = value
+                if not math.isfinite(count):
+                    raise ValueError(f"{source_context}.{key} produces a non-finite row count.")
+                count = round(count)
+            logger.info("Mix group %s datasource %s: %s => %s rows", group_index, name, size, count)
+            if not count:
+                continue
+            if not size:
+                raise ValueError(f"{source_context}.range leaves no rows for a positive sample budget.")
+            if options.get("shuffle", False):
+                ds = ds.shuffle(seed=source_seed)
+            full_passes, remainder = divmod(count, size)
+            repeated = [ds] * full_passes
+            if remainder:
+                repeated.append(ds.select(range(remainder)))
+            parts.append(datasets.concatenate_datasets(repeated) if len(repeated) > 1 else repeated[0])
+        if not parts:
+            logger.warning("Skipping mix group %s: all datasource budgets select zero rows.", group_index)
+            continue
+        ds = datasets.concatenate_datasets(parts) if len(parts) > 1 else parts[0]
+        if group.get("shuffle", False):
+            ds = ds.shuffle(seed=seed + group_index)
+        groups.append(ds)
+    if not groups:
+        raise ValueError("No samples remain after applying data.mix budgets.")
+    return datasets.concatenate_datasets(groups) if len(groups) > 1 else groups[0]
+
+
+class RLHFDataset(Dataset):
+    """
+    Load and preprocess RLHF data from Parquet files.
+
+    - Caches files locally.
+    - Reads into a HuggingFace Dataset and tokenizes prompts.
+    - Optionally handles images/videos via a ProcessorMixin.
+    - Filters prompts over a max length.
+    - Supports resuming from checkpoints.
+
+    Args:
+        data_files (str or list): Path(s) to Parquet file(s).
+        tokenizer (PreTrainedTokenizer): For the tokenization of text to token IDs.
+        config (DictConfig): Options like cache_dir, prompt_key, max_prompt_length, truncation, etc.
+        processor (ProcessorMixin, optional): Multimodal preprocessor for images/videos.
+    """
+
+    def __init__(
+        self,
+        data_confs: str | list[str],
+        tokenizer: PreTrainedTokenizer,
+        config: DictConfig,
+        processor: Optional[ProcessorMixin] = None,
+        is_train: bool = True,
+    ):
+        self.data_confs = _flatten_data_confs(data_confs)
+        self.tokenizer = tokenizer
+        self.processor = processor
+        self.config = config
+        self.is_training = is_train
+        self.use_interleave = config.get("use_interleave", True)
+        self.interleave_ds = config.get("interleave_ds", {})
+        self.max_prompt_length = config.get("max_prompt_length", 1024)
+        self.max_audio_dur = config.get("max_audio_dur", 40)
+        self.max_audio_load_retries = max(0, int(config.get("max_audio_load_retries", 8)))
+        set_chunk_load_mode(config.get("chunk_load_mode") or "indexed")
+        self.prompt_key = config.get("prompt_key", "prompt")
+        self.return_raw_chat = config.get("return_raw_chat", False)
+        self.return_full_prompt = config.get("return_full_prompt", False)
+        self.truncation = config.get("truncation", "right2")
+        self.apply_chat_template_kwargs = config.get("apply_chat_template_kwargs", {})
+        self.version = config.get("version")
+        self.num_proc = get_num_proc(config.get("num_proc", "auto"))
+        self.chat_template_func = config.get("chat_template_func", None)
+        self.need_tools_kwargs = config.get("need_tools_kwargs", False)
+        self.return_multi_modal_inputs = config.get("return_multi_modal_inputs", True)
+        self.ds = self.load_datasets()
+
+    def load_datasets(self):
+        data_sets = [
+            create_audio_dataset(**{**data_conf, "version": self.version})
+            for data_conf in self.data_confs
+        ]
+        data_sets = _align_null_features(data_sets)
+        source_config = self.config.get("data_source")
+        mix = self.config.get("mix")
+        if self.is_training and mix is not None:
+            if source_config is not None:
+                raise ValueError("data.mix and data.data_source cannot be configured together.")
+            if self.config.get("shuffle", False):
+                raise ValueError("Set data.shuffle=false when using data.mix to preserve ordered mix groups.")
+            seed = self.config.get("seed") or 42
+            return mix_datasets(
+                data_sets, mix, self.config.get("train_batch_size"), seed=seed
+            )
+        if self.is_training and source_config is not None:
+            data_sets = group_datasets(data_sets, source_config)
+        if self.is_training and self.use_interleave and len(data_sets) > 1:
+            logger.info(
+                "Interleaving %s datasets with parameters: %s",
+                len(data_sets),
+                self.interleave_ds,
+            )
+            ds = datasets.interleave_datasets(data_sets, **self.interleave_ds)
+        else:
+            logger.info("Concatenating %s datasets", len(data_sets))
+            ds = datasets.concatenate_datasets(data_sets)
+        return ds
+
+    def resume_dataset_state(self):
+        pass
+
+    def __len__(self):
+        return len(self.ds)
+
+    def __getitem__(self, i):
+        """
+        Note that we also return the raw_input_ids so that it can be combined with other chat template
+        """
+        max_retries = self.max_audio_load_retries if self.is_training else 0
+        row_dict, audio = _load_audio_with_retries(
+            self.ds,
+            i,
+            self.max_audio_dur,
+            max_retries,
+            load_audio,
+            (sf.LibsndfileError, FileNotFoundError, OSError, RemoteAudioCacheError),
+        )
+        messages = row_dict[self.prompt_key]
+
+        # Use processor.apply_chat_template if available; fall back to tokenizer
+        _chat_obj = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
+        raw_prompt = _chat_obj.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            tokenize=False,
+            **self.apply_chat_template_kwargs,
+        )
+        extra_info = row_dict.get("extra_info") or {}
+        prefix = extra_info.get("prefix", "") or ""
+        raw_prompt = f"{raw_prompt}{prefix}"
+        # print(f"raw_prompt after prefix [{i}]: {raw_prompt}")
+        # print(f"raw_prompt[{i}]: {raw_prompt}", i, raw_prompt)
+
+        audios = [audio]
+
+        row_dict["multi_modal_data"] = {"audio": [(to_numpy(audio), fs) for (audio, fs) in audios]}
+        model_inputs = self.processor(text=[raw_prompt], audios=audios, return_tensors="pt")
+        input_ids = model_inputs.pop("input_ids")
+        attention_mask = model_inputs.pop("attention_mask")
+
+
+        if self.return_multi_modal_inputs:
+            inputs_dict = dict(model_inputs)
+            inputs_dict = remove_empty_tensors(inputs_dict)
+            if "input_audio_embeds" in inputs_dict:
+                inputs_dict["input_audio_embeds"] = inputs_dict["input_audio_embeds"].squeeze(0)
+            if "audio_attention_mask" in inputs_dict and inputs_dict["audio_attention_mask"] is not None:
+                inputs_dict["audio_attention_mask"] = inputs_dict["audio_attention_mask"].squeeze(0)
+            if "input_audio_embeds" in inputs_dict and inputs_dict.get("audio_attention_mask", None) is None:
+                inputs_dict["audio_attention_mask"] = torch.ones(
+                    inputs_dict["input_audio_embeds"].shape[:-1],
+                    dtype=torch.long,
+                )
+            row_dict["multi_modal_inputs"] = inputs_dict
+
+        input_ids, attention_mask = verl_F.postprocess_data(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            max_length=self.max_prompt_length,
+            pad_token_id=self.tokenizer.pad_token_id,
+            left_pad=True,
+            truncation=self.truncation,
+        )
+
+        position_ids = compute_position_id_with_mask(attention_mask)
+
+        row_dict["input_ids"] = input_ids[0]
+        row_dict["attention_mask"] = attention_mask[0]
+        row_dict["position_ids"] = position_ids[0]
+
+        # Prompt truncation (e.g. "right2") can drop the tail of the audio-placeholder
+        # block for overlong prompts, leaving fewer AUDIO_PAD tokens in input_ids than
+        # the stored audio_embed_sizes describe. That mismatch trips the assertion
+        # `audio_embed_sizes.sum() == len(positions)` in the model's audio embedding
+        # forward. Reconcile audio_embed_sizes with the surviving placeholder tokens so
+        # each sample stays internally consistent; the encoder still produces the full
+        # audio_set_tensor and only its aligned prefix frames are consumed.
+        if self.return_multi_modal_inputs:
+            mmi = row_dict.get("multi_modal_inputs")
+            if mmi is not None and "audio_embed_sizes" in mmi:
+                audio_embed_sizes = mmi["audio_embed_sizes"]
+                n_pad = int((row_dict["input_ids"] == AUDIO_PAD_TOKEN_ID).sum().item())
+                if int(audio_embed_sizes.sum().item()) != n_pad:
+                    remaining = n_pad
+                    new_sizes = []
+                    for sz in audio_embed_sizes.tolist():
+                        take = min(int(sz), remaining)
+                        new_sizes.append(take)
+                        remaining -= take
+                    logger.warning(
+                        "Reconciled audio_embed_sizes %s -> %s for sample %s (data source: %s) "
+                        "after prompt truncation dropped %s audio placeholder token(s).",
+                        audio_embed_sizes.tolist(),
+                        new_sizes,
+                        i,
+                        row_dict.get("data_source"),
+                        int(audio_embed_sizes.sum().item()) - n_pad,
+                    )
+                    mmi["audio_embed_sizes"] = torch.tensor(new_sizes, dtype=audio_embed_sizes.dtype)
+
+        raw_prompt_ids = self.tokenizer.encode(raw_prompt, add_special_tokens=False)
+        row_dict["raw_prompt_ids"] = raw_prompt_ids
+        # encode prompts without chat template
+        if self.return_raw_chat:
+            row_dict["raw_prompt"] = messages
+
+        # get prompts with chat template
+        if self.return_full_prompt:
+            row_dict["full_prompts"] = raw_prompt  # array of strings
+
+        # add index for each prompt
+        row_dict["extra_info"] = extra_info
+        index = extra_info.get("index", 0)
+        tools_kwargs = extra_info.get("tools_kwargs", {})
+        interaction_kwargs = extra_info.get("interaction_kwargs", {})
+        need_tools_kwargs = extra_info.get("need_tools_kwargs", self.need_tools_kwargs)
+        if need_tools_kwargs and not tools_kwargs:
+            logger.warning("tools_kwargs is empty for index %s, data source: %s", index, row_dict["data_source"])
+        row_dict["index"] = index
+        row_dict["tools_kwargs"] = tools_kwargs
+        row_dict["interaction_kwargs"] = interaction_kwargs
+        return row_dict
+
+    def __getstate__(self):
+        return self.__dict__.copy()
+
+
+def main(config_path, tokenizer_path, data_files=None):
+    """
+    Example main function to instantiate RLHFDataset from CLI.
+    """
+    from omegaconf import OmegaConf
+
+    from verl.utils import hf_processor, hf_tokenizer
+
+    tokenizer = hf_tokenizer(tokenizer_path, trust_remote_code=True)
+    processor = hf_processor(tokenizer_path, trust_remote_code=True)
+    config = (
+        OmegaConf.load(config_path)["data"]
+        if config_path
+        else {
+            "audio_key": "audio_path",
+            "asr_dataset": True,
+            # "filter_overlong_prompts": False,
+            "max_prompt_length": 30,
+            "max_response_length": 2048,
+            "train_files": data_files,
+        }
+    )  # must have for phi4mm
+    data_files = config.get("train_files", None)
+    data_conf = config.get("train_data", None)
+    # data_conf = config.get("val_data", None)
+    dataset = RLHFDataset(data_conf, tokenizer, config, processor, True)
+    from torchdata.stateful_dataloader import StatefulDataLoader
+    from verl.utils.dataset.rl_dataset import collate_fn as default_collate_fn
+
+    loader = StatefulDataLoader(dataset=dataset, batch_size=2, num_workers=0, collate_fn=default_collate_fn)
+    for batch in loader:
+        print(batch)
+        break
+
+
+if __name__ == "__main__":
+    # import fire
+    # fire.Fire(main)
+    # data_files = "/home/boren/data/parquet/ls_sc1k_fn1_h100.parquet"
+    # data_conf = "/home/boren/data/parquet/data_conf.yaml"
+    tokenizer_path = "/home/boren/data/ckp/hf_models/Phi-4-multimodal-instruct"
+    tokenizer_path = "/home/boren/data/ckp/hf_models/phi4_mm_bias_merged"
+    # data_yaml = "/home/boren/verl/recipe/phimm/config/data_local.yaml"
+    # data_yaml = "/home/boren/verl/recipe/phimm/config/data_local_parquet.yaml"
+    data_yaml = "/home/boren/verl/recipe/phimm/config/data_local_2.yaml"
+
+    main(data_yaml, tokenizer_path)

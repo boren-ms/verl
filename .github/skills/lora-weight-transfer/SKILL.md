@@ -1,0 +1,395 @@
+---
+name: lora-weight-transfer
+description: "Check local checkpoints first, reuse verified LoRA artifacts, and transfer actual PEFT LoRA A/B tensors from a complete verl model_world_size_*_rank_*.pt checkpoint set only when needed. Merge into the matching full Qwen3.5-audio baseline with MTP layers preserved by default, produce lora_merged_model_states_mtp.pt, and upload both outputs through /copy-to-corp-blob. Use when: transfer LoRA weights, reconstruct model state dictionaries with MTP, build a LoRA-merged checkpoint, or publish both artifacts to tsstd01safn."
+---
+
+# LoRA Weight Transfer
+
+Prepare and download the actual trained LoRA adapter matrices:
+
+```text
+*.lora_A.weight
+*.lora_B.weight
+```
+
+`lora_weights.pt` is a PyTorch dictionary containing only these adapter
+tensors. It is not a merged checkpoint, a changed-base-weight delta, or a PEFT
+directory.
+
+**Local first, corp Blob for baseline downloads, MTP by default.** Always
+complete Phase 0 before listing blobs, selecting a remote node, syncing code,
+extracting shards, downloading files, or merging again. Reuse a verified local
+matching baseline. When a base/seed checkpoint or its original MTP checkpoint
+must be downloaded, fetch it directly from its verified **corp Azure Blob**
+source, never an Orange copy. This restriction is specific to the base/seed
+model; the requested trained actor shards may still reside on Orange. Both
+baseline checkpoints and LoRA artifacts must pass the source-to-copy MD5
+checks below before use or delivery. The default merged output retains all
+baseline MTP layers and is named
+`lora_merged_model_states_mtp.pt`, even when the user does not explicitly say
+"with MTP layers".
+
+## Source of Truth
+
+Use the complete actor model shard set:
+
+```text
+<global_step>/actor/model_world_size_<N>_rank_*.pt
+```
+
+All ranks from `0` through `N-1` are required. The extractor gathers DTensor
+and legacy ShardedTensor values according to their shard metadata, and
+concatenates ordinary FSDP tensor shards in rank order. Never use
+`extra_state_world_size_*.pt`: those files contain only scheduler and RNG
+state. Also never use optimizer state, merged model weights, or checkpoint
+deltas. The merged update is proportional to `B @ A`; the original A/B
+factorization cannot be uniquely recovered from that product.
+
+## Inputs
+
+| Input | Description | Default |
+|---|---|---|
+| `SOURCE` | Checkpoint/`qwen_hf` directory, actor directory, or quoted `model_world_size_<N>_rank_*.pt` pattern, local or `az://` | required; resolve checkpoint/`qwen_hf` inputs to the same step's `actor` directory |
+| `ROOT` | Destination `az://` URI where the artifact and splits are published | required only for blob transfer; normally the supplied global-step directory |
+| `DST` | Local destination directory to inspect first | `~/data/ckp/<run>/<global_step>` when identifiable from the supplied checkpoint |
+| `NODE` | Ready, in-region Brix node | choose only if remote extraction is needed |
+| `BASELINE` | Matching local LoRA-merged baseline used as the merge base | legacy default below; use the run's actual baseline |
+| `MTP_BASELINE` | Original full baseline checkpoint supplying unchanged `mtp.*` tensors if `BASELINE` was inference-pruned | inspect the matching local baseline directory first; not needed when `BASELINE` already retains all MTP layers |
+| `BASELINE_CORP` | Authoritative corp Azure Blob location of the matching base/seed checkpoint | required when the matching local baseline or MTP source must be downloaded; resolve and verify from provenance |
+| Merged output | Full checkpoint retaining baseline MTP layers | `DST/lora_merged_model_states_mtp.pt`; adjacent checksum `lora_merged_model_states_mtp.md5` |
+| `CORP_ROOT` | Corp destination derived from `DST` by `/copy-to-corp-blob` | `https://tsstd01safn.blob.core.windows.net/data/users/boren/data/<DST-relative-to-~/data>` |
+
+Example inputs:
+
+```text
+SOURCE=az://orngwus2cresco/data/boren/outputs/.../global_step_100/actor
+ROOT=az://orngwus2cresco/data/boren/outputs/.../global_step_100
+DST=~/data/ckp/run/global_step_100
+NODE=verl-n1-i10
+BASELINE=~/data/ckp/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/lora_merged_model_states.pt
+```
+
+Require authenticated `bbb` only on nodes performing blob transfers. Remote
+extraction requires `torch` in the remote Python environment; local extraction,
+merge, and tensor verification require it locally. Set `PYTHON=/path/to/python`
+when `python` is not the correct interpreter.
+
+## Phase 0: Check Local Checkpoints First (Mandatory)
+
+Resolve `DST` and the matching local baseline before any remote operation.
+For a supplied `.../global_step_N/qwen_hf`, use the sibling `actor` directory
+as the shard source, not the merged HF weights. If the baseline input is a
+directory, inspect it and its matching checkpoint-step subdirectory (for
+example `54000`); confirm the step against the run configuration or existing
+local export provenance rather than choosing an unrelated checkpoint.
+
+Inspect the exact local files before deciding what work is missing:
+
+- `DST/lora_weights.pt` and `DST/lora_weights.md5`.
+- `DST/lora_merged_model_states_mtp.pt` and its adjacent `.md5`.
+- Any existing untagged `DST/lora_merged_model_states.pt`, without replacing it.
+- Local `actor/model_world_size_*_rank_*.pt` files, if present.
+- The matching baseline's `lora_merged_model_states.pt`,
+  `mp_rank_00_model_states.pt`, and `config.json`, if present.
+
+Check nonzero file sizes, adjacent MD5 files, tensor layouts, and the identity
+of the source run, step, baseline, and LoRA scaling. A matching filename or MD5
+alone does not establish that a merged checkpoint has the required MTP layers.
+Inspect its actual `module` keys and verify MTP coverage and values against the
+original full baseline using the Phase 4 checks.
+
+| Verified local state | Next action |
+|---|---|
+| Adapters and the matching MTP-preserving merged checkpoint both exist | Run Phase 4 verification without merging again, then Phase 5; skip Phases 1-3 |
+| Adapters exist, but the MTP-preserving merged checkpoint is missing | Start at Phase 4; do not re-extract or download adapters or shards |
+| MTP-preserving merged checkpoint exists, but adapters are missing | Recover only the actual A/B artifact; keep the verified merged checkpoint and do not infer adapters from it |
+| Complete local actor shard set exists, but adapters are missing | Extract locally with the Phase 2 Python command, create `lora_weights.md5`, then Phase 4; no remote node or shard download is needed |
+| Required artifacts and a complete local shard set are absent | Resolve missing baseline files from corp Blob, then proceed to Phases 1-3 for only the missing adapters |
+
+Report corrupt, incomplete, or mismatched local artifacts explicitly; do not
+silently reuse or overwrite them. A newly generated local checksum establishes
+a fingerprint, not agreement with the source. If a checksum sidecar is missing,
+verify against the exact source as described below, in addition to the required
+tensor/provenance checks. An existing
+untagged non-MTP checkpoint does not satisfy the default MTP output requirement;
+keep it separate and restore MTP from the original full baseline.
+
+## Phase 0a: Resolve and Download a Missing Baseline from Corp Blob
+
+Apply this phase whenever the matching local base/seed model, its original full
+MTP checkpoint, or its configuration is missing. Identify the exact corp
+storage account, container, checkpoint path, and step from the user's source,
+producer provenance, or a verified transfer manifest. A training config can
+point at an Orange mirror; that establishes model identity, not the corp
+account or container. Do not infer the container from a virtual path such as
+`/modelblob`, and do not substitute a similarly named checkpoint. If the corp
+source or access cannot be established, retain the evidence and ask for the
+exact source or access; never fall back to an Orange baseline.
+
+Download the required baseline files **directly from the verified corp Blob
+URI to the local matching baseline directory** using `bbb`, including
+`config.json`, the matching `lora_merged_model_states.pt`, and, when needed,
+the original `mp_rank_00_model_states.pt` containing MTP. Verify identity and
+complete file sizes, then compare the local MD5 of each baseline checkpoint
+against the MD5 of its exact corp source before use. Use an authoritative
+source-provided MD5 or a provenance-bound manifest. When neither exists, stream
+the exact corp blob independently to compute its MD5; pin its version or ETag
+and confirm the same version was used for both reads. Record the source URI,
+version/ETag, size, MD5 method, and result. A local sidecar, size match, or an
+Orange mirror checksum alone does not establish a corp source match. If the
+source MD5 cannot be established or differs, preserve evidence and stop before
+merge; do not label it verified. Inspect configured MTP depth and the full source's
+actual MTP keys; preserve the full original checkpoint for Phase 4.
+
+Use the corp tenant's existing authentication without changing the global
+Orange/Green Azure CLI context. If `bbb` otherwise chooses the wrong tenant,
+use an isolated corp Azure CLI configuration and the supported Azure Identity
+credential path, for example `AZURE_USE_IDENTITY=1 AZURE_CONFIG_DIR=<corp-cli>`.
+Protect credentials and do not print SAS tokens. This corp-only rule applies
+to baseline downloads; it does not change the actor-shard `SOURCE`, LoRA
+staging, or the `/copy-to-corp-blob` output destination.
+
+## Phase 1: Locate All Model Shards
+
+Enter this phase only when Phase 0 identifies missing adapter weights. Before
+extracting again, check whether the same checkpoint already has a verified
+`ROOT/lora_weights.pt` or `ROOT/lora_weights_split/`; if so, recover that artifact
+in Phase 3 and skip remote extraction. Never download or rebuild an artifact
+already verified locally.
+
+Resolve the complete shard set directly from the supplied checkpoint directory:
+
+```bash
+CHECKPOINT=<remote_checkpoint_dir_without_trailing_slash>
+brix ssh <NODE> -- 'ls -lh '"$CHECKPOINT"'/actor/model_world_size_*_rank_*.pt'
+```
+
+The source may instead be an `az://` actor directory or quoted wildcard.
+`prepare_remote.sh` discovers every matching file with `bbb ls` and downloads
+each with `bbb cp`. When downloading actor shards for LoRA extraction, verify
+each downloaded shard's MD5 against its exact source using the same source MD5
+and version/ETag method as Phase 0a. If that cannot be established, stop before
+extraction. Do not substitute `extra_state_world_size_*` or
+`optim_world_size_*` files, and do not proceed with a partial rank set.
+
+## Phase 2: Prepare and Upload on the Remote Node
+
+Sync the repository so the scripts are available, then confirm `bbb` can read
+the destination root:
+
+```bash
+rcall-brix sync <NODE>
+brix ssh <NODE> -- 'bbb ls <publish_blob_root>'
+```
+
+Run [prepare_remote.sh](./scripts/prepare_remote.sh) on the remote node. It
+calls [extract_lora_weights.py](./scripts/extract_lora_weights.py), creates
+48 MiB zip splits and MD5 manifests, then uploads everything with `bbb cp`:
+
+```bash
+brix ssh <NODE> -- 'cd ~/code/verl && bash \
+  .github/skills/lora-weight-transfer/scripts/prepare_remote.sh \
+  <publish_blob_root> \
+  <local_or_az_actor_directory>'
+```
+
+To perform extraction only, run the Python script directly:
+
+```bash
+python .github/skills/lora-weight-transfer/scripts/extract_lora_weights.py \
+  model_world_size_*_rank_*.pt --output <lora_weights.pt>
+```
+
+Record the extracted LoRA artifact's source-side MD5 before transfer; retain
+the source identity and split checksums. The extractor accepts only LoRA A/B
+tensor keys and rejects empty or incomplete pairs, mixed world sizes, missing
+ranks, and inconsistent shard keys before writing the output.
+
+## Phase 3: Download, Recover, and Verify Locally
+
+Run [download_recover.sh](./scripts/download_recover.sh). It downloads all
+files with `bbb cp`, verifies each split, concatenates numbered parts in version
+order followed by the final `.zip`, extracts `lora_weights.pt`, verifies its
+MD5 against the extraction-side manifest, and checks every LoRA A tensor has a
+matching B tensor. When reusing an existing adapter, compare its local MD5 to a
+provenance-bound source MD5; do not treat a newly created local sidecar alone as
+source verification. If the values differ or the source cannot be verified,
+stop before merge:
+
+```bash
+bash .github/skills/lora-weight-transfer/scripts/download_recover.sh \
+  <publish_blob_root> <local_dest_dir> [parallel_downloads]
+```
+
+Do not reconstruct with `zip -s 0 --out`, `zip -F`, or direct unzip of the
+final split part. The script uses sequential concatenation because the payload
+is distributed across `.z01`, `.z02`, and later parts, with the central
+directory in the trailing `.zip` file.
+
+## Phase 4: Merge LoRA into the Full Baseline
+
+Use the full baseline corresponding to the run's `actor_rollout_ref.model.path`,
+not an unrelated model. The legacy default is:
+
+```text
+~/data/ckp/fast-llm-2607-qwen3-5-9b-s2-data-v3.4-sr-afteraudio-lexical-fix/50000/lora_merged_model_states.pt
+```
+
+The legacy training config in `recipe/phimm/config/base/dapo_asr.yaml` sets
+`lora_alpha: 640` and `lora_rank: 320`, so the required merge is:
+
+```text
+W <- W + (640 / 320) * (B @ A)
+```
+
+For other runs, use their actual `lora_alpha` and `lora_rank` from the training
+configuration or export provenance. For the 2609r2 step-80 checkpoint
+`remax_2609r2_ml_verb_hint_s100_bs128_n8_r256_g32_flr1`, these are 512 and
+256 (also scaling 2), and the matching baseline is
+`~/data/ckp/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000`.
+
+Run [merge_lora_checkpoint.py](./scripts/merge_lora_checkpoint.py) after local
+recovery only if Phase 0 did not find a verified matching merged output.
+**Preserving MTP is the default, not an opt-in.** Write the full checkpoint beside
+`lora_weights.pt` as `lora_merged_model_states_mtp.pt`, with the adjacent
+`lora_merged_model_states_mtp.md5`. If the merge base was inference-pruned,
+automatically use the matching original full local checkpoint as
+`--mtp-baseline`; do not proceed with missing configured MTP layers or fall back
+to a non-MTP output.
+
+Keep any existing untagged non-MTP checkpoint separate. The untagged filename
+`lora_merged_model_states.pt` is reserved for an explicitly requested non-MTP
+artifact or an architecture confirmed to have no MTP layers. A filename does
+not control tensor filtering: the merger preserves every supplied MTP tensor.
+Never strip MTP merely to produce an untagged file.
+
+For a matching full merged baseline that already retains all MTP layers:
+
+```bash
+python .github/skills/lora-weight-transfer/scripts/merge_lora_checkpoint.py \
+  --baseline <matching_full_merged_baseline.pt> \
+  --lora <local_dest_dir>/lora_weights.pt \
+  --output <local_dest_dir>/lora_merged_model_states_mtp.pt \
+  --lora-alpha <actual_lora_alpha> \
+  --lora-rank <actual_lora_rank>
+```
+
+The merger follows the key mapping and fp32 merge math in
+`plugins/qwen35_audio/src/hf_qwen35_audio/convert_verl_to_pt.py`. It strips
+the leading `base_model.model.` from LoRA prefixes, normalizes baseline
+`<prefix>.base_layer.weight` keys to `<prefix>.weight`, performs `B @ A` and
+the addition in fp32, and casts back to the baseline dtype. The output uses
+the reference checkpoint layout with the state dictionary under `module`.
+It writes atomically and creates a matching `.md5` sidecar
+(`lora_merged_model_states_mtp.md5` for an MTP-tagged output).
+
+**Keep the baseline MTP layers.** Start from the full baseline state dictionary,
+not the actor/HF inference key set: inference exports can omit all `mtp.*`
+tensors. Never filter those tensors out during model-state reconstruction.
+If a previously merged baseline was inference-pruned, supply its original full
+checkpoint with `--mtp-baseline`. Only its `mtp.*` tensors are copied, unchanged;
+its training LoRA adapters, optimizer state, and other weights are not copied or
+merged a second time. Conflicting MTP tensors and RL LoRA updates targeting MTP
+are rejected. The merger checks configured MTP layer coverage when a
+`config.json` exists beside `--baseline`; also compare every MTP key, shape,
+dtype, and value against the original full baseline.
+MTP views backed by larger flat training buffers are cloned during serialization
+so unrelated backing data is not included; their tensor values and dtypes stay
+unchanged.
+
+For the locally synced 2609r2 step-80 run:
+
+```bash
+BASE=~/data/ckp/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000
+DST=~/data/ckp/remax_2609r2_ml_verb_hint_s100_bs128_n8_r256_g32_flr1/global_step_80
+python .github/skills/lora-weight-transfer/scripts/merge_lora_checkpoint.py \
+  --baseline "$BASE/lora_merged_model_states.pt" \
+  --mtp-baseline "$BASE/mp_rank_00_model_states.pt" \
+  --lora "$DST/lora_weights.pt" \
+  --output "$DST/lora_merged_model_states_mtp.pt" \
+  --lora-alpha 512 --lora-rank 256
+```
+
+For either a newly merged output or a reused local checkpoint, verify it has
+the normalized baseline key set plus any restored MTP
+keys, no LoRA keys, exactly one changed non-MTP baseline weight per LoRA pair,
+all original baseline MTP tensors unchanged, and a passing adjacent MD5 file.
+Compare each updated weight against the actual `lora_alpha / lora_rank` fp32
+merge calculation and preserve the shape and dtype of every baseline tensor.
+
+## Phase 5: Upload Both Outputs to Corp Blob
+
+After both local artifacts and their MD5 files pass verification, invoke the
+`/copy-to-corp-blob` skill separately for each generated or reused `.pt` file.
+By default upload the MTP-tagged merged checkpoint:
+
+```text
+/copy-to-corp-blob <local_dest_dir>/lora_weights.pt
+/copy-to-corp-blob <local_dest_dir>/lora_merged_model_states_mtp.pt
+```
+
+Also upload their adjacent checksum files:
+
+```text
+/copy-to-corp-blob <local_dest_dir>/lora_weights.md5
+/copy-to-corp-blob <local_dest_dir>/lora_merged_model_states_mtp.md5
+```
+
+Use the untagged merged pair only for an explicitly requested non-MTP artifact
+or an architecture confirmed to have no MTP layers.
+Do not overwrite an existing remote non-MTP checkpoint with MTP weights.
+
+Do not implement or duplicate SAS handling in this skill. Delegate it to
+`/copy-to-corp-blob`, which must validate that the cached corp SAS is unexpired
+and contains both write (`w`) and create (`c`) permissions before upload.
+
+For a destination under `~/data`, preserve the default path mapping. Example:
+
+```text
+local:
+  ~/data/ckp/<run>/<step>/lora_weights.pt
+  ~/data/ckp/<run>/<step>/lora_merged_model_states_mtp.pt
+
+corp:
+  https://tsstd01safn.blob.core.windows.net/data/users/boren/data/ckp/<run>/<step>/lora_weights.pt
+  https://tsstd01safn.blob.core.windows.net/data/users/boren/data/ckp/<run>/<step>/lora_merged_model_states_mtp.pt
+```
+
+Wait for each upload to complete, then compare exact remote and local byte
+sizes. Verify each uploaded `.pt` against its local MD5 using a trustworthy
+server-computed content MD5, or independently read back the exact uploaded
+blob and hash its bytes. Pin its version/ETag or confirm it is unchanged across
+the read; verify the uploaded sidecar matches the local expected MD5 as well.
+A matching uploaded sidecar or size alone does not verify uploaded bytes.
+Record the source and destination MD5s and verification method; on a mismatch
+or unavailable byte verification, retain evidence and report the transfer as
+unverified rather than complete. Never expose the SAS token or a destination
+URL containing its query string.
+
+## Safeguards
+
+- Check and verify local checkpoint files before any remote work; reuse valid
+  local artifacts rather than extracting, downloading, or merging them again.
+- Download any missing base/seed or MTP baseline directly from its verified
+  corp Azure Blob source, not Orange; do not guess an account or container.
+- Preserve baseline MTP layers by default and use the MTP-tagged output and
+  checksum filenames; never silently fall back to an inference-pruned output.
+- Accept only keys matching `*.lora_A[.<adapter>].weight` and
+  `*.lora_B[.<adapter>].weight`.
+- Require every adapter prefix to have both A and B tensors.
+- Do not include base-layer, embedding, optimizer, or scheduler tensors.
+- Use `bbb` for every blob upload and download.
+- Require all LoRA prefixes and `B @ A` shapes to match baseline weights.
+- Preserve baseline key order, tensor dtypes, and unrelated values; write plain
+  parameter names under the top-level `module` key.
+- Preserve every baseline `mtp.*` tensor unchanged, restoring it from the
+  original full baseline if an inference-pruned baseline is used. Do not
+  reconstruct MTP from actor keys or initialize replacement MTP tensors.
+- Use the run's actual `lora_alpha / lora_rank` (legacy default `640 / 320 = 2`);
+  do not assume scaling 1.
+- Upload both `.pt` outputs and checksum sidecars through `/copy-to-corp-blob`.
+- Require matching source and local MD5s for every baseline and transferred
+  LoRA artifact, and matching local and remote byte sizes and content MD5s for
+  each uploaded checkpoint; record checksum provenance and version/ETag.
+- Never print or persist a SAS token outside the cache managed by the upload skill.
+- Do not use `ckpt_delta.py` or infer A/B matrices from merged model weights.

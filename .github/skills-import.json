@@ -1,0 +1,32 @@
+{
+  "source_branch": "boren/rl_2611_dev",
+  "source_revision": "89be15eeffde8aa901fedb9954b80e4c5052a1bc",
+  "preserved_main_skills": [
+    ".agent/skills",
+    ".codex/skills",
+    ".claude/skills"
+  ],
+  "imported_trees": {
+    ".github/skills": {
+      "tree": "66e78e40f1f1efaf86b384566799cac4543d8737",
+      "files": 13095,
+      "skills": 19
+    },
+    ".github/skills_bakup": {
+      "tree": "b3946423d4e8f7c74e0cb39e7e8ae023a8fc8154",
+      "files": 132,
+      "skills": 24
+    }
+  },
+  "discovery_link": ".agents/skills -> ../.github/skills",
+  "imported_test_adjustments": {
+    "tests/skills/test_transfer_to_orange_refresh_sas.py": "Pass the explicit environment argument required by the imported helper and assert its login environment. Apply current repository Ruff formatting.",
+    "tests/skills/test_asr_detail_compare.py": "Formatting only for the current repository Ruff rules."
+  },
+  "scope": "Exact tracked skill files and assets from the source branch; no changes to experiment runtime.",
+  "excluded_external_legacy_tests": [
+    "tests/skills/test_build_2609_report.py",
+    "tests/skills/test_build_mix_openml_aa_report.py"
+  ],
+  "excluded_external_legacy_tests_reason": "Top-level archived-skill tests depend on legacy recipe configs and stale chart behavior. All files inside both skill directories are preserved unchanged."
+}

@@ -1,0 +1,18 @@
+# Main Base1a: shared Base1 settings plus the four OpenLong u2 validation cohorts.
+defaults:
+  - base1_smts
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_openlong
+  - _self_
+
+data:
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_urgent_delta}
+    - ${_openlong}
+
+_val_reward_sources:
+  earnings21_u2: openasr_en
+  earnings22_u2: openasr_en
+  coraal_u2: openasr_en
+  earnings22_cleaned_aa_u2: openasr_en

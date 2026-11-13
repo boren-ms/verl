@@ -15,8 +15,9 @@
 from types import SimpleNamespace  # Or use a mock object library
 
 import pytest
+import torch
 
-from verl.utils.model import update_model_config
+from verl.utils.model import extract_multi_modal_inputs, update_model_config
 
 
 # Parametrize with different override scenarios
@@ -50,3 +51,34 @@ def test_update_model_config(override_kwargs):
         assert mock_config.nested_params.sub_param_x == "original_x", "Nested sub_param_x should be unchanged"
         assert mock_config.nested_params.sub_param_y == 100, "Nested sub_param_y should be unchanged"
         assert not hasattr(mock_config.nested_params, "sub_param_z"), "Nested sub_param_z should not exist"
+
+
+def test_extract_ragged_audio_preserves_frames_masks_and_sample_order():
+    short = torch.arange(24, dtype=torch.float32).reshape(1, 3, 8)
+    long = torch.arange(40, dtype=torch.float32).reshape(1, 5, 8) + 100
+    result = extract_multi_modal_inputs(
+        [
+            {
+                "input_audio_embeds": short,
+                "audio_attention_mask": torch.ones(1, 3),
+                "audio_embed_sizes": torch.tensor([1]),
+                "audio_frames": torch.tensor([3]),
+            },
+            {
+                "input_audio_embeds": long,
+                "audio_attention_mask": torch.ones(1, 5),
+                "audio_embed_sizes": torch.tensor([2]),
+                "audio_frames": torch.tensor([5]),
+            },
+        ]
+    )
+    assert result["input_audio_embeds"].shape == (2, 5, 8)
+    assert result["input_audio_embeds"].is_contiguous()
+    torch.testing.assert_close(result["input_audio_embeds"][0, :3], short[0])
+    torch.testing.assert_close(result["input_audio_embeds"][1], long[0])
+    assert torch.count_nonzero(result["input_audio_embeds"][0, 3:]) == 0
+    torch.testing.assert_close(
+        result["audio_attention_mask"], torch.tensor([[1.0, 1.0, 1.0, 0.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]])
+    )
+    assert result["audio_embed_sizes"].tolist() == [1, 2]
+    assert result["audio_frames"].tolist() == [3, 5]

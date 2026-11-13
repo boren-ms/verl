@@ -209,7 +209,12 @@ def copy_to_local(
         str: Local filesystem path to copied resource
     """
     # Save to a local path for persistence.
-    local_path = copy_local_path_from_hdfs(src, cache_dir, filelock, verbose, always_recopy)
+    if src.startswith("az://"):
+        from .azure_io import copy_to_local as copy_from_azure
+
+        local_path = copy_from_azure(src, cache_dir=cache_dir, always_recopy=always_recopy)
+    else:
+        local_path = copy_local_path_from_hdfs(src, cache_dir, filelock, verbose, always_recopy)
 
     if use_shm and isinstance(local_path, str) and not os.path.exists(local_path):
         try:

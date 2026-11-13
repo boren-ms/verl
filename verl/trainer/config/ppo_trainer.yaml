@@ -233,6 +233,9 @@ trainer:
     # Trainer mode: "sync", "colocate_async", "separate_async"
     trainer_mode: sync
 
+    # Optional fully qualified PPOTrainer subclass; scheduling mode remains independent.
+    trainer_class: null
+
     # Synchronous PPO trainer
     sync: {}
 

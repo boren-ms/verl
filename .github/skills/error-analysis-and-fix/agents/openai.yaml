@@ -1,0 +1,4 @@
+interface:
+  display_name: "Error Analysis and Fix"
+  short_description: "Trace ASR errors into data, refine, and verify fixes"
+  default_prompt: "Use $error-analysis-and-fix to analyze ASR errors, retrieve matching training data, prepare subsets and a ReMax recipe, and run and compare only the stages I authorize."
