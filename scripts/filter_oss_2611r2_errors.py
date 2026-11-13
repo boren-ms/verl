@@ -28,6 +28,9 @@ def sha(path):
 
 def run(args):
     scorer_id = getattr(args, "scorer_id", "oss_error_mining_v1")
+    per_language_top_k = getattr(args, "per_language_top_k", None)
+    if per_language_top_k is not None and per_language_top_k <= 0:
+        raise ValueError("per_language_top_k must be positive")
     args.out.mkdir(parents=True, exist_ok=True)
     chunks = json.loads(args.sources.read_text())
     by_audio = {r["audio_key"]: r for r in chunks}
@@ -59,6 +62,8 @@ def run(args):
                 source = by_audio.get(audio)
                 if source is None or count != source["count"] or not 0 <= index < count:
                     raise ValueError(f"Unexpected source identity: {r['audio_chunk']}")
+                if per_language_top_k and r.get("source_language") != source["language"]:
+                    raise ValueError("Per-language Top-K requires frozen ISO source_language identity")
                 n_err, n_ref = r["n_err"], r["n_ref"]
                 for value in (n_err, n_ref):
                     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0 or int(value) != value:
@@ -118,17 +123,22 @@ def run(args):
     db.execute("CREATE INDEX rank_errors ON scores(eligible,n_err DESC,id ASC)")
     files = []
     kept = 0
+    selected_by_language = collections.Counter()
     previous = None
     writer = None
     membership = hashlib.sha256()
     audit_writer = (args.out / "selection_audit.jsonl").open("w")
     try:
-        for identity, n_err, raw in db.execute("SELECT id,n_err,record FROM scores WHERE eligible=1 AND n_err>0 ORDER BY n_err DESC,id ASC"):
-            key = (-n_err, identity)
+        order = "json_extract(record,'$.source_language') ASC,n_err DESC,id ASC" if per_language_top_k else "n_err DESC,id ASC"
+        for identity, n_err, raw in db.execute("SELECT id,n_err,record FROM scores WHERE eligible=1 AND n_err>0 ORDER BY " + order):
+            r = json.loads(raw)
+            lang = r.get("source_language")
+            if per_language_top_k and selected_by_language[lang] >= per_language_top_k:
+                continue
+            key = (lang, -n_err, identity) if per_language_top_k else (-n_err, identity)
             if previous is not None and key < previous:
                 raise ValueError("Non-monotonic global selection order")
             previous = key
-            r = json.loads(raw)
             if kept % args.shard_rows == 0:
                 if writer:
                     writer.close()
@@ -136,6 +146,7 @@ def run(args):
                 writer = path.open("w")
                 files.append(path)
             kept += 1
+            selected_by_language[lang] += 1
             train = {"id": identity, "audio_chunk": r["audio_chunk"], "text": r["text"],
                      "language": r["language"], "source_family": r["source_family"],
                      "source_split_status": r["source_split_status"], "selection_rank": kept,
@@ -143,6 +154,8 @@ def run(args):
                      "selection_metric": r["selection_metric"], "selection_model": args.model}
             if "source_language" in r:
                 train["source_language"] = r["source_language"]
+            if per_language_top_k:
+                train["selection_language_rank"] = selected_by_language[lang]
             writer.write(json.dumps(train, ensure_ascii=False, allow_nan=False) + "\n")
             audit_writer.write(json.dumps(r, ensure_ascii=False, allow_nan=False) + "\n")
             membership.update((identity + "\n").encode())
@@ -160,6 +173,9 @@ def run(args):
     if any("source_language" in json.loads(raw) for (raw,) in db.execute("SELECT record FROM scores LIMIT 1")):
         data_config[0]["post_process"]["verl_format"]["extra_keys"].append("source_language")
         (args.out / "training_data.yaml").write_text(yaml.safe_dump(data_config, allow_unicode=True, sort_keys=False))
+    if per_language_top_k:
+        data_config[0]["post_process"]["verl_format"]["extra_keys"].append("selection_language_rank")
+        (args.out / "training_data.yaml").write_text(yaml.safe_dump(data_config, allow_unicode=True, sort_keys=False))
     parent = getattr(args, "training_parent", "remax_main_base2c_2611r2")
     data_config_name = getattr(args, "data_config_name", "oss_2611r2_errors_20261112")
     experiment_name = getattr(args, "experiment_name", "remax_main_base2c_2611r2_oss_errors_20261112")
@@ -173,8 +189,9 @@ def run(args):
         # child. Materialize the exact parent mapping, preserving every field
         # except the new dataset/mix and unique experiment name.
         recipe = copy.deepcopy(yaml.safe_load(Path(template).read_text()))
-        defaults = [d for d in recipe["defaults"] if d != "_self_"]
+        defaults = [d for d in recipe.get("defaults", []) if d != "_self_"]
         recipe["defaults"] = defaults + [f"/data/train_data/{data_config_name}@_oss_errors_train", "_self_"]
+        recipe.setdefault("hydra", {"searchpath": ["file://recipe/phimm/config", "file://verl/trainer/config"]})
         recipe["data"]["train_data"] = ["${_oss_errors_train}"]
         recipe["data"]["mix"] = [{"shuffle": True, "datasource": [{"name": "openml", "sample": kept, "shuffle": True}]}]
         recipe.setdefault("trainer", {})["experiment_name"] = experiment_name
@@ -182,6 +199,9 @@ def run(args):
     proof.update(selected_train_rows=kept, ordered_membership_sha256=membership.hexdigest(),
                  output_files_sha256={p.name: sha(p) for p in files}, eligibility_sha256=sha(args.eligibility),
                  training_published=False, next_gate="Native loader/audio/reward checks, effective data-only diff and T verification before publication/launch")
+    if per_language_top_k:
+        proof.update(per_language_top_k=per_language_top_k, selected_by_language=dict(selected_by_language),
+                     ranking="ISO language ASC; absolute n_err DESC; canonical audio_chunk ASC; eligibility applied before quota")
     (args.out / "selection_prepared.json").write_text(json.dumps(proof, indent=2))
     print(f"Prepared {kept} sorted training rows. Publication and training checks are still required.")
 
@@ -201,6 +221,7 @@ if __name__ == "__main__":
     p.add_argument("--experiment-name", default="remax_main_base2c_2611r2_oss_errors_20261112")
     p.add_argument("--expected-selection-model")
     p.add_argument("--training-template", type=Path)
+    p.add_argument("--per-language-top-k", type=int, help="Optional quota after split/heldout exclusions; requires ISO source_language")
     a = p.parse_args()
     if a.shard_rows <= 0:
         p.error("--shard-rows must be positive")

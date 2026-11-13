@@ -1,0 +1,26 @@
+# PRIVATE PROVISIONAL CANDIDATE. NOT FOR TRAINING LAUNCH. Full coverage/reference/split/heldout audit pending.
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/oss_gap_2611r2_errors_20261112/private_top10k_per_lang/20261113T171154Z_8417280/train-en.jsonl
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_language
+      - source_family
+      - source_split_status
+      - selection_language_rank
+      - selection_n_err
+      - selection_n_ref
+      - selection_metric
+      - selection_model
+      - selection_status
+      - audio_duration_seconds

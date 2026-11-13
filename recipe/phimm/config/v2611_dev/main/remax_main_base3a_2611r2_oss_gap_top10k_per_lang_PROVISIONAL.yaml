@@ -1,0 +1,20 @@
+# PRIVATE PROVISIONAL CANDIDATE. NOT FOR TRAINING LAUNCH. Full coverage/reference/split/heldout audit pending.
+hydra:
+  searchpath:
+  - file://recipe/phimm/config
+  - file://verl/trainer/config
+defaults:
+- references/base3a_2611r2_effective_20261113@_here_
+- /data/train_data/oss/oss_gap_top10k_per_lang_2611r2_PROVISIONAL@_oss_gap_top10k_train
+- _self_
+data:
+  train_data:
+  - ${_oss_gap_top10k_train}
+  mix:
+  - shuffle: true
+    datasource:
+    - name: openml
+      sample: 10000
+      shuffle: true
+trainer:
+  experiment_name: remax_main_base3a_2611r2_oss_gap_top10k_per_lang_20261113T171154Z_8417280
