@@ -4,7 +4,7 @@ from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
 
-def test_foreign_base1_targets_validation_except_nonenglish_and_preserves_training():
+def test_foreign_base1_uses_own_target_language_data_configs_except_nonenglish_validation():
     root = Path(__file__).resolve().parents[3]
     config = root / "recipe/phimm/config"
     searchpath = f"hydra.searchpath=[file://{config},file://{root / 'verl/trainer/config'}]"
@@ -21,7 +21,7 @@ def test_foreign_base1_targets_validation_except_nonenglish_and_preserves_traini
         assert len(after_flat) == expected_count
         for original, targeted in zip(before_flat, after_flat, strict=True):
             assert original["add_task_info"]["task"] == "lang_asr_verb"
-            if split == "train_data" or original["post_process"]["add_field"]["fields"]["data_source"] == "enhint_noen":
+            if split == "val_data" and original["post_process"]["add_field"]["fields"]["data_source"] == "enhint_noen":
                 assert targeted == original
                 continue
             assert targeted["add_task_info"]["task"] == "lang_only_verb"

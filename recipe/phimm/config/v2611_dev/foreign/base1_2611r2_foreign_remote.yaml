@@ -1,46 +1,11 @@
-# Base0 settings with a target-language-only verbatim prompt for validation.
+# Base0 settings with Base1's own target-language-only validation data config.
 # Keep the original task for the non-English heldout source (enhint_noen).
 # Reuse the same validation manifests, grouping metadata, references and scorers.
 defaults:
   - base0_2611r2_foreign_remote
+  - /data/val_data/foreign/base1_2611r2_lang_only_verb@_foreign_base1_val
   - _self_
-
-_foreign_target_task:
-  task: lang_only_verb
-  language: English
-  prefix_prob: 0.0
-  lang_hint: true
 
 data:
   val_data:
-    - - dataset_name: ${_earnings22_parent4.0.dataset_name}
-        jsonl_paths: ${_earnings22_parent4.0.jsonl_paths}
-        val_batch_size: ${_earnings22_parent4.0.val_batch_size}
-        add_task_info: ${_foreign_target_task}
-        post_process: ${_earnings22_parent4.0.post_process}
-    - - dataset_name: ${_fleurs_heldout.0.dataset_name}
-        jsonl_paths: ${_fleurs_heldout.0.jsonl_paths}
-        mask_foreign_language: ${_fleurs_heldout.0.mask_foreign_language}
-        add_task_info: ${_foreign_target_task}
-        post_process: ${_fleurs_heldout.0.post_process}
-      - ${_fleurs_heldout.1}
-    - - dataset_name: ${_openlong.0.dataset_name}
-        jsonl_paths: ${_openlong.0.jsonl_paths}
-        cache_name: auto_foreign_base1_earnings21_u2
-        add_task_info: ${_foreign_target_task}
-        post_process: ${_openlong.0.post_process}
-      - dataset_name: ${_openlong.1.dataset_name}
-        jsonl_paths: ${_openlong.1.jsonl_paths}
-        cache_name: auto_foreign_base1_earnings22_u2
-        add_task_info: ${_foreign_target_task}
-        post_process: ${_openlong.1.post_process}
-      - dataset_name: ${_openlong.2.dataset_name}
-        jsonl_paths: ${_openlong.2.jsonl_paths}
-        cache_name: auto_foreign_base1_coraal_u2
-        add_task_info: ${_foreign_target_task}
-        post_process: ${_openlong.2.post_process}
-      - dataset_name: ${_openlong.3.dataset_name}
-        jsonl_paths: ${_openlong.3.jsonl_paths}
-        cache_name: auto_foreign_base1_earnings22_cleaned_aa_u2
-        add_task_info: ${_foreign_target_task}
-        post_process: ${_openlong.3.post_process}
+    - ${_foreign_base1_val}

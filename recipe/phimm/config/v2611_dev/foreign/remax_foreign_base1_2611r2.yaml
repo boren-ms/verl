@@ -1,5 +1,5 @@
-# Original + mixed, No GT, with the original verbatim task for training.
-# Base1 applies the target-language-only prompt to validation except enhint_noen.
+# Original + mixed, No GT, with Base1's own lang_only_verb training data configs.
+# Validation uses lang_only_verb except enhint_noen, which keeps its original task.
 # Same 12,800 samples/epoch x 2 epochs / batch128 = 200 optimizer steps as Base0.
 hydra:
   searchpath:
@@ -8,8 +8,8 @@ hydra:
 
 defaults:
   - base1_2611r2_foreign_remote
-  - /data/train_data/foreign_language/english_hint_1k@_foreign_train_1k
-  - /data/train_data/foreign_language/english_hint_mixed_1k@_foreign_train_mixed
+  - /data/train_data/foreign_language/english_hint_1k_lang_only_verb@_foreign_train_1k
+  - /data/train_data/foreign_language/english_hint_mixed_1k_lang_only_verb@_foreign_train_mixed
   - _self_
 
 data:

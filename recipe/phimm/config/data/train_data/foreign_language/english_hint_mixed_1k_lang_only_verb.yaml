@@ -1,0 +1,13 @@
+# Mixed training manifest: 1,000 English/non-English pairs per non-English language.
+# Keep its existing prepared references; change only the task and prompt.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/foreign_language_mixed_10k_5bf59b28a713b14b/mixed_noen_en_10k.jsonl
+  add_task_info:
+    task: lang_only_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [source_language, source_corpus, source_split]
