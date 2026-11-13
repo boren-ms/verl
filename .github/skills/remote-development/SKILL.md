@@ -54,6 +54,15 @@ Inspect all matching states, including suspended pools:
 brix pools -a -c prod-westus2-cw-6 -n boren 'verl-n*'
 ```
 
+Create or resume an authorized case-owned pool through normal scheduler
+admission at the requested priority. Scheduler-managed preemption under existing
+cluster policy is allowed; do not require a separate no-preemption audit,
+cluster-wide Pod inventory, or physically idle GPU proof before the request.
+Honor an explicit user no-preemption restriction when present. Keep the request
+pending when capacity is unavailable, and inspect allocated pods before running
+the workload. This does not authorize manually changing unrelated pools or
+shared scheduling policies.
+
 If the exact authorized pool exists and is Paused/suspended, resume it and poll
 until Ready; do not create a duplicate. For Assigning, Pending, or starting
 pools, inspect scheduling/events and wait; do not repeatedly resume or recreate

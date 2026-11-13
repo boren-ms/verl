@@ -77,25 +77,37 @@ For an authorized execution, automatically discover Brix pools and compatible
 nodes; the user need not name one. The usual cluster is `prod-westus2-cw-6`,
 namespace `boren`, and remote repo `/root/code/verl`; verify live and respect
 any explicit cluster, namespace, pool, priority, quota or resource restriction.
-Within that scope, choose verified available capacity matching the effective
-topology; prefer `team-critical` when no pool or priority was specified and
-that choice does not change priority. Tell the user the selected pool.
+Within that scope, select or request capacity matching the effective topology;
+prefer `team-critical` when no pool or priority was specified and that choice
+does not change priority. Tell the user the selected pool.
 
-Inspect all participating GPU pods, Ray status and jobs, reservations, processes,
-each GPU, ownership and planned work. Missing or contradictory occupancy
-evidence means unavailable. Idle GPUs do not prove availability during startup,
-validation, checkpointing, recovery or reservations. Never disturb unrelated
-work. An explicitly requested occupied pool stays queued unless an alternative
-or replacement of the exact job is authorized.
+For new or suspended case-owned pools, submit the authorized resource request
+to the native scheduler at the requested priority and let it wait for admission.
+Scheduler-managed preemption under the cluster's existing priority policy is
+allowed; do not add a separate no-preemption requirement or require cluster-wide
+Pod inventory or proof of physically idle GPUs before requesting resources.
+Apply a no-preemption restriction only when the user explicitly requests it.
+Unavailable cross-namespace inventory alone does not block this scheduling step.
+
+Before reusing an existing running pool or submitting the workload on allocated
+capacity, inspect its participating GPU pods, Ray status and jobs, reservations,
+processes, each GPU, ownership and planned work. Missing or contradictory
+occupancy evidence blocks reuse of that pool. Idle GPUs do not prove availability
+during startup, validation, checkpointing, recovery or reservations. Do not
+manually stop or modify unrelated work or change shared scheduling policy. An
+explicitly requested occupied pool stays queued unless an alternative or
+replacement of the exact job is authorized.
 
 An instruction to run the experiment authorizes resuming a suitable paused pool
-within the permitted resource scope when needed. First verify ownership, absence
-of conflicting work or plans, and that resuming is allowed; then resume the
-selected pool and verify Brix readiness, Ray membership, all GPU pods and
-capacity before submission. If ownership, permissions, availability or intended
-use cannot be verified, do not resume; find another eligible pool or report the
-blocker. Do not pause or resume unrelated pools. Respect read-only or narrower
-user instructions.
+within the permitted resource scope when needed. First verify the exact pool's
+identity, ownership, intended use and absence of conflicting work or plans in
+that pool; then resume it into normal scheduler admission. Pending admission is
+a waiting state, not a reason to require separate preemption approval or create
+duplicate pools. Verify Brix readiness, Ray membership, all GPU pods and capacity
+before workload submission. If the pool's ownership or intended use cannot be
+verified, do not resume it; find another eligible pool or report the blocker.
+Do not pause or resume unrelated pools. Respect read-only or narrower user
+instructions.
 
 Typical checks, adapted to the actual live environment:
 
