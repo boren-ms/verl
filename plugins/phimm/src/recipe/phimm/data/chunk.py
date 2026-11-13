@@ -3,25 +3,21 @@
 
 import io
 import json
-import random
-from pathlib import Path
-from math import ceil
-from functools import partial
-from collections import defaultdict
-from tqdm import tqdm
+
+import blobfile as bf
 import numpy as np
 import soundfile as sf
-from datasets import Dataset
 from cachetools import FIFOCache, cached
-import blobfile as bf
-from recipe.phimm.utils.shared import rank_print, get_values, to_list
-from verl.audio_cache import localize_audio_source, resolve_audio_source
+
+from recipe.phimm.utils.shared import rank_print
+from verl.audio_cache import localize_audio_source
 
 
 def resolve_path(path, prefix=None):
     if not isinstance(path, str):
         return path
     import re
+
     az_prefix = prefix or "az://orngwus2cresco/data/speech/"
     path = re.sub(r"^/datablob1?/", az_prefix, path)
     path = re.sub(r"^az://(orngcresco|orngscuscresco|orngwus2cresco)/", "az://orngwus2cresco/", path)
@@ -99,78 +95,6 @@ def get_chunk_manager(maxsize=None):
         return _chunk_manager_instance
 
 
-def get_chunk_type_path(chunk, chunk_type):
-    if chunk_type in chunk:
-        return chunk[chunk_type]
-    chunk_type_path = f"{chunk_type}_path"
-    if chunk_type_path in chunk:
-        return chunk[chunk_type_path]
-    type_mapping = {
-        "transcription": "trans_path",
-    }
-    if chunk_type in type_mapping and type_mapping[chunk_type] in chunk:
-        return chunk[type_mapping[chunk_type]]
-    return chunk.get("chunk_path", None)
-
-
-def to_records(d):
-    """Convert a dict of lists to a list of dict."""
-    return [dict(zip(d.keys(), to_list(vs))) for vs in zip(*d.values())]
-
-
-def load_examples(chunk, fields, index_audio=False):
-    examples = {}
-    count = chunk["count"]
-    for field in fields:
-        parts = field.split(".")
-        chunk_type = parts[0]
-        chunk_file = get_chunk_type_path(chunk, chunk_type).rstrip("/") + f"/{chunk['name']}.{chunk_type}"
-        chunk_file = resolve_path(chunk_file)
-        chunk_file = resolve_audio_source(chunk_file)
-        if not bf.exists(chunk_file):
-            rank_print(f"Skip [{chunk_file}] due to missing.")
-            return {}
-        if field in ("audio", "audios"):
-            examples["audio_chunk"] = [f"{chunk_file}:{count}:{i}" for i in range(count)]
-            if index_audio:
-                from recipe.phimm.data.indexed_chunk import chunk_audio_byte_references
-
-                examples["audio_path"] = chunk_audio_byte_references(chunk_file, count)
-        else:
-            data_list = load_data_from_chunk(chunk_file, chunk_type, count)
-            if sub_field := ".".join(parts[1:]):
-                data_list = get_values(data_list, sub_field)
-            if any(v is None for v in data_list):
-                rank_print(f"Skip [{chunk_file}] due to missing field {field}.")
-                return {}
-            examples[field] = data_list
-
-    examples["language"] = [chunk.get("language", None)] * count
-
-    return examples
-
-
-def load_examples_from_chunks(chunks, types, index_audio=False):
-    # Determine expected keys from types so empty batches still return a valid schema
-    expected_keys = []
-    for field in types:
-        if field in ("audio", "audios"):
-            expected_keys.append("audio_chunk")
-            if index_audio:
-                expected_keys.append("audio_path")
-        else:
-            expected_keys.append(field)
-    expected_keys.append("language")
-
-    all_examples = {k: [] for k in expected_keys}
-    chunks = to_records(chunks)
-    for chunk in chunks:
-        examples = load_examples(chunk, types, index_audio=index_audio)
-        for key, value in examples.items():
-            all_examples[key].extend(value)
-    return all_examples
-
-
 def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int):
     ENDIAN = "little"
     data_list = []
@@ -178,7 +102,9 @@ def load_data_from_chunk(chunk_path: str, chunk_type: str, chunk_size: int):
     with bf.BlobFile(chunk_path, "rb") as f:
         target_type = f.read(len(chunk_type.encode())).decode()
         if chunk_type.lower() != target_type.lower():
-            raise ValueError(f"Target type is not expected in {chunk_path}, expected {chunk_type}, but got {target_type}")
+            raise ValueError(
+                f"Target type is not expected in {chunk_path}, expected {chunk_type}, but got {target_type}"
+            )
         _ = int.from_bytes(f.read(4), byteorder=ENDIAN)
         for i in range(chunk_size):
             egs_i = int.from_bytes(f.read(4), byteorder=ENDIAN)
@@ -224,7 +150,10 @@ def load_chunk_sample(chunk_path):
             if target_type.lower() == "audios":
                 n_audios = int.from_bytes(f.read(4), byteorder=ENDIAN)
                 if i == index:
-                    return [parse_data(f.read(int.from_bytes(f.read(4), byteorder=ENDIAN)), "audio") for _ in range(n_audios)]
+                    return [
+                        parse_data(f.read(int.from_bytes(f.read(4), byteorder=ENDIAN)), "audio")
+                        for _ in range(n_audios)
+                    ]
                 for _ in range(n_audios):
                     f.seek(int.from_bytes(f.read(4), byteorder=ENDIAN), 1)
             else:
@@ -234,111 +163,6 @@ def load_chunk_sample(chunk_path):
                 if i == index:
                     return parse_data(f.read(data_size), chunk_type)
                 f.seek(data_size, 1)
-
-
-def load_chunk_info(manifest_file, **kwargs):
-    assert bf.exists(manifest_file), f"Chunk info file {manifest_file} does not exist."
-    with bf.BlobFile(manifest_file, "r") as f:
-        chunk_info = json.load(f)
-    return [{**chunk, **kwargs} for chunk in chunk_info["fileInfo"]]
-
-
-def load_specs(spec_files):
-    specs = []
-    for spec_file in to_list(spec_files):
-        with bf.BlobFile(spec_file, "r") as f:
-            spec_dict = json.load(f)
-        language = spec_dict.get("language")
-        for ds in spec_dict["data_sources"]:
-            ds = {key: resolve_path(value) for key, value in ds.items()}
-            ds["language"] = ds.get("language", language)
-            specs.append(ds)
-    return specs
-
-
-def load_chunks(specs, chunks_per_spec=None):
-    if isinstance(specs[0], str):  # specs is list of text # assume spec files
-        specs = load_specs(specs)
-    chunks = []
-    rank_print(f"Loading chunks from {len(specs)} specs.")
-    for spec in tqdm(specs, desc="Loading Specs"):
-        chunks += load_chunk_info(**spec)[:chunks_per_spec]
-    rank_print(f"Loaded {len(chunks)} chunks.", f"Max chunks per spec: {chunks_per_spec}.")
-    return chunks
-
-
-def limit_chunks(chunks, max_egs=None, max_chunks=None):
-    """Limit the number of chunks to max_chunks."""
-    n_chunks = len(chunks)
-    if max_chunks is not None:
-        chunks = chunks[:max_chunks]
-        rank_print(f"Limiting chunks {n_chunks} -> {len(chunks)} by max_chunks={max_chunks}.")
-    if max_egs is not None:
-        new_chunks = []
-        total_egs = 0
-        for chunk in chunks:
-            if total_egs >= max_egs:
-                break
-            new_chunks.append(chunk)
-            total_egs += chunk["count"]
-        rank_print(f"Limiting chunks {n_chunks} -> {len(new_chunks)} by max_egs={max_egs}.")
-        chunks = new_chunks
-    return chunks
-
-
-def generate_examples(specs, chunk_types=None, chunk_shuffle=True, max_chunks=None, max_egs=None, index_audio=False):
-    """Generate examples from the chunk dataset based on the specification files."""
-    chunks_per_spec = ceil(max_chunks / len(specs)) if max_chunks else None
-    chunks = load_chunks(specs, chunks_per_spec)
-    chunks = limit_chunks(chunks, max_egs, max_chunks)
-
-    if chunk_shuffle:
-        random.shuffle(chunks)
-    types = to_list(chunk_types or ["audio", "transcription"])
-    for chunk in tqdm(chunks, desc="Loading Chunks"):
-        examples = load_examples(chunk, types, index_audio=index_audio)
-        yield from to_records(examples)
-
-
-def chunks2dataset(chunks, chunk_types=None, num_proc=None, streaming=False, index_audio=False):
-    """Convert a list of chunks to a Dataset object."""
-    types = to_list(chunk_types or ["audio", "transcription"])
-    ds = Dataset.from_list(chunks)
-    map_kwargs = {
-        "batched": True,
-        "batch_size": 10,
-        "num_proc": num_proc,
-        "remove_columns": ds.column_names,
-    }
-    if streaming:
-        ds = ds.to_iterable_dataset()
-        map_kwargs.pop("num_proc", None)
-
-    ds = ds.map(
-        partial(load_examples_from_chunks, types=types, index_audio=index_audio),
-        **map_kwargs,
-    )
-    return ds
-
-
-def create_chunk_datasets(
-    specs,
-    chunk_types=None,
-    chunk_shuffle=True,
-    max_chunks=None,
-    max_egs=None,
-    streaming=False,
-    num_proc=None,
-    index_audio=False,
-    **kwargs,
-):
-    chunks_per_spec = ceil(max_chunks / len(specs)) if max_chunks else None
-    chunks = load_chunks(specs, chunks_per_spec)
-    chunks = limit_chunks(chunks, max_egs, max_chunks)
-    if chunk_shuffle:
-        random.shuffle(chunks)
-    chunk_types = to_list(chunk_types or ["audio", "transcription"])
-    return chunks2dataset(chunks, chunk_types, num_proc, streaming, index_audio=index_audio)
 
 
 @cached(FIFOCache(maxsize=5))
@@ -352,29 +176,3 @@ def load_chunk_example(chunk_path):
 
 
 # %%
-if __name__ == "__main__":
-    spec_file = [
-        # "/datablob1/users/ruchaofan/DataSpecs/mlang_s2/asr_person_filtered/asr_chunk_inhouse_en.json",
-        "/home/boren/data/inhouse/data_spec/local_entity_debug.json"
-    ]
-    # dataset = ChunkDataset(spec_file)
-    # for i in range(0, 100, 10):  # Print every 10th sample, 50 samples in each chunk
-    #     sample = dataset[i]
-    #     rank_print(f"Sample {i}: {sample}")  # Output the sample data
-    # pass
-    output_dir = Path("/home/boren/data/inhouse/data_spec/local_entity_debug_output")
-    example_jsonl_file = output_dir / "trans.tsv"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    chunk_types = ["audio", "transcription"]
-    with open(example_jsonl_file, "w") as jf:
-        for i, example in enumerate(generate_examples(spec_file, chunk_types=chunk_types, max_chunks=2)):
-            rank_print(f"Example {i}: {example}")
-            data, fs = load_chunk_sample(example["audio_chunk"])
-            wav_name = f"egs_{i}.wav"
-            wav_path = output_dir / wav_name
-            with open(wav_path, "wb") as f:
-                sf.write(f, data, fs)
-            print("Wav:", wav_path)
-            jf.write(f"{wav_name}\t{example['transcription']}\n")
-            if i > 10:
-                break

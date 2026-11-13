@@ -6,7 +6,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data_zip.jsonl
-  cache_name: auto_openasr_2606_ls_clean_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -20,7 +19,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/data_zip.jsonl
-  cache_name: auto_openasr_2606_ls_other_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -34,7 +32,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/data_zip.jsonl
-  cache_name: auto_openasr_2606_spgispeech_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -48,7 +45,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/data_min1s_zip.jsonl
-  cache_name: auto_openasr_2606_ami_clean_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -62,7 +58,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/data_min1s_zip.jsonl
-  cache_name: auto_openasr_2606_gigaspeech_clean_zip_verb_langhint
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -77,7 +72,6 @@
 - dataset_name: jsonl
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/VoxPopuli-Cleaned-AA/voxpopuli_cleaned_aa_v1_zip.jsonl
-  cache_name: auto_voxpopuli_cleaned_aa_verb_langhint_zip
   pre_process:
     rename_fields:
       mappings:
@@ -98,7 +92,6 @@
 - dataset_name: jsonl
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/ArtificialAnalysis_seg_presegment_30s/Earnings22-Cleaned-AA-chunked/earnings22_cleaned_aa_chunked_v1_zip.jsonl
-  cache_name: auto_earnings22_cleaned_aa_chunked_verb_langhint_zip
   pre_process:
     rename_fields:
       mappings:
@@ -118,7 +111,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/monsoon-en-in/data_zip.jsonl
-  cache_name: auto_monsoon_en_in_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -132,7 +124,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024/data_zip.jsonl
-  cache_name: auto_urgent2024_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: English

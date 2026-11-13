@@ -7,31 +7,18 @@ from uuid import uuid4
 
 import ray
 import torch
+
+from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.audio import load_audio
-
-from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, DictConfigWrap
+from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, DictConfigWrap, register
 from verl.trainer.ppo.v1.agent_loop_tq import AgentLoopManagerTQ, AgentLoopWorkerTQBase
 from verl.utils.profiler import simple_timer
 
 
+@register("asr")
 class ASRAgentLoop(AgentLoopBase):
-    def sampling_params_for_row(self, sampling_params, *, validate):
-        custom = self.rollout_config.custom
-        params = dict(sampling_params)
-        params.update({k: list(custom[k]) for k in ("stop", "stop_token_ids") if k in custom})
-        ngram_size = custom["validation_no_repeat_ngram_size"] if validate else custom["no_repeat_ngram_size"]
-        # vLLM's per-request processor treats an absent size as disabled and
-        # rejects zero. Preserve the source's extra_args verbatim: its
-        # registered DeepSeek processor ignores ngram_window and uses its
-        # default 100-token window. Renaming it would change training.
-        if ngram_size > 0:
-            window_key = "validation_no_repeat_ngram_window_size" if validate else "no_repeat_ngram_window_size"
-            params["extra_args"] = {"ngram_size": ngram_size, "ngram_window": custom[window_key]}
-        params["max_tokens"] = custom["validation_response_length"] if validate else self.rollout_config.response_length
-        return params
-
     async def generate_row(self, row, sampling_params, *, validate):
         """Preserve the source recipe's chat template, prefix, and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
@@ -50,7 +37,7 @@ class ASRAgentLoop(AgentLoopBase):
         # vLLM V1 replaces the text's <audio> marker itself, just as in the
         # source rollout's raw_prompt_ids. Keep HF-expanded IDs for training.
         inference_prompt_ids = self.tokenizer.encode(text, add_special_tokens=False)
-        params = self.sampling_params_for_row(sampling_params, validate=validate)
+        params = sampling_params_for_row(self.rollout_config, sampling_params, validate=validate)
         metrics = {}
         with simple_timer("generate_sequences", metrics):
             output = await self.server_manager.generate(

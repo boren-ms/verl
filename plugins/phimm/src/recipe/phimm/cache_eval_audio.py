@@ -2,7 +2,7 @@
 
 Usage:
     python -m recipe.phimm.cache_eval_audio \
-        recipe/phimm/config/data/val_data/earnings_aa_chunked_langhint.yaml --workers 16
+        plugins/phimm/src/recipe/phimm/config/data/val_data/earnings22_verb_langhint.yaml --workers 16
 
 Uses the evaluator's persistent Orange cache under ~/data. No YAML or JSONL
 rewriting is needed; run on each evaluation node with the evaluation user's HOME.
@@ -101,7 +101,9 @@ def collect_audio_files(config_path: str, fields: tuple[str, ...] = AUDIO_FIELDS
                             if "://" in physical_file and not physical_file.startswith(ORANGE_DATA_PREFIX):
                                 raise ValueError(f"Unsupported remote audio source at {manifest}:{line_number}: {part}")
                             if "://" not in physical_file and not Path(physical_file).is_file():
-                                raise FileNotFoundError(f"Missing local audio at {manifest}:{line_number}: {physical_file}")
+                                raise FileNotFoundError(
+                                    f"Missing local audio at {manifest}:{line_number}: {physical_file}"
+                                )
                             sources[physical_file] = None
                     if not found:
                         raise ValueError(f"No audio reference in fields {fields} at {manifest}:{line_number}")

@@ -15,4 +15,4 @@ include = ["recipe*"]
 namespaces = true
 
 [tool.setuptools.package-data]
-"*" = ["*.yaml", "*.onnx", "*.npz"]
+"*" = ["*.yaml"]

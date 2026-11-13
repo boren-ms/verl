@@ -15,7 +15,6 @@
     - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/pt/bad_fmt_lang_bracket.jsonl
     - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/bad_fmt_lang_bracket.jsonl
     - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/bad_fmt_lang_bracket.jsonl
-  cache_name: auto_openasr_ml_bad_fmt_lang_bracket
   add_task_info:
     task: lang_asr_verb
     prefix_prob: 0.0

@@ -1,11 +1,43 @@
+# @package _global_
+# Evaluation reuses the same Main worker and corpus scoring extensions.
+
 defaults:
-  - ../base@_here_
+  - ../base@_global_
   - _self_
 
+actor_rollout_ref:
+  model:
+    path: ???
+    lora_rank: 0
+
+data:
+  train_batch_size: 64
+  gen_batch_size: ${data.train_batch_size}
+  val_batch_size: ${eval:256*${trainer.nnodes}}
+  dataloader_num_workers: 0
+  train_data: ${data.val_data}
+
+trainer:
+  total_epochs: 4
+  total_training_steps: 500
+  project_name: v2611_eval
+  experiment_name: ???
+  resume_mode: disable
+  val_only: true
+
 val_reward:
-  # The mixed TER30 suite uses the multilingual scorer for the AA datasets.
-  aa_reward_function: openasr_en
   reward_function_by_data_source:
+    monsoon_hi_in: openasr_hi_in
+    ls_clean: openasr_en
+    ls_other: openasr_en
+    mixlang: inhouse_zh
+    earning: openasr_en
+    openml_bad: openasr_ml
+    earning_num: openasr_en
+    earning_chunk_verb: openasr_en
+    earning_chunk_lex: openasr_en
+    earnings_pre_chunk_verb: openasr_en
+    earnings_pre_chunk_lex: openasr_en
     earnings21: openasr_en
     earnings22: openasr_en
     coraal: openasr_en
@@ -25,19 +57,16 @@ val_reward:
     coraal_vld: openasr_en
     mixlang_fy26q2: inhouse_zh
     name_val: openasr_en
-    # Canonical OpenEN report names used by openasr_verb_langhint_zip.
     gigaspeech_clean: openasr_en
     voxpopuli-cleaned-aa: openasr_en
     earnings22-cleaned-aa-chunked: openasr_en
-    ls_clean: openasr_en
-    ls_other: openasr_en
     spgispeech: openasr_en
     spgispeech_clean: openasr_en
     ami: openasr_en
     ami_clean: openasr_en
     gigaspeech: openasr_en
-    voxpopuli_cleaned_aa: ${val_reward.aa_reward_function}
-    earnings22_cleaned_aa: ${val_reward.aa_reward_function}
+    voxpopuli_cleaned_aa: openasr_en
+    earnings22_cleaned_aa: openasr_en
     earnings22_cleaned_aa_chunked: openasr_en
     monsoon_en_in: openasr_en
     urgent2024: openasr_en
@@ -82,19 +111,3 @@ val_reward:
     hiin_conversation_domainset_dtest_medical_entity_fy24q1_hi_in_dtest: inhouse_all
     hiin_conversation_onlinemeetings_dtest_fy24q2_hi_in: inhouse_all
     hiin_dictation_dtest_l_d_fy23q2_hi_in_dtest: inhouse_all
-
-data:
-  # RayDAPOTrainer initializes both dataloaders before honoring val_only.
-  train_data: ${data.val_data}
-  shuffle: false
-  use_interleave: false
-  dataloader_num_workers: 8
-  prefetch_factor: 4
-  val_batch_size: ${eval:256*${trainer.nnodes}}
-
-trainer:
-  validation_resume: true
-  validation_resume_save_freq: 2
-  project_name: v2611_eval
-  val_only: true
-  val_before_train: true

@@ -10,7 +10,6 @@
 - dataset_name: jsonl
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings21/test-*/data_zip.jsonl
-  cache_name: auto_openlong_earnings21_seg_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -26,7 +25,6 @@
 - dataset_name: jsonl
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings22/test-*/data_zip.jsonl
-  cache_name: auto_openlong_earnings22_seg_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -42,7 +40,6 @@
 - dataset_name: jsonl
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/*/test-*/data_zip.jsonl
-  cache_name: auto_openlong_coraal_seg_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: English

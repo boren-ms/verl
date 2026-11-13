@@ -1,12 +1,18 @@
-# Main Base3a: Base2c 2611r2 without OpenML training data.
-# Preserve remaining source order/budgets and all Base2c validation settings.
+# @package _global_
+# Base3a: the six-source training mix and the nine validation cohorts.
+
 hydra:
   searchpath:
     - pkg://recipe.phimm.config
-    - file://verl/trainer/config
+    - pkg://verl.trainer.config
 
 defaults:
-  - base2a_smts@_here_
+  - ../base@_global_
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/urgent2024_delta@_urgent_delta
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_openlong
+  - /data/val_data/aishell/openasr_zh_hard_top500_2611r2_verb_langhint_zip@_zh_hard_val
   - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
   - /data/train_data/earn_fy27@_earning_train
   - /data/train_data/quartr_1st23@_quartr_first23_train
@@ -18,9 +24,13 @@ defaults:
 actor_rollout_ref:
   model:
     path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+  rollout:
+    engine_kwargs:
+      vllm:
+        compilation_config:
+          mode: 0
 
 data:
-  data_source: null
   train_data:
     - ${_noisy_ls_train}
     - ${_earning_train}
@@ -38,8 +48,15 @@ data:
         - {name: quartr_2nd48, sample: 6392, shuffle: true}
         - {name: quartr_3rd38, sample: 6155, shuffle: true}
         - {name: aishell1_train_top10k, sample: 10000, shuffle: true}
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_urgent_delta}
+    - ${_openlong}
+    - ${_zh_hard_val}
 
 reward_function_by_data_source:
+  noisy_ls: librispeech
   earn_fy27: librispeech
   quartr_1st23: librispeech
   quartr_2nd48: librispeech
@@ -47,6 +64,20 @@ reward_function_by_data_source:
   aishell1_train_top10k: aishell1_char
 
 reward_functions:
+  librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
   aishell1_char:
     path: recipe/phimm/reward/asr_vote.py
     name: compute_score
@@ -60,3 +91,26 @@ reward_functions:
 
 trainer:
   experiment_name: remax_main_base3a_2611r2
+
+asr:
+  expected_training_rows: 55664
+  expected_training_steps: 868
+
+val_reward:
+  reward_function_by_data_source:
+    monsoon_hi_in: openasr_hi_in
+    mixlang: inhouse_zh
+    earning: openasr_en
+    openml_bad: openasr_ml
+    earning_num: openasr_en
+    earning_chunk_verb: openasr_en
+    earning_chunk_lex: openasr_en
+    earnings_pre_chunk_verb: openasr_en
+    earnings_pre_chunk_lex: openasr_en
+    urgent2024_delta: openasr_en
+    earnings21_u2: openasr_en
+    earnings22_u2: openasr_en
+    coraal_u2: openasr_en
+    earnings22_cleaned_aa_u2: openasr_en
+    zh_aishell1_top500_2611r2: openasr_expansion
+    zh_fleurs_top500_2611r2: openasr_expansion

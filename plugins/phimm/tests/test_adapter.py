@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
-from recipe.phimm.agentic.config import adapt_config
+
 from recipe.phimm.agentic.scoring import aggregate_error_rates, score_response
 
 
@@ -16,8 +16,7 @@ def config():
     OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)
     directory = Path(recipe.phimm.__file__).parent / "config/v2611_dev/main"
     with initialize_config_dir(config_dir=str(directory), version_base=None):
-        source = compose(config_name="remax_main_base3a_2611r2")
-        return adapt_config(source)
+        return compose(config_name="remax_main_base3a_2611r2")
 
 
 def test_recipe_contract(config):
@@ -29,6 +28,9 @@ def test_recipe_contract(config):
     assert actor.actor.loss_agg_mode == "seq-mean-token-sum"
     assert actor.actor.strategy == "fsdp2"
     assert actor.rollout.n == 8
+    assert actor.rollout.mode == "async"
+    assert actor.rollout.calculate_log_probs
+    assert actor.rollout.custom.no_repeat_ngram_window_size == 512
     assert actor.rollout.response_length == 768
     assert actor.rollout.custom.validation_response_length == 512
     assert actor.rollout.custom.validation_no_repeat_ngram_size == 15
@@ -45,6 +47,13 @@ def test_recipe_contract(config):
     assert config.trainer.resume_mode == "auto"
     assert not config.trainer.val_only
     assert config.algorithm.rollout_correction.rollout_is_threshold == 5
+    assert not config.algorithm.rollout_correction.rollout_is_batch_normalize
+    assert not config.algorithm.rollout_correction.bypass_mode
+    assert config.asr.expected_training_rows == 55664
+    assert config.asr.expected_training_steps == 868
+    assert config.trainer.v1.trainer_mode == "sync"
+    cohorts = [item for group in config.data.val_data for item in (group if OmegaConf.is_list(group) else [group])]
+    assert len(cohorts) == 9
 
 
 def test_corpus_counts_and_missing_fields():
@@ -88,33 +97,31 @@ def test_baseline_measures_drive_vote_reward(config):
     assert improved["score"] > unchanged["score"]
 
 
-def test_vllm_no_repeat_matches_effective_source_window(config):
+def test_vllm_no_repeat_uses_configured_window(config):
     import torch
-    from recipe.phimm.agentic.agent_loop import ASRAgentLoop
     from vllm import SamplingParams
     from vllm.model_executor.models.deepseek_ocr import NGramPerReqLogitsProcessor
 
-    agent = ASRAgentLoop.__new__(ASRAgentLoop)
-    agent.rollout_config = config.actor_rollout_ref.rollout
+    from recipe.phimm.agentic.sampling import sampling_params_for_row
+
     for validate in (False, True):
-        params = agent.sampling_params_for_row({"temperature": 0.0 if validate else 1.0}, validate=validate)
+        params = sampling_params_for_row(
+            config.actor_rollout_ref.rollout, {"temperature": 0.0 if validate else 1.0}, validate=validate
+        )
         request = SamplingParams(**params)
         NGramPerReqLogitsProcessor.validate_params(request)
         assert params["max_tokens"] == (512 if validate else 768)
-        # Source validation and DAPO's greedy baseline inherit training
-        # extra_args because their context manager does not clear them.
-        assert request.extra_args == {"ngram_size": 15, "ngram_window": 512}
-        # Use the registered factory: like the source, it ignores the
-        # ngram_window spelling and defaults to 100. Only nearby repeats
-        # are banned, despite the source config's nominal 512.
+        assert request.extra_args == {"ngram_size": 15, "window_size": 512}
         processor = NGramPerReqLogitsProcessor.new_req_logits_processor(None, request)
+        # A match beyond the old 100-token default must now be blocked.
         tokens = list(range(1, 16)) + [99] * 150 + list(range(1, 15))
-        logits = processor(tokens, torch.zeros(128))
-        assert torch.isfinite(logits[15])
-        tokens = list(range(1, 16)) + [99] * 30 + list(range(1, 15))
         logits = processor(tokens, torch.zeros(128))
         assert torch.isneginf(logits[15])
         assert torch.isfinite(logits[16])
+        # Matches outside the configured 512-token window remain allowed.
+        tokens = list(range(1, 16)) + [99] * 600 + list(range(1, 15))
+        logits = processor(tokens, torch.zeros(128))
+        assert torch.isfinite(logits[15])
 
 
 def test_remax_advantage_masks_and_baselines():
@@ -145,7 +152,6 @@ def test_training_reward_metrics_from_transfer_queue(monkeypatch):
     from types import SimpleNamespace
 
     from recipe.phimm.agentic import trainer
-
     from verl.utils import tensordict_utils as tu
 
     # Use the real TensorDict non-tensor representation returned by TransferQueue.

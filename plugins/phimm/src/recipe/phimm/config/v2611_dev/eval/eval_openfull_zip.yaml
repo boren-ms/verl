@@ -1,9 +1,11 @@
-# Full final-checkpoint evaluation: OpenEN, OpenML, OpenLong and zh/vi OpenExt.
-# Supply the verified HF export path and a unique experiment name at launch.
+# @package _global_
+# Full evaluation: OpenEN, OpenML, OpenLong and zh/vi OpenExt.
+# Supply a verified merged HF checkpoint and a unique experiment name.
+
 hydra:
   searchpath:
     - pkg://recipe.phimm.config
-    - file://verl/trainer/config
+    - pkg://verl.trainer.config
 
 defaults:
   - eval_base
@@ -19,7 +21,6 @@ actor_rollout_ref:
     lora_rank: 0
 
 data:
-  # Keep complete long-audio parent groups out of DataLoader IPC.
   dataloader_num_workers: 0
   val_data:
     - ${_openen}

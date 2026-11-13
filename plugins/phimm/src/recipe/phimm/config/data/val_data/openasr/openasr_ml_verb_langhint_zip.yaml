@@ -3,7 +3,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_fleurs_de_zip
   add_task_info:
     task: lang_asr_verb
     language: German
@@ -17,7 +16,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_fleurs_fr_zip
   add_task_info:
     task: lang_asr_verb
     language: French
@@ -31,7 +29,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_fleurs_it_zip
   add_task_info:
     task: lang_asr_verb
     language: Italian
@@ -45,7 +42,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_fleurs_es_zip
   add_task_info:
     task: lang_asr_verb
     language: Spanish
@@ -59,7 +55,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_fleurs_pt_zip
   add_task_info:
     task: lang_asr_verb
     language: Portuguese
@@ -73,7 +68,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mcv_de_zip
   add_task_info:
     task: lang_asr_verb
     language: German
@@ -87,7 +81,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mcv_fr_zip
   add_task_info:
     task: lang_asr_verb
     language: French
@@ -101,7 +94,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mcv_it_zip
   add_task_info:
     task: lang_asr_verb
     language: Italian
@@ -115,7 +107,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mcv_es_zip
   add_task_info:
     task: lang_asr_verb
     language: Spanish
@@ -129,7 +120,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mls_fr_zip
   add_task_info:
     task: lang_asr_verb
     language: French
@@ -143,7 +133,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mls_it_zip
   add_task_info:
     task: lang_asr_verb
     language: Italian
@@ -157,7 +146,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mls_es_zip
   add_task_info:
     task: lang_asr_verb
     language: Spanish
@@ -171,7 +159,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mls_pt_zip
   add_task_info:
     task: lang_asr_verb
     language: Portuguese
@@ -185,7 +172,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/nl/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_fleurs_nl_zip
   add_task_info:
     task: lang_asr_verb
     language: Dutch
@@ -199,7 +185,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/nl/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mcv_nl_zip
   add_task_info:
     task: lang_asr_verb
     language: Dutch
@@ -213,7 +198,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/nl/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_mls_nl_zip
   add_task_info:
     task: lang_asr_verb
     language: Dutch
@@ -228,7 +212,6 @@
 # Voice Arena Monsoon Hindi uses lattice OIWER inside the shared OpenML scorer.
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/monsoon/hi_in/data_zip.jsonl
-  cache_name: auto_openasr_ml_verb_langhint_monsoon_hi_in_jsonl_zip
   add_task_info:
     task: lang_asr_verb
     language: Hindi
@@ -244,7 +227,6 @@
 # MOE 18143a6e supplementary coverage (excluded from headline averages).
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_zh/data_zip.jsonl
-  cache_name: openasr_expansion_18143a6e_fleurs_zh_openasr_ml_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: Chinese
@@ -265,7 +247,6 @@
       - include_in_average_wer
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/aishell1_zh/data_zip.jsonl
-  cache_name: openasr_expansion_18143a6e_aishell1_zh_openasr_ml_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: Chinese
@@ -286,7 +267,6 @@
       - include_in_average_wer
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_vi/data_zip.jsonl
-  cache_name: openasr_expansion_18143a6e_fleurs_vi_openasr_ml_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: Vietnamese
@@ -307,7 +287,6 @@
       - include_in_average_wer
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/mcv_vi/data_zip.jsonl
-  cache_name: openasr_expansion_18143a6e_mcv_vi_openasr_ml_verb_langhint_zip
   add_task_info:
     task: lang_asr_verb
     language: Vietnamese

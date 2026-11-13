@@ -1011,6 +1011,7 @@ trainer:
   use_v1: true
   v1:
     trainer_mode: sync
+    trainer_class: null
     sync: {}
     colocate_async:
       num_warmup_batches: 1

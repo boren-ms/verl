@@ -6,24 +6,22 @@ from pathlib import Path
 
 import hydra
 from omegaconf import OmegaConf
-from recipe.phimm.agentic.config import adapt_config
+
 from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.main_asr_remax import main as _register_resolvers  # noqa: F401
 from recipe.phimm.reward.openasr_expansion import measure_expansion
 from recipe.phimm.utils.audio import load_audio
-
 from verl.utils.config import omega_conf_to_dataclass
 
 
 @hydra.main(config_path="config/v2611_dev/main", config_name="remax_main_base3a_2611r2", version_base=None)
-def main(source):
+def main(config):
     from vllm.config import ModelConfig
     from vllm.multimodal import MULTIMODAL_REGISTRY
     from vllm.multimodal.processing import ProcessorInputs
     from vllm.multimodal.processing.context import TimingContext
     from vllm_qwen35_audio.plugin import register
 
-    config = adapt_config(source)
     # These lazy normalizers are required by validation/full evaluation and
     # must work before allocating the training/inference workers.
     scorer_checks = {}

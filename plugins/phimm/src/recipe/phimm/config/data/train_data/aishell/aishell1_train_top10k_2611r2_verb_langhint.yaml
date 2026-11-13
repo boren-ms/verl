@@ -2,7 +2,6 @@
 # Limit the ranked prefix before training shuffle; original human targets retained.
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl
-  cache_name: aishell1_refine_20261110_train_top10000
   add_task_info:
     task: lang_asr_verb
     language: Chinese

@@ -1,17 +1,35 @@
 # Base3a Qwen ASR on main's agent loop trainer
 
-This package imports only the model, audio/data, scoring, and config dependency
-closure of `boren/rl_2611_dev` at
-`dffabc00d8261dd9abf3087958259d5c8944f5a2`. It keeps the original
-`recipe.phimm` imports while leaving main's `recipe` submodule intact.
-The legacy DAPO trainer and synchronous vLLM rollout are not imported.
+This package keeps the Base3a model, JSONL data mix, scoring and artifact
+extensions on Main's V1 PPO/ReMax stack. It retains the `recipe.phimm` import
+namespace while leaving Main's `recipe` submodule intact.
+
+The entry point composes `verl.trainer.config.ppo_trainer` directly through
+Hydra. `config/v2611_dev/base.yaml` declares Main worker/model/rollout settings;
+`main/remax_main_base3a_2611r2.yaml` declares the training and validation
+manifests, source rewards and row/update contract. Evaluation composes the same
+native base. CLI overrides are applied once and remain live in interpolations;
+unsupported legacy fields fail during Hydra composition. There is no Python
+configuration translation or silent field filtering.
+
+`ASRDataset` implements Main's raw-prompt custom dataset contract directly.
+Only the JSONL loaders and transforms used by the retained manifests are
+supported. Dataset loading always reads the JSONL and applies its transforms;
+there is no recipe-level dataset disk cache. Audio processing/tokenization runs
+in the agent loop. The ASR loop
+uses Main's registration decorator, and its worker inherits Main's session
+scheduling and TransferQueue postprocessing. The trainer subclass retains
+corpus metrics, durable checkpoint resume and validation artifacts.
+
+See [REFACTOR.md](REFACTOR.md) for the dependency boundaries, removals and local
+validation limits. Historical reproduction reports remain unchanged.
 
 Install into the existing GPU environment without replacing its dependencies:
 
 ```bash
 uv pip install --system --no-deps -e . -e plugins/phimm -e plugins/qwen35_audio
 uv pip install --system opencc-python-reimplemented==0.1.7 wetext==0.2.1
-python -m pytest -q plugins/phimm/tests/test_adapter.py
+python -m pytest -q plugins/phimm/tests/test_adapter.py plugins/phimm/tests/test_native_recipe.py
 python -m recipe.phimm.preflight trainer.experiment_name=<unique-name>
 ```
 
@@ -32,14 +50,13 @@ and 868 updates. Main's decoupled token importance correction has cap5 without
 batch normalization. Its on-policy loss and gradient are tested against the
 source objective; end-to-end quality still requires actual experiment results.
 
-Sampling preserves the source's effective no-repeat behavior: it passes
-`ngram_size=15` and `ngram_window=512` to the registered DeepSeek processor.
-That processor reads `window_size`, so the effective window remains its
-100-token default. Correcting the source spelling here would change the
-experiment. Source validation retains the training `extra_args`, including
-when its validation no-repeat size is zero or absent. DAPO's greedy ReMax
-baseline uses that same validation path and its 512-token response limit.
-The adapter preserves these effective settings for all three phases.
+Sampling passes `ngram_size=15` and `window_size=512` to the registered
+DeepSeek processor. The configured window now takes effect for sampled
+rollouts, greedy baselines and validation. This deliberately corrects the
+source's `ngram_window` spelling, which was ignored and resulted in a
+100-token window. Validation inherits the training no-repeat settings unless
+its custom settings are overridden; greedy baselines use the validation path
+and its 512-token response limit.
 It also preserves the source LLM's seed0 on every replica and raw rollout
 log probabilities, rather than inheriting main's seed42 and processed scores.
 

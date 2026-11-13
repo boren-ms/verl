@@ -6,7 +6,6 @@
 # normalization across segment boundaries; consult the output summary.
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings21.jsonl
-  cache_name: auto_openlong_all_2parents_2609r2b_earnings21_v1_u2
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -20,7 +19,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings22.jsonl
-  cache_name: auto_openlong_all_2parents_2609r2b_earnings22_v1_u2
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -34,7 +32,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/coraal.jsonl
-  cache_name: auto_openlong_all_2parents_2609r2b_coraal_v1_u2
   add_task_info:
     task: lang_asr_verb
     language: English
@@ -48,7 +45,6 @@
 
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings22_cleaned_aa.jsonl
-  cache_name: auto_openlong_all_2parents_2609r2b_earnings22_cleaned_aa_v1_u2
   add_task_info:
     task: lang_asr_verb
     language: English

@@ -1,14 +1,145 @@
+# @package _global_
+# Main PPO defaults with Base3a audio, ReMax and durable artifact extensions.
+
 defaults:
   - /ppo_trainer
-  - /data/val_data/earnings_aa_chunked_langhint
   - _self_
 
-nccl_timeout: 3600
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 6.0e-07
+      lr_warmup_steps: 0
+      min_lr_ratio: 0.01
+      lr_scheduler_type: constant
+    fsdp_config:
+      param_offload: true
+      optimizer_offload: true
+      use_orig_params: true
+      use_torch_compile: false
+    strategy: fsdp2
+    ppo_mini_batch_size: ${data.train_batch_size}
+    ppo_micro_batch_size_per_gpu: 4
+    use_dynamic_bsz: true
+    ppo_max_token_len_per_gpu: 2048
+    clip_ratio_high: 0.28
+    loss_agg_mode: seq-mean-token-sum
+    use_kl_loss: true
+    use_torch_compile: false
+  ref:
+    strategy: fsdp2
+    use_torch_compile: false
+    log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
+    log_prob_use_dynamic_bsz: true
+    log_prob_max_token_len_per_gpu: 2048
+    fsdp_config:
+      param_offload: true
+      use_torch_compile: false
+  rollout:
+    name: vllm
+    seed: 0
+    response_length: ${data.max_response_length}
+    gpu_memory_utilization: 0.9
+    tensor_model_parallel_size: 1
+    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
+    max_num_seqs: 32
+    logprobs_mode: raw_logprobs
+    load_format: safetensors
+    layered_summon: true
+    log_prob_micro_batch_size_per_gpu: ${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}
+    n: 8
+    engine_kwargs:
+      vllm:
+        gdn_prefill_backend: triton
+        lora_target_modules:
+          - gate_proj
+          - up_proj
+          - down_proj
+          - q_proj
+          - k_proj
+          - v_proj
+          - o_proj
+          - in_proj_qkv
+          - out_proj
+        logits_processors:
+          - vllm.model_executor.models.deepseek_ocr:NGramPerReqLogitsProcessor
+        seed: ${actor_rollout_ref.rollout.seed}
+        mm_processor_cache_gb: 0
+    agent:
+      default_agent_loop: asr
+      agent_loop_manager_class: recipe.phimm.agentic.agent_loop.ASRManager
+    # ASR sampling sends this configured window as the vLLM window_size argument.
+    custom:
+      stop:
+        - <|im_end|>
+      stop_token_ids:
+        - 248044
+        - 248046
+      no_repeat_ngram_size: 15
+      no_repeat_ngram_window_size: 512
+      validation_no_repeat_ngram_size: ${actor_rollout_ref.rollout.custom.no_repeat_ngram_size}
+      validation_no_repeat_ngram_window_size: ${actor_rollout_ref.rollout.custom.no_repeat_ngram_window_size}
+      validation_response_length: 512
+  model:
+    external_lib: hf_qwen35_audio
+    enable_gradient_checkpointing: false
+    lora_rank: 320
+    lora_alpha: ${eval:${actor_rollout_ref.model.lora_rank}*2}
+    target_modules: model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*
+    exclude_modules: model.embed_tokens_extend.*
+    path: null
+  nccl_timeout: 3600
+
+data:
+  train_files: __asr_train__
+  val_files: __asr_val__
+  max_prompt_length: 1024
+  max_response_length: 768
+  train_batch_size: 128
+  gen_batch_size: ${data.train_batch_size}
+  val_batch_size: 256
+  shuffle: false
+  dataloader_num_workers: 1
+  # Main imports the dataset by package; it returns raw rows for the agent loop.
+  custom_cls:
+    path: pkg://recipe.phimm.agentic.dataset
+    name: ASRDataset
+  version: 2609
+  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
+  max_audio_dur: 40
+  chunk_load_mode: indexed
+
+algorithm:
+  # Source on-policy token importance correction, capped without batch normalization.
+  rollout_correction:
+    rollout_is: token
+    rollout_is_threshold: 5
+    bypass_mode: false
+    rollout_is_batch_normalize: false
+  adv_estimator: remax
+
+trainer:
+  total_epochs: 2
+  project_name: v2611
+  log_val_generations: 20
+  validation_data_dir: ${trainer.default_local_dir}/val_data_gen
+  nnodes: 2
+  save_freq: 10
+  checkpoint_callback_class: recipe.phimm.agentic.trainer.ASRCheckpointCallback
+  test_freq: 20
+  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
+  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
+  max_actor_ckpt_to_keep: 2
+  v1:
+    # Keep Main scheduling and optimization; extend ASR metrics and durable resume.
+    trainer_class: recipe.phimm.agentic.trainer.ASRTrainerSync
+    trainer_mode: sync
+  experiment_name: null
+  total_training_steps: null
+  resume_mode: auto
+  val_before_train: true
 
 val_reward:
-  reward_manager: long_audio_grouped
-  reward_kwargs:
-    version: 2609
   reward_functions:
     openasr_expansion:
       path: recipe/phimm/reward/openasr_expansion.py
@@ -41,163 +172,17 @@ val_reward:
       name: openasr_hi_in_eval
       reward_kwargs:
         version: 2609
-  reward_function_by_data_source:
-    monsoon_hi_in: openasr_hi_in
-    ls_clean: openasr_en
-    ls_other: openasr_en
-    mixlang: inhouse_zh
-    earning: openasr_en
-    openml_bad: openasr_ml
-    earning_num: openasr_en
-    earning_chunk_verb: openasr_en
-    earning_chunk_lex: openasr_en
-    earnings_pre_chunk_verb: openasr_en
-    earnings_pre_chunk_lex: openasr_en
 
-actor_rollout_ref:
-  nccl_timeout: 3600
-  rollout:
-    n: 4
-    gt_rollout: false
-    engine_kwargs:
-      vllm:
-        gdn_prefill_backend: triton
-        # Match actor targets without adding an unused lm_head LoRA wrapper.
-        lora_target_modules:
-          - gate_proj
-          - up_proj
-          - down_proj
-          - q_proj
-          - k_proj
-          - v_proj
-          - o_proj
-          - in_proj_qkv
-          - out_proj
-    temperature: 1.0
-    calculate_log_probs: True
-    use_rollout_log_probs_as_old: true
-    gpu_memory_utilization: 0.9
-    max_num_seqs: 32
-    max_num_batched_tokens: ${eval:${actor_rollout_ref.rollout.max_num_seqs}*${data.max_model_length}}
-    dtype: bfloat16
-    log_prob_micro_batch_size_per_gpu: "${eval:${actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu}*2}"
-    tensor_model_parallel_size: 1
-    name: vllm
-    no_repeat_ngram_size: 15
-    response_length: ${data.max_response_length}
-    val_kwargs:
-      temperature: 0.0
-      top_p: 1.0
-      response_length: 512
-    load_format: safetensors
-    stop: ["<|im_end|>"]
-    stop_token_ids: [248044, 248046]
-    layered_summon: true
-    enforce_eager: false
-    enable_chunked_prefill: true
-    free_cache_engine: true
-  actor:
-    filter_nonfinite_log_probs: true
-    use_torch_compile: false
-    use_dynamic_bsz: true
-    ppo_max_token_len_per_gpu: 2048
-    use_kl_loss: true
-    kl_loss_coef: 0.001
-    kl_loss_type: low_var_kl
-    clip_ratio_low: 0.2
-    clip_ratio_high: 0.28
-    loss_agg_mode: token-mean
-    entropy_coeff: 0
-    tis_imp_ratio_cap: 5
-    ppo_micro_batch_size_per_gpu: 4
-    ppo_mini_batch_size: ${data.train_batch_size}
-    ppo_epochs: 1
-    optim:
-      lr: 5e-6
-      warmup_style: cosine
-      min_lr_ratio: 0.01
-    fsdp_config:
-      param_offload: true
-      optimizer_offload: true
-      use_orig_params: true
-    strategy: fsdp2
-  model:
-    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.3-r2/54000/qwen_hf
-    trust_remote_code: false
-    use_remove_padding: true
-    use_linear_attention_packing: true
-    use_fused_kernels: false
-    lora_rank: 256
-    lora_alpha: ${eval:${actor_rollout_ref.model.lora_rank}*2}
-    trainable_params: null
-    target_modules: "model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*"
-    exclude_modules: "model.embed_tokens_extend.*"
-    enable_gradient_checkpointing: false
-  ref:
-    filter_nonfinite_log_probs: true
-    strategy: fsdp2
-    log_prob_use_dynamic_bsz: true
-    log_prob_max_token_len_per_gpu: 2048
-    log_prob_micro_batch_size_per_gpu: ${actor_rollout_ref.rollout.log_prob_micro_batch_size_per_gpu}
-    fsdp_config:
-      param_offload: true
+asr:
+  validation_remote_dir: ${trainer.default_hdfs_dir}/val_data_gen
 
-algorithm:
-  adv_estimator: remax
-  adv_scale: {openml: 1.0, default: 1.0}
-  use_kl_in_reward: false
-  filter_groups:
-    enable: false
-
-data:
-  train_files: null
-  val_files: null
-  trust_remote_code: false
-  shuffle: true # shuffle done by interleave
-  use_interleave: false
-  version: 2609
-  max_prompt_length: 1024
-  max_response_length: 768
-  max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
-  dataloader_num_workers: 1
-  prefetch_factor: 2
-  persistent_workers: true
-  pin_memory: false
-  train_batch_size: 64
-  max_audio_dur: 40
-  chunk_load_mode: indexed
-  gen_batch_size: ${data.train_batch_size}
-  val_batch_size: 256
-  custom_cls:
-    path: recipe/phimm/data/rl_dataset.py
-    name: RLHFDataset
-  eval_num_examine: 20
-  train_num_examine: ${eval:${actor_rollout_ref.rollout.n}*10}
-
-reward_model:
-  reward_manager: dapo
-  overlong_buffer:
-    enable: false
-    len: 0
-    penalty_factor: 0.0
-
-trainer:
-  filter_nonfinite_log_probs: true
-  project_name: v2611
-  logger: ["console", "wandb"]
-  log_val_generations: 20
-  experiment_name: null
-  n_gpus_per_node: 8
-  ngpus: ${eval:${trainer.n_gpus_per_node}*${trainer.nnodes}}
-  nnodes: 2
-  total_epochs: 4
-  total_training_steps: 500
-  test_freq: 20
-  save_freq: 10
-  max_actor_ckpt_to_keep: 2
-  resume_mode: auto
-  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
-  default_local_dir: ${oc.env:HOME}/checkpoints/${trainer.project_name}/${trainer.experiment_name}
-  val_before_train: true
-  val_only: false
-  validation_data_dir: ${trainer.default_hdfs_dir}/val_data_gen
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        VERL_USE_EXTERNAL_MODULES: hf_qwen35_audio
+        VLLM_PLUGINS: qwen35_audio
+        HF_HUB_OFFLINE: '1'
+        VLLM_SLEEP_LEVEL: '1'
+        PYTORCH_ALLOC_CONF: expandable_segments:True
+        VERL_REMOTE_CACHE_NAMESPACE: base3a-main-reproduction-20261112
