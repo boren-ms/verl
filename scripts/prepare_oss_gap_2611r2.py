@@ -1,4 +1,4 @@
-"""Freeze only the five transferred OSS increments for 2x8 R2 mining."""
+"""Freeze only the five transferred OSS increments for 4x8 R2 mining."""
 import argparse
 import collections
 import copy
@@ -81,7 +81,7 @@ def prepare(out, upload=False):
                     "distributed_loading": {"enabled": True, "workers_per_node": 8, "prefetch_batches": 2, "timeout_s": 300}},
            "rollout": {"dtype": "bfloat16", "engine_kwargs": {"vllm": {"quantization": None}}},
            "ray_kwargs": {"ray_init": {"runtime_env": {"env_vars": {"VERL_AUDIO_CACHE_ROOT": "/root/data/" + CASE + "_cache"}}}},
-           "trainer": {"experiment_name": "gen_" + CASE, "nnodes": 2, "n_gpus_per_node": 8}}
+           "trainer": {"experiment_name": "gen_" + CASE, "nnodes": 4, "n_gpus_per_node": 8}}
     gen_path = ROOT / f"recipe/phimm/config/v2611_dev/gen/gen_{CASE}.yaml"
     gen_path.write_text(yaml.safe_dump(gen, allow_unicode=True, sort_keys=False))
     summary = {"case_id": CASE, "expected_samples": 36993182, "unique_chunks": len(chunks),
@@ -89,7 +89,7 @@ def prepare(out, upload=False):
                "source_chunks_sha256": sha(frozen), "manifest_sha256": manifests,
                "source_languages": sorted({c["language"] for c in chunks}), "source_specs": len(raw),
                "raw_yaml": str(data_path.relative_to(ROOT)), "generation_config": str(gen_path.relative_to(ROOT)),
-               "model": MODEL, "generation_topology": {"nnodes": 2, "n_gpus_per_node": 8},
+               "model": MODEL, "generation_topology": {"nnodes": 4, "n_gpus_per_node": 8},
                "older_generation_chunk_overlap": 0, "uploaded": False,
                "train_eligibility": "Train declarations frozen; final heldout/reference checks required before publishing filtered data"}
     if upload:

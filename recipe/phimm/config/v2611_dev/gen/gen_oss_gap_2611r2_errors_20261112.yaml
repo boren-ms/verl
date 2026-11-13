@@ -41,5 +41,5 @@ ray_kwargs:
         VERL_AUDIO_CACHE_ROOT: /root/data/oss_gap_2611r2_errors_20261112_cache
 trainer:
   experiment_name: gen_oss_gap_2611r2_errors_20261112
-  nnodes: 2
+  nnodes: 4
   n_gpus_per_node: 8
