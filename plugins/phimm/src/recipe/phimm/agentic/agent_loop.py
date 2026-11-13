@@ -34,6 +34,10 @@ class ASRAgentLoop(AgentLoopBase):
         prompt_ids = inputs["input_ids"][0].tolist()
         if len(prompt_ids) > self.rollout_config.prompt_length:
             raise ValueError(f"Audio prompt has {len(prompt_ids)} tokens; limit={self.rollout_config.prompt_length}")
+        # Retain the acoustic features for actor postprocessing instead of
+        # extracting them again after generation. vLLM still receives waveform.
+        inputs.pop("input_ids")
+        inputs.pop("attention_mask", None)
         # vLLM V1 replaces the text's <audio> marker itself, just as in the
         # source rollout's raw_prompt_ids. Keep HF-expanded IDs for training.
         inference_prompt_ids = self.tokenizer.encode(text, add_special_tokens=False)
@@ -51,7 +55,7 @@ class ASRAgentLoop(AgentLoopBase):
             response_ids=output.token_ids,
             response_mask=[1] * len(output.token_ids),
             response_logprobs=output.log_probs,
-            multi_modal_data={"audios": [audio]},
+            multi_modal_data={"multi_modal_inputs": dict(inputs)},
             metrics=metrics,
             num_turns=2,
             extra_fields=dict(output.extra_fields),
@@ -109,14 +113,7 @@ class ASRAgentLoop(AgentLoopBase):
 @ray.remote
 class ASRWorker(AgentLoopWorkerTQBase):
     def _compute_multi_modal_inputs(self, output, input_ids):
-        data = output.multi_modal_data or {}
-        if not data.get("audios"):
-            return None
-        text = self.tokenizer.decode(input_ids.reshape(-1), skip_special_tokens=False)
-        inputs = dict(self.processor(text=[text], audios=data["audios"], return_tensors="pt"))
-        inputs.pop("input_ids", None)
-        inputs.pop("attention_mask", None)
-        return inputs
+        return (output.multi_modal_data or {}).get("multi_modal_inputs")
 
     def make_agent(self):
         return ASRAgentLoop(
