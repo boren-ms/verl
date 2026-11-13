@@ -411,6 +411,20 @@ class RLHFDataset(Dataset):
         input_ids = model_inputs.pop("input_ids")
         attention_mask = model_inputs.pop("attention_mask")
 
+        # Generation keeps a ledger row for skipped inputs so positional resume
+        # still follows the original source universe. Never truncate their audio.
+        if self.config.get("skip_overlong_inputs", False):
+            if self.is_training:
+                raise ValueError("skip_overlong_inputs is supported for generation only")
+            input_tokens = int(input_ids.shape[-1])
+            if input_tokens > self.max_prompt_length:
+                return {"_generation_skip": {
+                    "row": {k: v for k, v in row_dict.items() if k != "multi_modal_data"},
+                    "input_tokens": input_tokens,
+                    "max_input_tokens": self.max_prompt_length,
+                    "audio_duration_seconds": len(audio[0]) / audio[1],
+                }}
+
 
         if self.return_multi_modal_inputs:
             inputs_dict = dict(model_inputs)

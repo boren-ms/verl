@@ -67,6 +67,16 @@ def _part_index(path: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+def _generation_collate_fn(samples):
+    skipped = [{"position": i, **r["_generation_skip"]}
+               for i, r in enumerate(samples) if "_generation_skip" in r]
+    valid = [r for r in samples if "_generation_skip" not in r]
+    batch = default_collate_fn(valid) if valid else {}
+    if skipped:
+        batch["_generation_skips"] = skipped
+    return batch
+
+
 def _jsonl_num_rows(path: str) -> int:
     count = 0
     with bf.BlobFile(path, "r") as file_obj:
@@ -239,7 +249,7 @@ def main_task(config):
         persistent_workers=config.data.get("persistent_workers", False) and config.data.get("num_workers", 0) > 0,
         shuffle=val_shuffle,
         drop_last=False,
-        collate_fn=default_collate_fn,
+        collate_fn=_generation_collate_fn,
     )
     ray_cls_with_init = RayClassWithInitArgs(cls=ray.remote(ActorRolloutRefWorker), config=config, role="rollout")
     # need this to create fused worker group
@@ -257,6 +267,7 @@ def main_task(config):
     tn_err = 0
     tn_ref = 0
     processed_egs = 0
+    skipped_egs = 0
 
     def write_data(batches, idx):
         num_rows = sum(len(batch) for batch in batches)
@@ -311,8 +322,9 @@ def main_task(config):
             if stopped.is_set():
                 return
             global_batch_idx = start_batch_idx + batch_idx
-            prompts = [msg[0]["content"] for msg in batch_dict["prompt"]]
-            texts = [x["ground_truth"] for x in batch_dict["reward_model"]]
+            skipped = batch_dict.pop("_generation_skips", [])
+            prompts = [msg[0]["content"] for msg in batch_dict.get("prompt", [])]
+            texts = [x["ground_truth"] for x in batch_dict.get("reward_model", [])]
             n_egs = len(texts)
             audio_paths = batch_dict.get("audio_path", [None] * n_egs)
             audio_chunks = batch_dict.get("audio_chunk", [None] * n_egs)
@@ -331,25 +343,54 @@ def main_task(config):
                 audios = batch_dict["multi_modal_data"][i]["audio"]
                 r["audio_duration_seconds"] = sum(len(waveform) / rate for waveform, rate in audios)
                 results.append(r)
-            data = DataProto.from_single_dict(batch_dict)
-            if "uid" not in data.non_tensor_batch:
+            positions = [i for i in range(n_egs + len(skipped))
+                         if i not in {r["position"] for r in skipped}]
+            if skipped:
+                ordered_results = [None] * (n_egs + len(skipped))
+                for position, result in zip(positions, results, strict=True):
+                    ordered_results[position] = result
+                for skip in skipped:
+                    row = skip["row"]
+                    result = {**(row.get("extra_info") or {}),
+                              "prompt": row["prompt"][0]["content"],
+                              "text": row["reward_model"]["ground_truth"],
+                              "audio_path": row.get("audio_path"),
+                              "audio_chunk": row.get("audio_chunk"),
+                              "generation_status": "skipped_overlong_input",
+                              "input_tokens": skip["input_tokens"],
+                              "max_input_tokens": skip["max_input_tokens"],
+                              "audio_duration_seconds": skip["audio_duration_seconds"],
+                              "n_err": None, "n_ref": None,
+                              "response": None, "raw_response": None}
+                    cache_root = os.getenv("VERL_AUDIO_CACHE_ROOT", os.path.expanduser("~/data")).rstrip("/") + "/"
+                    for key in ("audio_path", "audio_chunk"):
+                        if isinstance(result[key], str) and result[key].startswith(cache_root):
+                            result[key] = "az://orngwus2cresco/data/" + result[key][len(cache_root):]
+                    ordered_results[skip["position"]] = result
+                    print(f"Skipped overlong input: {result.get('audio_chunk') or result.get('audio_path')} "
+                          f"input_tokens={skip['input_tokens']} max_input_tokens={skip['max_input_tokens']}")
+                results = ordered_results
+            data = DataProto.from_single_dict(batch_dict) if n_egs else None
+            if data is not None and "uid" not in data.non_tensor_batch:
                 data.non_tensor_batch["uid"] = np.array(
                     [str(uuid.uuid4()) for _ in range(len(data.batch))], dtype=object
                 )
-            data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size)
-            if not put_item(prep_queue, (global_batch_idx, n_egs, data_padded, pad_size, results, extras)):
+            data_padded, pad_size = pad_dataproto_to_divisor(data, wg.world_size) if data is not None else (None, 0)
+            if not put_item(prep_queue, (global_batch_idx, n_egs, data_padded, pad_size, results, extras, positions)):
                 return
         put_item(prep_queue, _SENTINEL)
 
     def consumer():
-        nonlocal tn_err, tn_ref, processed_egs, left_egs, split_idx
+        nonlocal tn_err, tn_ref, processed_egs, skipped_egs, left_egs, split_idx
         local_batches = []
         buffered_rows = 0
         while not stopped.is_set():
             item = get_item(post_queue)
             if item is _SENTINEL:
                 break
-            output, results, extras = item
+            output, results, extras, positions = item
+            if len(output) != len(positions):
+                raise ValueError("Generation output count differs from valid input count")
             for i in range(len(output)):
                 data_item = output[i]
                 prompt_length = data_item.batch["prompts"].shape[-1]
@@ -357,7 +398,7 @@ def main_task(config):
                 valid_response_ids = data_item.batch["responses"][:valid_response_length]
                 response_str = tokenizer.decode(valid_response_ids, skip_special_tokens=True)
                 sample_reward_kwargs = {**reward_kwargs, "extra_info": extras[i] or {}}
-                score = score_fn(response_str, results[i]["text"], **sample_reward_kwargs)
+                score = score_fn(response_str, results[positions[i]]["text"], **sample_reward_kwargs)
                 if not isinstance(score, dict) or not {"n_err", "n_ref"} <= score.keys():
                     raise ValueError("Generation reward function must return a dict containing n_err and n_ref.")
                 score = {key: value for key, value in score.items() if key not in {"n_edge", "edge_wer"}}
@@ -365,19 +406,22 @@ def main_task(config):
                 score["raw_response"] = response_str
                 score["response_tokens"] = int(valid_response_length)
                 score["response_at_limit"] = int(valid_response_length) >= config.rollout.response_length
-                results[i].update(score)
-            tn_err += sum(r["n_err"] for r in results)
-            tn_ref += sum(r["n_ref"] for r in results)
-            processed_egs += len(results)
-            b_ds = Dataset.from_list(results)
+                results[positions[i]].update(score)
+            tn_err += sum(r["n_err"] or 0 for r in results)
+            tn_ref += sum(r["n_ref"] or 0 for r in results)
+            processed_egs += len(positions)
+            skipped_egs += len(results) - len(positions)
+            decoded_results = [results[i] for i in positions]
+            b_ds = Dataset.from_list(decoded_results)
             if "keywords" in b_ds.features:
                 features = b_ds.features
                 features["keywords"] = Sequence(Value("string"))
                 if features != b_ds.features:
                     b_ds = b_ds.cast(features)
-            log_examples(b_ds, num_examine=num_examine)
-            local_batches.append(b_ds)
-            buffered_rows += len(b_ds)
+            if decoded_results:
+                log_examples(b_ds, num_examine=num_examine)
+            local_batches.append(results if len(results) != len(positions) else b_ds)
+            buffered_rows += len(results)
             if stopped.is_set():
                 return
             if buffered_rows >= split_size:
@@ -398,14 +442,17 @@ def main_task(config):
             input_wait_s = time.monotonic() - waiting_at
             if item is _SENTINEL:
                 break
-            global_batch_idx, n_egs, data_padded, pad_size, results, extras = item
+            global_batch_idx, n_egs, data_padded, pad_size, results, extras, positions = item
             print(f"\n(Batch {global_batch_idx + 1}/{total_batches}) Generating {n_egs} samples")
             generating_at = time.monotonic()
-            output_padded = wg.generate_sequences(data_padded)
-            output = unpad_dataproto(output_padded, pad_size=pad_size)
+            if data_padded is not None:
+                output_padded = wg.generate_sequences(data_padded)
+                output = unpad_dataproto(output_padded, pad_size=pad_size)
+            else:
+                output = []
             dispatch_decode_s = time.monotonic() - generating_at
             posting_at = time.monotonic()
-            if not put_item(post_queue, (output, results, extras)):
+            if not put_item(post_queue, (output, results, extras, positions)):
                 return
             print(f"Generation timing batch={global_batch_idx + 1} input_wait_s={input_wait_s:.3f} "
                   f"dispatch_decode_s={dispatch_decode_s:.3f} output_queue_wait_s={time.monotonic() - posting_at:.3f}")
@@ -433,6 +480,7 @@ def main_task(config):
         raise errors.get()
 
     print(f"Overall wer: {tn_err / max(tn_ref, 1):.2%} [{tn_err}/{tn_ref}] on {processed_egs} generated samples")
+    print(f"Skipped {skipped_egs} overlong input samples (not decoded or scored).")
     print(f"Saved {left_egs}/{total_egs} [{left_egs / total_egs:.2%}] samples.")
     print(f"Saved {split_idx} splits to {output_dir}")
     print("All Done")

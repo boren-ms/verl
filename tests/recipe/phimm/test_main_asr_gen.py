@@ -75,6 +75,8 @@ def dataset_namespace():
         "sf": sf,
         "RemoteAudioCacheError": RemoteAudioCacheError,
         "logger": logging.getLogger(__name__),
+        "np": np,
+        "set_chunk_load_mode": lambda mode: None,
         "get_num_proc": lambda value: value,
         "create_audio_dataset": lambda **kwargs: sources[kwargs["name"]],
         "ds_conf": [{"name": "short"}, {"name": "long"}],
@@ -210,7 +212,9 @@ def generation_pipeline(tmp_path):
         "pad_dataproto_to_divisor": lambda data, divisor: (data, 0),
         "unpad_dataproto": lambda data, pad_size: data,
         "wg": SimpleNamespace(world_size=1, generate_sequences=generate),
-        "tokenizer": SimpleNamespace(decode=lambda *args, **kwargs: "hello"),
+        "tokenizer": SimpleNamespace(
+            decode=lambda *args, **kwargs: "Audio Language: English.\n<ASR><lang=English><TXT>hello</TXT></ASR>"
+        ),
         "num_examine": 0,
         "reward_kwargs": {},
         "output_dir": str(tmp_path),
@@ -273,6 +277,85 @@ def _generation_batches(count):
             "extra_info": [{"id": index}],
             "multi_modal_data": [{"audio": [(np.zeros(16000), 16000)]}],
         }
+
+
+def _overlong_skip(position, identity="long.wav"):
+    return {"position": position, "input_tokens": 9, "max_input_tokens": 8,
+            "audio_duration_seconds": 1.0,
+            "row": {"prompt": [{"content": "Transcribe"}],
+                    "reward_model": {"ground_truth": "original long reference"},
+                    "audio_path": identity, "extra_info": {"language": "English"}}}
+
+
+def test_generation_collation_separates_skips_before_tensor_stacking():
+    import torch
+    from collections import defaultdict
+
+    namespace = {"torch": torch, "np": np, "defaultdict": defaultdict}
+    for path, name in [(PROJECT_ROOT / "verl/utils/dataset/rl_dataset.py", "collate_fn"),
+                       (PROJECT_ROOT / "recipe/phimm/main_asr_gen.py", "_generation_collate_fn")]:
+        tree = ast.parse(path.read_text())
+        node = next(n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name == name)
+        exec(compile(ast.Module(body=[node], type_ignores=[]), str(path), "exec"), namespace)
+        if name == "collate_fn":
+            namespace["default_collate_fn"] = namespace[name]
+    skip = {"_generation_skip": {k: v for k, v in _overlong_skip(0).items() if k != "position"}}
+    valid = {"input_ids": torch.tensor([1, 2]), "name": "valid"}
+    batch = namespace["_generation_collate_fn"]([skip, valid, skip])
+    assert batch["input_ids"].tolist() == [[1, 2]]
+    assert [r["position"] for r in batch["_generation_skips"]] == [0, 2]
+    all_skipped = namespace["_generation_collate_fn"]([skip])
+    assert set(all_skipped) == {"_generation_skips"}
+
+
+def test_generation_skips_preserve_source_order_reference_and_resume(generation_pipeline, generation_io):
+    rows = list(_generation_batches(2))
+    mixed = {k: [r[k][0] for r in rows] for k in rows[0]}
+    mixed["_generation_skips"] = [_overlong_skip(0), _overlong_skip(2, "long2.wav")]
+    all_skipped = {"_generation_skips": [_overlong_skip(0, "long3.wav")]}
+    called = []
+    generate = generation_pipeline.namespace["wg"].generate_sequences
+    generation_pipeline.namespace["wg"].generate_sequences = lambda data: (called.append(len(data.batch)) or generate(data))
+    result = generation_pipeline.run([mixed, all_skipped], total=5)
+    assert result.error is None
+    saved = [r for p in sorted(generation_pipeline.output_dir.glob("part-*.jsonl")) for r in _read_jsonl(p)]
+    assert [r["audio_path"] for r in saved] == ["long.wav", "0.wav", "long2.wav", "1.wav", "long3.wav"]
+    assert called == [2]  # The entirely skipped batch never reaches the model.
+    for r in (saved[0], saved[2], saved[4]):
+        assert r["text"] == "original long reference"
+        assert r["generation_status"] == "skipped_overlong_input"
+        assert r["n_err"] is r["n_ref"] is r["raw_response"] is None
+    assert "on 2 generated samples" in result.output
+    assert "Skipped 3 overlong input samples" in result.output
+    assert generation_io._resume_state_from_output(str(generation_pipeline.output_dir), 5, 1, True) == (5, 2)
+
+
+def test_dataset_overlong_skip_happens_before_truncation_or_scoring(dataset_namespace):
+    import torch
+
+    namespace = dataset_namespace
+    namespace["torch"] = torch
+    namespace["load_audio"] = lambda row, max_dur: (np.zeros(16000), 16000)
+    dataset = _generation_dataset(namespace)
+    dataset.config.skip_overlong_inputs = True
+    dataset.max_prompt_length = 3
+    dataset.ds = [{"audio_path": "long.wav", "prompt": [{"content": "Transcribe"}],
+                   "reward_model": {"ground_truth": "keep this reference"}}]
+
+    class Processor:
+        chat_template = True
+
+        def apply_chat_template(self, *args, **kwargs):
+            return "Transcribe"
+
+        def __call__(self, **kwargs):
+            return {"input_ids": torch.tensor([[1, 2, 3, 4]]), "attention_mask": torch.ones((1, 4))}
+
+    dataset.processor = Processor()
+    skipped = dataset[0]["_generation_skip"]
+    assert skipped["input_tokens"] == 4 and skipped["max_input_tokens"] == 3
+    assert skipped["row"]["reward_model"]["ground_truth"] == "keep this reference"
+    assert "multi_modal_data" not in skipped["row"]
 
 
 @pytest.mark.parametrize(
@@ -681,7 +764,8 @@ def test_generation_jsonl_preserves_unicode_newlines_and_measurements(generation
         keywords=["M\u00fcnchen"],
         metadata={"speaker": "Jos\u00e9", "active": True},
     )
-    generation_pipeline.namespace["tokenizer"].decode = lambda *args, **kwargs: text
+    raw_response = f"Audio Language: English.\n<ASR><lang=English><TXT>{text}</TXT></ASR>"
+    generation_pipeline.namespace["tokenizer"].decode = lambda *args, **kwargs: raw_response
     generation_pipeline.namespace["openasr_eval"] = lambda *args, **kwargs: {
         "n_err": 1,
         "n_ref": 3,
@@ -696,7 +780,9 @@ def test_generation_jsonl_preserves_unicode_newlines_and_measurements(generation
     assert contents.endswith("\n") and len(contents.splitlines()) == 1
     assert "M\u00fcnchen" in contents and "\u6771\u4eac" in contents
     record, = _read_jsonl(path)
-    assert record["text"] == record["response"] == record["raw_response"] == text
+    assert record["text"] == text
+    assert record["raw_response"] == raw_response
+    assert record["response"] == text
     assert record["keywords"] == ["M\u00fcnchen"]
     assert record["metadata"] == {"speaker": "Jos\u00e9", "active": True}
     assert record["n_err"] == 1

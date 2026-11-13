@@ -45,7 +45,7 @@ def run(args):
         raise ValueError("No generation parts")
     coverage = collections.Counter()
     part_hashes = {}
-    total = retained = at_limit = 0
+    total = retained = at_limit = skipped = 0
     for part_idx, path in enumerate(parts):
         if int(re.search(r"part-(\d+)\.jsonl$", path).group(1)) != part_idx:
             raise ValueError(f"Non-contiguous generation prefix: {path}")
@@ -60,17 +60,30 @@ def run(args):
                 if source is None or count != source["count"] or not 0 <= index < count:
                     raise ValueError(f"Unexpected source identity: {r['audio_chunk']}")
                 n_err, n_ref = r["n_err"], r["n_ref"]
-                for value in (n_err, n_ref):
+                status = r.get("generation_status", "decoded")
+                if status not in {"decoded", "skipped_overlong_input"}:
+                    raise ValueError(f"Unknown generation status: {status!r}")
+                is_skipped = status == "skipped_overlong_input"
+                if is_skipped:
+                    if not getattr(args, "allow_overlong_skips", False):
+                        raise ValueError("Explicit --allow-overlong-skips is required for skipped inputs")
+                    tokens, limit = r.get("input_tokens"), r.get("max_input_tokens")
+                    if (type(tokens) is not int or type(limit) is not int or not tokens > limit > 0
+                            or any(r.get(k) is not None for k in
+                                   ("n_err", "n_ref", "n_ins", "n_del", "n_sub", "raw_response", "response"))):
+                        raise ValueError("Invalid overlong-input skip record")
+                    skipped += 1
+                for value in (() if is_skipped else (n_err, n_ref)):
                     if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0 or int(value) != value:
                         raise ValueError(f"Invalid error count in {path}: {value!r}")
-                if not isinstance(r["text"], str) or r.get("selection_scorer") != scorer_id:
+                if not isinstance(r["text"], str) or (not is_skipped and r.get("selection_scorer") != scorer_id):
                     raise ValueError("Missing trusted source reference or wrong scorer")
-                if r.get("selection_metric") != source.get("selection_metric", "cer" if source["language"] == "zh" else "wer"):
+                if not is_skipped and r.get("selection_metric") != source.get("selection_metric", "cer" if source["language"] == "zh" else "wer"):
                     raise ValueError("Metric/source language mismatch")
                 expected_model = getattr(args, "expected_selection_model", None)
                 if expected_model and r.get("selection_model") != expected_model:
                     raise ValueError("Generation selection model identity mismatch")
-                if all(k in r for k in ("n_ins", "n_del", "n_sub")):
+                if not is_skipped and all(k in r for k in ("n_ins", "n_del", "n_sub")):
                     edits = [r[k] for k in ("n_ins", "n_del", "n_sub")]
                     if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) or v < 0 or int(v) != v for v in edits) or sum(edits) != n_err:
                         raise ValueError("Invalid edit counts or n_err != n_ins+n_del+n_sub")
@@ -80,20 +93,21 @@ def run(args):
                 r["source_family"] = source["family"]
                 r["source_split_status"] = source["split_status"]
                 db.execute("INSERT INTO scores(id,audio,n_err,record) VALUES (?,?,?,?)",
-                           (identity, audio, int(n_err), json.dumps(r, ensure_ascii=False)))
+                           (identity, audio, None if is_skipped else int(n_err), json.dumps(r, ensure_ascii=False)))
                 coverage[audio] += 1
                 total += 1
-                retained += n_err > 0
+                retained += not is_skipped and n_err > 0
                 at_limit += bool(r.get("response_at_limit"))
                 if total % 20000 == 0:
                     db.commit()
         part_hashes[path] = h.hexdigest()
         db.commit()
-        print(f"Scored coverage {total}/{expected}; errors {retained}", flush=True)
+        print(f"Accounted coverage {total}/{expected}; decoded {total-skipped}; skipped {skipped}; errors {retained}", flush=True)
     mismatches = {a: {"expected": s["count"], "observed": coverage[a]} for a, s in by_audio.items() if coverage[a] != s["count"]}
     if total != expected or mismatches:
         raise ValueError(f"Incomplete coverage: {total}/{expected}; {len(mismatches)} mismatched chunks. No final subset emitted.")
-    proof = {"status": "COMPLETE_GENERATION_COVERAGE", "expected": expected, "observed_unique": total,
+    proof = {"status": "COMPLETE_GENERATION_COVERAGE_WITH_EXPLICIT_SKIPS" if skipped else "COMPLETE_GENERATION_COVERAGE",
+             "expected": expected, "observed_unique": total, "decoded": total-skipped, "skipped_overlong_inputs": skipped,
              "n_err_positive_before_split_audit": retained, "response_at_limit": at_limit,
              "source_chunks_sha256": sha(args.sources), "generation_parts_sha256": part_hashes,
              "training_published": False}
@@ -200,6 +214,7 @@ if __name__ == "__main__":
     p.add_argument("--data-config-name", default="oss_2611r2_errors_20261112")
     p.add_argument("--experiment-name", default="remax_main_base2c_2611r2_oss_errors_20261112")
     p.add_argument("--expected-selection-model")
+    p.add_argument("--allow-overlong-skips", action="store_true", help="Account for explicit overlong-input ledger rows; never select them for training")
     p.add_argument("--training-template", type=Path)
     a = p.parse_args()
     if a.shard_rows <= 0:

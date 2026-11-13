@@ -1,0 +1,46 @@
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-arabic.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-chinese.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-czech.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-danish.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-dutch.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-english.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-finnish.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-french.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-german.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-hebrew.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-hindi.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-hungarian.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-italian.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-japanese.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-korean.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-polish.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-portuguese.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-russian.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-spanish.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-swedish.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-thai.jsonl
+  - az://orngwus2cresco/data/boren/data/oss_refine_2611r2_20261112/filtered_lang_top10k_clean64_20261113/candidate-turkish.jsonl
+  num_proc: 8
+  add_task_info:
+    task: lang_asr_verb
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: openml
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - source_family
+      - source_split_status
+      - selection_rank
+      - selection_n_err
+      - selection_n_ref
+      - selection_metric
+      - selection_model
+      - selection_language_rank
+      - reference_quality_flag
+      - audio_duration_seconds

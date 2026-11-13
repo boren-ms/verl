@@ -24,6 +24,7 @@ data:
   max_audio_dur: null
   validation_shuffle: false
   output_split_size: 20000
+  skip_overlong_inputs: true
 rollout:
   dtype: bfloat16
   engine_kwargs:

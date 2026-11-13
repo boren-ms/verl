@@ -127,7 +127,8 @@ def prepare(out, upload=False):
                   actor_rollout_ref={"model": {"path": MODEL}}, model={"lora_rank": 0},
                   data={"output_path": f"{BLOB}/generation", "chunk_load_mode": "indexed", "max_audio_dur": None,
                         "num_workers": 16, "prefetch_factor": 2,
-                        "validation_shuffle": False, "output_split_size": 20000},
+                        "validation_shuffle": False, "output_split_size": 20000,
+                        "skip_overlong_inputs": True},
                   rollout={"dtype": "bfloat16", "engine_kwargs": {"vllm": {"quantization": None}}},
                   trainer={"experiment_name": f"gen_{CASE}", "nnodes": 4, "n_gpus_per_node": 8})
     gen_config.write_text(yaml.safe_dump(config, allow_unicode=True, sort_keys=False))
