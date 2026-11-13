@@ -41,6 +41,8 @@ def main(config):
                 env[key] = os.environ[key]
     destination = Path(config.trainer.default_local_dir)
     destination.mkdir(parents=True, exist_ok=True)
+    # Custom OmegaConf resolvers are process-local and are not sent to Ray workers.
+    OmegaConf.resolve(config)
     OmegaConf.save(config, destination / "effective_config.yaml", resolve=True)
     run_ppo(config, task_runner_class=TaskRunnerV1)
 

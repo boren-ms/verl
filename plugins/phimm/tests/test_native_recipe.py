@@ -213,6 +213,48 @@ def test_removed_transform_is_rejected():
         process_ds(datasets.Dataset.from_list([{"text": "hello"}]), svad_explode={"enabled": True})
 
 
+def test_entrypoint_sends_resolved_config_to_fresh_worker(compose_recipe, monkeypatch, tmp_path):
+    import pickle
+    import subprocess
+    import sys
+    from types import ModuleType
+
+    from recipe.phimm.main_asr_remax import main
+
+    received = []
+    runner_module = ModuleType("verl.trainer.main_ppo")
+    runner_module.TaskRunnerV1 = object()
+    runner_module.run_ppo = lambda config, **kwargs: received.append(config)
+    monkeypatch.setitem(sys.modules, "verl.trainer.main_ppo", runner_module)
+    monkeypatch.setenv("VLLM_CUDART_SO_PATH", "/test/libcudart.so.13")
+    config = compose_recipe(
+        overrides=[
+            "trainer.experiment_name=fresh-worker-test",
+            f"trainer.default_local_dir={tmp_path}",
+            "actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=3",
+        ]
+    )
+    main.__wrapped__(config)
+    assert len(received) == 1
+    assert received[0].actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu == 6
+    # A new interpreter models Ray's process-local resolver registry. It must
+    # resolve the serialized config without importing the recipe entrypoint.
+    subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import pickle, sys; from omegaconf import OmegaConf; "
+            "assert not OmegaConf.has_resolver('eval'); "
+            "config = pickle.loads(sys.stdin.buffer.read()); "
+            "assert OmegaConf.to_container(config, resolve=True)"
+            "['actor_rollout_ref']['ref']['log_prob_micro_batch_size_per_gpu'] == 6",
+        ],
+        input=pickle.dumps(received[0]),
+        check=True,
+        capture_output=True,
+    )
+
+
 @pytest.mark.parametrize("kind", ["zip", "audio"])
 def test_audio_byte_readers_preserve_payload_and_detect_truncation(tmp_path, kind):
     from verl.audio_chunk import read_chunk_audio
