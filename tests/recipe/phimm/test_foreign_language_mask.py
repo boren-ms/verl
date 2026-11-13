@@ -1,13 +1,36 @@
 import pytest
 from datasets import Dataset
 
-from recipe.phimm.data.dataset import augment, mask_foreign_language
+from recipe.phimm.data.dataset import add_task_info, augment, mask_foreign_language
 from recipe.phimm.reward.asr_edge import measure
 from recipe.phimm.reward.asr_measure import _parse_response
 from recipe.phimm.reward.asr_response import get_hyp_text
 
 
 TASK = {"task": "lang_asr_verb", "lang_hint": True, "language": "English", "prefix_prob": 0.0}
+
+
+def test_target_language_only_uses_config_target_instead_of_audio_language():
+    ds = Dataset.from_list([{"text": "Hello", "language": "en_fr"}])
+    row = add_task_info(ds, **{**TASK, "task": "lang_only_verb"})[0]
+    assert row["language"] == "English"
+    assert "Only include speech in English." in row["prompt"]
+    assert "The target language is English." in row["prompt"]
+    assert row["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\nHello"
+
+
+def test_target_language_only_preserves_existing_foreign_reference_mask():
+    ds = Dataset.from_list([{"text": "Bonjour", "language": "fr"}])
+    row = augment(ds, mask_foreign_language={}, add_task_info={**TASK, "task": "lang_only_verb"})[0]
+    assert row["text"] == "<foreign_language>"
+    assert row["gt_output"].endswith("<foreign_language>")
+    assert "Only include speech in English." in row["prompt"]
+
+
+def test_target_language_only_rejects_disabled_language_hint():
+    ds = Dataset.from_list([{"text": "Hello", "language": "en"}])
+    with pytest.raises(ValueError, match="requires lang_hint=true"):
+        add_task_info(ds, **{**TASK, "task": "lang_only_verb", "lang_hint": False})
 
 
 @pytest.mark.parametrize("language,text,expected", [

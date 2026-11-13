@@ -1773,7 +1773,7 @@ def mask_foreign_language(ds, *, task_info, **kwargs):
     the original text; the block never guesses language boundaries.
     """
     task = task_info.get("task", "asr")
-    if not task.startswith("lang_asr_verb") or not task_info.get("lang_hint", False):
+    if not task.startswith(("lang_asr_verb", "lang_only_verb")) or not task_info.get("lang_hint", False):
         return ds
     hint = task_info.get("language")
     if not hint:
@@ -1996,9 +1996,15 @@ def add_task_info(ds, **kwargs):
     prompt_suffix = kwargs.get("prompt_suffix", "")
     prefix_prob = float(kwargs.get("prefix_prob", 0.0))
     lang_hint = kwargs.get("lang_hint", False)
+    target_language_only = task.startswith("lang_only_verb")
+    if target_language_only and not lang_hint:
+        raise ValueError("lang_only_verb requires lang_hint=true")
 
     def add_task_info_fn(egs):
-        lang = resolve_task_language(task, lang=egs.get("language") or language)
+        # A selection target comes from the task/config, not the audio's source language.
+        lang = resolve_task_language(
+            task, lang=language if target_language_only else egs.get("language") or language
+        )
         prefix = get_task_prefix(task, lang=lang, prob=prefix_prob, version=version)
         prompt = get_task_prompt(
             task=task,

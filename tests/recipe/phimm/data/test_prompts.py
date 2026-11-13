@@ -189,6 +189,36 @@ def test_lang_asr_verb_uses_verbatim_prompt_and_output_format():
     assert resolve_task_language(task="lang_asr_verb_en") == "English"
 
 
+@pytest.mark.parametrize("language", ["English", "fr", "Chinese"])
+def test_target_language_only_prompt_keeps_verbatim_and_excludes_translation(language):
+    target = get_language_name(language)
+    prompt = get_task_prompt(task="lang_only_verb", lang=language)
+    assert prompt == (
+        "Transcribe the audio clip into text. "
+        "Transcribe verbatim, including all filler words and disfluencies. "
+        f"Only include speech in {target}. "
+        "Omit speech in other languages; do not translate it."
+        f"<audio>\nThe target language is {target}."
+    )
+    output = get_task_output(task="lang_only_verb", lang=language, text="sample")
+    assert output == f"<src={target}><tgt={target}>\n<VERBATIM>\nsample"
+    assert check_fmt(parse_task_output(output, version=2609)) == 1.0
+    assert get_task_prefix(task="lang_only_verb", lang=language, prob=1.0) == (
+        f"<src={target}><tgt={target}>\n"
+    )
+
+
+def test_target_language_only_suffix_resolves_before_regular_verbatim_suffix():
+    assert resolve_task_language("lang_only_verb_en", lang="French") == "English"
+    assert "Only include speech in English." in get_task_prompt("lang_only_verb_en")
+
+
+@pytest.mark.parametrize("language", [None, "Unknown", "English French"])
+def test_target_language_only_requires_one_known_language(language):
+    with pytest.raises(ValueError, match="requires one known target language"):
+        get_task_prompt("lang_only_verb", lang=language)
+
+
 @pytest.mark.parametrize("version", [None, 2607])
 def test_get_task_prompt_uses_detect_language_style_without_lang(version):
     assert get_task_prompt(

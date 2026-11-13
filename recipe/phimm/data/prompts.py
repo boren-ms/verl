@@ -28,6 +28,8 @@ def resolve_task_language(task, lang=None):
 
 
 def _get_explicit_task_language(task):
+    if task.startswith("lang_only_verb"):
+        return _get_lang_asr_language(task, "lang_only_verb")
     if task.startswith("lang_asr_verb"):
         return _get_lang_asr_language(task, "lang_asr_verb")
     if task.startswith("lang_asr_lex"):
@@ -54,7 +56,7 @@ def _format_task_output_2607(lang, text, components=None):
 
 
 def _get_2609_mode_tag(task):
-    if task.startswith("lang_asr_verb"):
+    if task.startswith(("lang_asr_verb", "lang_only_verb")):
         return "VERBATIM"
     if task.startswith("lang_asr_lex"):
         return "LEXICAL"
@@ -62,7 +64,7 @@ def _get_2609_mode_tag(task):
 
 
 def _format_task_output_2609(task, lang, text, components=None):
-    if not task.startswith("lang_asr"):
+    if not task.startswith(("lang_asr", "lang_only_verb")):
         return text
 
     mode_tag = _get_2609_mode_tag(task)
@@ -119,6 +121,16 @@ def _format_known_language_prompt(prompt):
 
 def get_task_prompt(task="asr", rand=False, version=None, lang=None):
     """Get the prompt for the specified task."""
+    if task.startswith("lang_only_verb"):
+        target_language = resolve_task_language(task, lang=lang)
+        if target_language.lower() not in LANGUAGES:
+            raise ValueError("lang_only_verb requires one known target language")
+        prompt = _format_known_language_prompt(rand_prompt(LANG_ASR_VERB_PROMPTS, rand=rand))
+        return (
+            f"{prompt} Only include speech in {target_language}. "
+            "Omit speech in other languages; do not translate it."
+            f"<audio>\nThe target language is {target_language}."
+        )
     if task == "asr":
         prompt = rand_prompt(ASR_PROMPTS, rand=rand)
     elif task == "rare_asr":
@@ -145,13 +157,13 @@ def get_task_prompt(task="asr", rand=False, version=None, lang=None):
 def get_task_prefix(task, lang, prob=1.0, version=None):
     """Get the assistant prefix for the specified task.
 
-    Only tasks with an explicit language (``lang_asr*``) or an explicit ``lang``
-    argument emit a non-empty prefix. A null/empty ``lang`` resolves to
+    Language tasks (``lang_asr*`` and ``lang_only_verb*``) emit a prefix.
+    A null/empty ``lang`` resolves to
     "Unknown" so the model detects the language itself.
     """
     if random.random() >= prob:
         return ""
-    if task.startswith("lang_asr"):
+    if task.startswith(("lang_asr", "lang_only_verb")):
         if str(version) == "2607":
             return _format_task_prefix_2607(lang)
         return _format_task_prefix_2609(lang)
@@ -161,7 +173,7 @@ def get_task_prefix(task, lang, prob=1.0, version=None):
 
 def get_task_output(task="asr", lang="English", text="", components=None, version=None):
     """Get the expected output format for the specified task."""
-    if task not in ("asr", "rare_asr", "biasing") and not task.startswith("lang_asr"):
+    if task not in ("asr", "rare_asr", "biasing") and not task.startswith(("lang_asr", "lang_only_verb")):
         raise ValueError(f"Unknown task: {task}")
     return _format_task_output(
         task,
