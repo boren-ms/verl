@@ -244,6 +244,9 @@ ray_kwargs:
       env_vars:
         VERL_USE_EXTERNAL_MODULES: hf_qwen35_audio
         VLLM_PLUGINS: qwen35_audio
+        # DeepSeek OCR's per-request n-gram processor uses the V1 sampler API.
+        # vLLM 0.32 otherwise selects V2 and rejects it before loading weights.
+        VLLM_USE_V2_MODEL_RUNNER: '0'
         HF_HUB_OFFLINE: '1'
         VLLM_SLEEP_LEVEL: '1'
         PYTORCH_ALLOC_CONF: expandable_segments:True
