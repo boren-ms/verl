@@ -1,0 +1,13 @@
+# @package _global_
+# SC with a uniformly sampled segment count from 1 through 4 (inclusive).
+
+defaults:
+  - remax_main_base3a_2611r2_sc
+  - _self_
+
+data:
+  random_segment:
+    segment_count: [1, 4]
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sc2
