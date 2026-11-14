@@ -8,7 +8,7 @@ parameters:
   default: ''
 stages:
 - stage: StagePackages
-  condition: eq('${{ parameters.reuseContextBuildId }}', '')
+  condition: and(not(canceled()), eq('${{ parameters.reuseContextBuildId }}', ''))
   jobs:
   - job: Stage
     pool: orange-builder
@@ -86,7 +86,7 @@ stages:
         cp -a ../images/verl-remax/source source
         cp ../images/verl-remax/Dockerfile Dockerfile
         az acr login --name iridiumsdc
-        image="iridiumsdc.azurecr.io/boren/verl-remax:torch211-vllm024-$(Build.BuildId)"
+        image="iridiumsdc.azurecr.io/boren/verl-remax:torch213-vllm032-$(Build.BuildId)"
         DOCKER_BUILDKIT=1 docker build --progress=plain --build-arg SOURCE_REVISION="$(Build.SourceVersion)" --tag "$image" .
         docker push "$image"
         docker inspect --format '{{json .RepoDigests}}' "$image" > image-digest.json

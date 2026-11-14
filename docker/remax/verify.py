@@ -11,29 +11,31 @@ import torch
 expected = {
     "opencc-python-reimplemented": "0.1.7",
     "wetext": "0.2.1",
-    "TransferQueue": "0.1.11.dev0",
-    "liger-kernel": "0.8.2",
+    "TransferQueue": "0.1.11",
+    "liger-kernel": "0.8.4",
     "ray": "2.54.0",
-    "torch": "2.11.0",
-    "vllm": "0.24.0",
-    "transformers": "5.7.0",
+    "torch": "2.13.0",
+    "torchvision": "0.28.0",
+    "torchaudio": "2.11.0",
+    "vllm": "0.32.0",
+    "transformers": "5.16.1",
     "flash-attn": "2.8.3",
-    "flashinfer-python": "0.6.12",
-    "flash-linear-attention": "0.6.0",
-    "fla-core": "0.6.0",
+    "flashinfer-python": "0.7.0.post1",
+    "flash-linear-attention": "0.5.2",
+    "fla-core": "0.5.2",
     "causal-conv1d": "1.7.0",
-    "protobuf": "5.29.5",
+    "protobuf": "5.29.6",
     "bitbank": "0.2.0",
     "tensordict": "0.10.0",
-    "tilelang": "0.1.9",
-    "apache-tvm-ffi": "0.1.10",
+    "tilelang": "0.1.15",
+    "apache-tvm-ffi": "0.1.11",
     "ml-dtypes": "0.5.4",
     "numpy": "2.2.6",
-    "nvidia-cutlass-dsl": "4.8.1",
-    "flashinfer-cubin": "0.6.12",
+    "nvidia-cutlass-dsl": "4.8.0",
     "bitsandbytes": "0.50.2",
     "nvidia-cuda-runtime": "13.3.29",
     "nvidia-cuda-nvcc": "13.3.73",
+    "nvidia-nvvm": "13.3.73",
     "nvidia-cuda-crt": "13.3.73",
     "nvidia-cuda-nvdisasm": "13.3.73",
     "nvidia-cuda-tileiras": "13.3.36",
@@ -50,6 +52,10 @@ for device in range(torch.cuda.device_count()):
     x = torch.randn(64, 64, device=f"cuda:{device}", requires_grad=True)
     x.square().mean().backward()
     assert torch.isfinite(x.grad).all()
+
+from torchaudio.functional import resample
+
+assert resample(torch.randn(1, 160), 16000, 8000).shape == (1, 80)
 
 from causal_conv1d import causal_conv1d_fn
 
@@ -75,7 +81,7 @@ reference = x.float() * torch.rsqrt(x.float().square().mean(-1, keepdim=True) + 
 assert torch.isfinite(y).all()
 torch.testing.assert_close(y.float(), reference, atol=0.03, rtol=0.03)
 
-from transformers.models.qwen3_5 import modeling_qwen3_5 as native
+from hf_qwen35_audio import modeling_qwen3_5_audio as native
 
 assert native.is_fast_path_available
 assert native.chunk_gated_delta_rule.__module__.startswith("fla.")
@@ -122,7 +128,7 @@ def worker_versions():
 
 
 worker = ray.get(worker_versions.remote(), timeout=120)
-assert worker == {"ray": ray.__version__, "protobuf": "5.29.5", "torch": torch.__version__}, worker
+assert worker == {"ray": ray.__version__, "protobuf": "5.29.6", "torch": torch.__version__}, worker
 report = {
     "packages": versions,
     "ray_worker": worker,
@@ -132,6 +138,7 @@ report = {
     "torch_cuda": torch.version.cuda,
     "checks": [
         "all_gpu_backward",
+        "torchaudio_resample",
         "causal_conv1d_backward",
         "flash_attention_backward",
         "flashinfer_rmsnorm",

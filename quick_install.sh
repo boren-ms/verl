@@ -12,10 +12,10 @@ from packaging.version import Version
 if not Path('/opt/verl-env/image-ray-version.txt').is_file():
     raise SystemExit('Use the verified docker/remax image before preparing this checkout.')
 expected = {
-    'ray': '2.54.0', 'torch': '2.11.0+cu130', 'vllm': '0.24.0',
-    'transformers': '5.7.0', 'TransferQueue': '0.1.11.dev0',
+    'ray': '2.54.0', 'torch': '2.13.0+cu130', 'vllm': '0.32.0',
+    'transformers': '5.16.1', 'TransferQueue': '0.1.11',
     'opencc-python-reimplemented': '0.1.7', 'wetext': '0.2.1',
-    'liger-kernel': '0.8.2', 'numpy': '2.2.6',
+    'liger-kernel': '0.8.4', 'numpy': '2.2.6', 'protobuf': '5.29.6',
 }
 for package, pin in expected.items():
     actual = version(package)
