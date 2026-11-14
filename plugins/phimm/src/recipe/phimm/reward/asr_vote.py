@@ -40,7 +40,7 @@ def _parse_reduction(reduction):
 
 
 def _parse_bounds(name, option, bounds):
-    if not isinstance(bounds, (list, tuple, ListConfig)) or len(bounds) != 2:
+    if not isinstance(bounds, list | tuple | ListConfig) or len(bounds) != 2:
         raise ValueError(f"ASR vote measure {name!r} requires {option}: [low, high].")
     for value in bounds:
         if isinstance(value, bool) or not isinstance(value, Real) or not math.isfinite(value):
@@ -93,8 +93,13 @@ def compute_measure_vote(name: str, value: float, baseline: float, cfg=None) -> 
     return score, delta, vote
 
 
-def compute_score(solution_str, ground_truth, **kwargs):
+def compute_score(solution_str: str | list[str], ground_truth, **kwargs):
     """Reduce beta-weighted delta votes or absolute scores per measure.
+
+    ``solution_str`` accepts one response or an ordered list of independent
+    segment responses. Lexical metrics use their combined text against the
+    full reference; language and format accuracies are averaged per response.
+    Greedy baselines must use the same segment scoring semantics.
 
     Per-measure ``score`` defaults to ``acc`` (accuracy). ``err``
     instead uses ``accuracy - 1`` (negative error) for that measure, before
@@ -205,9 +210,7 @@ def compute_score(solution_str, ground_truth, **kwargs):
     for name, cfg in measures.items():
         score_type = (cfg or {}).get("score", "acc")
         if score_type not in ("acc", "err"):
-            raise ValueError(
-                f"Unsupported ASR vote score type for {name!r}: {score_type!r}. Expected 'acc' or 'err'."
-            )
+            raise ValueError(f"Unsupported ASR vote score type for {name!r}: {score_type!r}. Expected 'acc' or 'err'.")
         raw_scores[name] = parsed[name] - 1.0 if score_type == "err" else parsed[name]
     extra_info = kwargs.get("extra_info") or {}
     baseline = extra_info.get("greedy_reward")

@@ -50,6 +50,12 @@ class ASRAgentLoop(AgentLoopBase):
                 sampling_params=params,
                 audio_data=[audio],
             )
+        if not output.token_ids:
+            raise ValueError("ASR generation returned an empty response")
+        if sampling_params.get("logprobs") and (
+            output.log_probs is None or len(output.log_probs) != len(output.token_ids)
+        ):
+            raise ValueError("ASR generation must return one rollout logprob per sampled token")
         return AgentLoopOutput(
             prompt_ids=prompt_ids,
             response_ids=output.token_ids,
@@ -61,53 +67,72 @@ class ASRAgentLoop(AgentLoopBase):
             extra_fields=dict(output.extra_fields),
         )
 
+    async def generate_segments(self, rows, sampling_params, *, validate):
+        """Generate each segment independently and preserve dataset segment order."""
+        if not rows:
+            raise ValueError("ASR requires at least one segment")
+        outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
+        texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
+        return outputs, texts
+
     async def greedy_baseline(self, row):
         params = dict(temperature=0.0, top_p=1.0, top_k=-1, logprobs=False)
-        output = await self.generate_row(row, params, validate=True)
-        text = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
+        rows = row.get("asr_segments") or [row]
+        _, texts = await self.generate_segments(rows, params, validate=True)
+        text = "\n".join(texts)
         info = copy.deepcopy(row.get("extra_info") or {})
         info.pop("greedy_reward", None)
         info["greedy_hyp"] = text
-        result = await asyncio.to_thread(score_response, self.config, row, text, extra_info=info)
+        result = await asyncio.to_thread(score_response, self.config, row, texts, extra_info=info)
         return text, result
 
     async def run(self, sampling_params, **kwargs):
         validate = kwargs["asr_validate"]
         rows = kwargs["asr_segments"]
-        outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
-        texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
+        outputs, texts = await self.generate_segments(rows, sampling_params, validate=validate)
         output = outputs[0]
         if validate:
-            # Group before scoring: no segment may be scored against its full-parent reference.
-            response = "\n".join(get_hyp_text(text, version=self.config.data.version) for text in texts)
-            # Validation-only aggregate text is never used in an optimizer update.
-            output.response_ids = self.tokenizer.encode(response, add_special_tokens=False)
-            output.response_mask = [1] * len(output.response_ids)
-            output.response_logprobs = None
             info = copy.deepcopy(rows[0].get("extra_info") or {})
             info["n_segments"] = len(rows)
         else:
-            if len(rows) != 1:
-                raise ValueError("Training requires exactly one segment per trajectory")
-            response = texts[0]
             info = kwargs["extra_info"]
-        result = await asyncio.to_thread(
-            score_response, self.config, rows[0], response, validate=validate, extra_info=info
-        )
-        output.reward_score = float(result["score"])
-        output.extra_fields["reward_extra_info"] = dict(result)
-        output.extra_fields["reward_extra_info"]["asr_data_source"] = rows[0]["data_source"]
-        output.extra_fields["reward_extra_info"]["asr_detail"] = json.dumps(
-            {
-                "parent_info": info,
-                "segment_outputs": texts,
-                "segment_info": [r.get("extra_info") or {} for r in rows],
-                **({"segment_rows": rows} if validate else {}),
-            },
-            ensure_ascii=False,
-        )
-        output.metrics.generate_sequences = sum(o.metrics.generate_sequences for o in outputs)
-        return output
+        score_row = dict(rows[0])
+        if "reward_model" in kwargs:
+            score_row["reward_model"] = kwargs["reward_model"]
+        # Train and validation both score raw independent responses against
+        # the parent reference, preserving boundaries for language/format checks.
+        result = await asyncio.to_thread(score_response, self.config, score_row, texts, extra_info=info)
+        reward_info = {
+            **result,
+            "asr_data_source": rows[0]["data_source"],
+            "asr_detail": json.dumps(
+                {
+                    "parent_info": info,
+                    "segment_outputs": texts,
+                    "segment_info": [r.get("extra_info") or {} for r in rows],
+                    **({"segment_rows": rows} if validate else {}),
+                },
+                ensure_ascii=False,
+            ),
+        }
+        if validate:
+            # Aggregate text is only for validation display, after raw scoring.
+            response = get_hyp_text(texts, version=self.config.data.version)
+            output.response_ids = self.tokenizer.encode(response, add_special_tokens=False)
+            output.response_mask = [1] * len(output.response_ids)
+            output.response_logprobs = None
+            output.reward_score = float(result["score"])
+            output.extra_fields["reward_extra_info"] = reward_info
+            output.metrics.generate_sequences = sum(o.metrics.generate_sequences for o in outputs)
+            return output
+        # Main's multi-output contract keeps independent prompts/features under
+        # uid_session_segment, and applies the same outcome reward to every segment.
+        for index, output in enumerate(outputs):
+            output.reward_score = float(result["score"])
+            output.extra_fields["reward_extra_info"] = reward_info
+            output.extra_fields["asr_segment_index"] = index
+            output.extra_fields["asr_num_segments"] = len(outputs)
+        return outputs if len(outputs) > 1 else outputs[0]
 
 
 @ray.remote
@@ -129,7 +154,7 @@ class ASRWorker(AgentLoopWorkerTQBase):
     async def _run_prompt(self, prompt, sampling_params, trajectory, trace=False):
         if not trajectory["validate"] and self.config.algorithm.adv_estimator == "remax":
             try:
-                text, result = await self.make_agent().greedy_baseline(prompt["asr_segments"][0])
+                text, result = await self.make_agent().greedy_baseline(prompt)
                 prompt = dict(prompt)
                 prompt["extra_info"] = copy.deepcopy(prompt.get("extra_info") or {})
                 prompt["extra_info"].update(greedy_hyp=text, greedy_reward=result)

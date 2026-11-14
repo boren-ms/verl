@@ -12,6 +12,7 @@ import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
 
 from recipe.phimm.data.prompts import get_task_output, get_task_prefix, get_task_prompt, resolve_task_language
+from recipe.phimm.data.random_segment import random_segment
 from recipe.phimm.utils.shared import (
     all_rank_print,
     dist_state,
@@ -288,6 +289,7 @@ def process_ds(ds, **kwargs):
     """Post process the dataset."""
     map_kwargs = pop_map_kwargs(kwargs)
     unsupported = set(kwargs) - {
+        "random_segment",
         "input_egs_limit",
         "path_map",
         "rename_fields",
@@ -314,6 +316,8 @@ def process_ds(ds, **kwargs):
         ds = add_field_ds(ds, **merge_kwargs(map_kwargs, add_field_kwargs))
     if verl_format_kwargs := kwargs.get("verl_format", {}):
         ds = verl_format_ds(ds, **merge_kwargs(map_kwargs, verl_format_kwargs))
+    if "random_segment" in kwargs:
+        ds = random_segment(ds, **dict(kwargs["random_segment"] or {}))
     return ds
 
 

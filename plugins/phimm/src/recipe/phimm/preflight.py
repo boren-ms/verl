@@ -53,24 +53,26 @@ def main(config):
     inference_prompt_checks = {}
     for source_name in counts:
         index = next(i for i, name in enumerate(train.ds["data_source"]) if name == source_name)
-        row = train.ds[index]
-        audio = load_audio(row, config.data.max_audio_dur)
-        chat = model.processor if getattr(model.processor, "chat_template", None) else model.tokenizer
-        text = chat.apply_chat_template(row[config.data.prompt_key], add_generation_prompt=True, tokenize=False)
-        text += (row.get("extra_info") or {}).get("prefix", "") or ""
-        features = model.processor(text=[text], audios=[audio], return_tensors="pt")
-        raw_ids = model.tokenizer.encode(text, add_special_tokens=False)
-        processed = inference_processor.apply(
-            ProcessorInputs(raw_ids, inference_processor.info.parse_mm_data({"audio": [audio]}), {}),
-            TimingContext(enabled=False),
-        )
-        assert processed["prompt_token_ids"] == features["input_ids"][0].tolist(), source_name
-        inference_prompt_checks[source_name] = {
-            "raw_length": len(raw_ids),
-            "expanded_length": len(processed["prompt_token_ids"]),
-        }
-        prompt_lengths[source_name] = features["input_ids"].shape[-1]
-        assert prompt_lengths[source_name] <= config.data.max_prompt_length
+        segments = train[index]["asr_segments"]
+        for segment_index, row in enumerate(segments):
+            check_name = source_name if len(segments) == 1 else f"{source_name}/segment_{segment_index}"
+            audio = load_audio(row, config.data.max_audio_dur)
+            chat = model.processor if getattr(model.processor, "chat_template", None) else model.tokenizer
+            text = chat.apply_chat_template(row[config.data.prompt_key], add_generation_prompt=True, tokenize=False)
+            text += (row.get("extra_info") or {}).get("prefix", "") or ""
+            features = model.processor(text=[text], audios=[audio], return_tensors="pt")
+            raw_ids = model.tokenizer.encode(text, add_special_tokens=False)
+            processed = inference_processor.apply(
+                ProcessorInputs(raw_ids, inference_processor.info.parse_mm_data({"audio": [audio]}), {}),
+                TimingContext(enabled=False),
+            )
+            assert processed["prompt_token_ids"] == features["input_ids"][0].tolist(), check_name
+            inference_prompt_checks[check_name] = {
+                "raw_length": len(raw_ids),
+                "expanded_length": len(processed["prompt_token_ids"]),
+            }
+            prompt_lengths[check_name] = features["input_ids"].shape[-1]
+            assert prompt_lengths[check_name] <= config.data.max_prompt_length
     report = {
         "training_rows": len(train),
         "training_counts": counts,

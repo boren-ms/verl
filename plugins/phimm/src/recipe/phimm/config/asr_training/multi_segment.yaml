@@ -1,0 +1,14 @@
+# @package _global_
+# Enable with +asr_training=multi_segment on the normal training config.
+
+data:
+  random_segment:
+    segment_count: [1, 2]  # Set null when selecting segment_len.
+    segment_len: null  # Or [10, 20] in seconds.
+    seed: 42
+  # Every sample is scored against its full original reference. Never crop
+  # individual segments; oversized prompts still fail the model token limit.
+  max_audio_dur: null
+
+trainer:
+  experiment_name: null

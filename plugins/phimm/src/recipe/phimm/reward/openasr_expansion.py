@@ -5,8 +5,8 @@ import regex
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.chinese_normalizer import ChineseTextNormalizer
-from recipe.phimm.utils.open_asr_normalizer.expansion_normalizer import MultilingualNormalizer
 from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
+from recipe.phimm.utils.open_asr_normalizer.expansion_normalizer import MultilingualNormalizer
 
 _zh = ChineseTextNormalizer()
 _ml = MultilingualNormalizer(remove_diacritics=False)
@@ -41,7 +41,7 @@ def measure_expansion(hyp, ref, lang):
     }
 
 
-def openasr_expansion_eval(solution_str, ground_truth, **kwargs):
+def openasr_expansion_eval(solution_str: str | list[str], ground_truth, **kwargs):
     extra = kwargs.get("extra_info") or {}
     language = extra.get("language", kwargs.get("language", ""))
     lang = get_language_code(language.lower().strip())

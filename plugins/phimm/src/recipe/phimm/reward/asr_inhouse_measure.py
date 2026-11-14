@@ -3,15 +3,15 @@ from __future__ import annotations
 import json
 import logging
 import os
-from pathlib import Path
 import re
 import shutil
 import subprocess
 import tempfile
 import uuid
+from pathlib import Path
 
-from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.reward.asr_response import get_hyp_text
+from recipe.phimm.utils.languages import get_language_code
 
 # Strip "[start end]" timing tokens emitted anywhere in DisplayTranscription.
 _TIME_MARKER_RE = re.compile(r"\[\s*-?\d+(?:\.\d+)?\s+-?\d+(?:\.\d+)?\s*\]")
@@ -124,10 +124,17 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
                 logger.info("Syncing SpeechInsight tools from %s/speechinsight_tools/", remote_root)
                 subprocess.run(
                     [
-                        "bbb", "sync", "-q", "--concurrency", "64",
-                        f"{remote_root}/speechinsight_tools/", str(si_dir),
+                        "bbb",
+                        "sync",
+                        "-q",
+                        "--concurrency",
+                        "64",
+                        f"{remote_root}/speechinsight_tools/",
+                        str(si_dir),
                     ],
-                    check=False, capture_output=True, text=True,
+                    check=False,
+                    capture_output=True,
+                    text=True,
                 )
             except Exception as e:
                 logger.warning("SpeechInsight sync failed: %s", e)
@@ -142,10 +149,14 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
             try:
                 subprocess.run(
                     [
-                        "bbb", "cp",
-                        f"{remote_root}/{DOTNET_TAR_NAME}", str(dotnet_tar),
+                        "bbb",
+                        "cp",
+                        f"{remote_root}/{DOTNET_TAR_NAME}",
+                        str(dotnet_tar),
                     ],
-                    check=False, capture_output=True, text=True,
+                    check=False,
+                    capture_output=True,
+                    text=True,
                 )
             except Exception as e:
                 logger.warning("dotnet runtime download failed: %s", e)
@@ -154,7 +165,9 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
                 dotnet_dir.mkdir(parents=True, exist_ok=True)
                 subprocess.run(
                     ["tar", "-xzf", str(dotnet_tar), "-C", str(dotnet_dir)],
-                    check=False, capture_output=True, text=True,
+                    check=False,
+                    capture_output=True,
+                    text=True,
                 )
             except Exception as e:
                 logger.warning("dotnet runtime extract failed: %s", e)
@@ -164,10 +177,14 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
         try:
             subprocess.run(
                 [
-                    "bbb", "cp",
-                    f"{remote_root}/{TER_WHEEL_NAME}", str(ter_whl),
+                    "bbb",
+                    "cp",
+                    f"{remote_root}/{TER_WHEEL_NAME}",
+                    str(ter_whl),
                 ],
-                check=False, capture_output=True, text=True,
+                check=False,
+                capture_output=True,
+                text=True,
             )
         except Exception as e:
             logger.warning("ter wheel download failed: %s", e)
@@ -176,7 +193,9 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
         try:
             subprocess.run(
                 ["pip", "install", "--no-deps", str(ter_whl)],
-                check=False, capture_output=True, text=True,
+                check=False,
+                capture_output=True,
+                text=True,
             )
             marker.write_text("ok\n", encoding="utf-8")
         except Exception as e:
@@ -217,6 +236,7 @@ def _get_ter_backend(locale: str = "en-us"):
     backend = _TER_BACKENDS.get(loc)
     if backend is None:
         from dfmetrics.ter import TER  # type: ignore
+
         backend = TER(locale=loc, ter_type="disfluencytolerant")
         _TER_BACKENDS[loc] = backend
     return backend
@@ -228,9 +248,11 @@ def _category_edits(ter_category_info: dict | None) -> dict[str, int]:
     Returns a dict with keys ``dter_n_punc``, ``dter_n_cap``, ``dter_n_itn``,
     ``dter_n_lex`` (zero when the category is missing).
     """
-    cats = ((ter_category_info or {}).get("ter_categories") or {})
+    cats = (ter_category_info or {}).get("ter_categories") or {}
+
     def _n(k: str) -> int:
         return int(((cats.get(k) or {}).get("number_of_edits")) or 0)
+
     return {
         "dter_n_punc": _n("punc"),
         "dter_n_cap": _n("cap"),
@@ -346,7 +368,7 @@ def _compute_eer(ref: str, hyp: str, pack_dir: str | Path | None = None) -> tupl
     return n_err, n_ref, n_err / n_ref
 
 
-def eval_score(solution_str: str, ground_truth: str, **kwargs):
+def eval_score(solution_str: str | list[str], ground_truth: str, **kwargs):
     """Inhouse DTER/EER scorer for eval_asr.py.
 
     Reports only DisfluencyTolerant TER (DTER, via dfmetrics Python backend)
@@ -358,13 +380,13 @@ def eval_score(solution_str: str, ground_truth: str, **kwargs):
     compute_eer = kwargs.get("compute_eer", False)
     extra_info = kwargs.get("extra_info") or {}
     locale = _resolve_locale(kwargs.get("locale"), extra_info.get("language", kwargs.get("language")))
+    hyp_text = _clean_hyp(get_hyp_text(solution_str, version=kwargs.get("version")))
+    ref_text = _clean_ref(ground_truth)
     # The dfmetrics TER backend used by `_compute_dter` shells out to `dotnet`
     # (via fstalign), so the SpeechInsight pack must be installed and its dotnet
     # runtime exported onto PATH/DOTNET_ROOT *before* DTER runs. `_compute_eer`
     # also relies on this, but it runs after DTER, so set it up up-front here.
     ensure_pack_dir(pack_dir)
-    hyp_text = _clean_hyp(get_hyp_text(solution_str, version=kwargs.get("version")))
-    ref_text = _clean_ref(ground_truth)
 
     dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text, locale=locale)
 

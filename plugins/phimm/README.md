@@ -39,16 +39,161 @@ initialization, including dependencies loaded lazily by the Chinese scorer.
 
 `ASRAgentLoop` uses main's LLM client and TransferQueue worker. Each training
 prompt gets one shared greedy baseline before its eight sampled trajectories.
-The unchanged source scorer computes the delta/absolute vote reward. The
+The ASR scorer computes the delta/absolute vote reward. The
 trainer passes the baseline score to the standard ReMax advantage estimator.
 Validation groups and sorts segments before scoring full parent references;
 corpus error rates use summed error/reference counts.
+Training and validation pass the same ordered list of raw segment responses
+to the scorer. They share response parsing and text extraction, preserving
+independent boundaries for language/format checks when those measures are
+configured. Validation retains its configured benchmark scorers and corpus
+counts. Both modes select their scorer from the same top-level `reward_map`
+and `rewards`; there is no separate validation reward namespace.
+The map uses the sample's `data_source` as its key and a registered scorer
+name as its value. Without a mapping, the source name itself is used. All
+registrations (`path`, `name`, `reward_kwargs`) live in
+[`config/reward/asr.yaml`](src/recipe/phimm/config/reward/asr.yaml), loaded by
+the base config. Training presets use a `train_` prefix and benchmark presets
+use `val_`; these are names in the shared registry, not runtime mode switches.
+Validation source mappings are defined in `v2611_dev/base.yaml` and inherited
+by training and standalone evaluation. The ReMax training YAML adds only its
+training source mappings. Hydra merges them into one `reward_map`, for example:
+
+```yaml
+reward_map:
+  noisy_ls: train_librispeech
+  earning: val_openasr_en
+```
+
+Using the same source, responses, kwargs and baseline produces the same
+reward in either mode. Aggregate validation text is only prepared for
+display after scoring.
+
+All response-scoring entry points accept either one string or a nonempty
+ordered list of strings: measure/vote rewards, language-only reward,
+OpenASR (English, multilingual and Hindi lattice),
+Mandarin/Vietnamese/French expansion, inhouse DTER/EER, non-speech and
+foreign-language evaluation. Empty segment strings are retained for checks;
+an empty response list or non-string list entry raises an error. Shared text
+normalization and alignment counts live in `reward/asr_metrics.py`.
+Non-speech and foreign-language
+checks require every response to satisfy the sample's task, while retaining
+one parent-level reference count.
 
 The adapter retains batch128, LoRA320/640, LR6e-7, two epochs, six-source
 mix, validation20/save10, and auto resume. Runtime checks require 55,664 rows
 and 868 updates. Main's decoupled token importance correction has cap5 without
 batch normalization. Its on-policy loss and gradient are tested against the
 source objective; end-to-end quality still requires actual experiment results.
+
+Two Base3a variants can be selected with `--config-name`:
+
+- `remax_main_base3a_2611r2_segment_count`: `segment_count: [1, 2]`.
+- `remax_main_base3a_2611r2_segment_len`: `segment_len: [5, 30]` seconds.
+
+Both inherit the Base3a model, data mix and rewards, disable duration cropping,
+and use separate experiment names. For other training configs,
+multi-segment training can be enabled with `+asr_training=multi_segment` and
+an explicit `trainer.experiment_name=<unique-name>`. Each original recording
+remains one dataset sample with its full reference. The `random_segment`
+dataset block replaces its `audio_path` with an ordered list of selectors:
+
+```yaml
+# Inside a dataset's post_process block:
+random_segment:
+  segment_count: [1, 2]  # Inclusive segment count range.
+  segment_len: null
+  seed: 42
+```
+
+For exactly two segments, set `segment_count: [2, 2]`. Cut points are random;
+for example, `A.wav` can become `[A.wav#0%:35%, A.wav#35%:100%]`, using the
+existing audio range format.
+Segment counts and cut points are deterministic
+for a seed and source-row index. They are sampled during dataset preparation,
+so all rollout trajectories and the greedy baseline use the same partition.
+Segments cover the entire recording without gaps or overlap. Audio decoding
+and range reads happen in the agent worker, not during dataset preparation.
+Selectors can also partition an existing `#start:end` audio range or an
+archive-backed audio entry.
+
+For `audio_path: a.wav;b.wav`, the worker first concatenates the decoded
+waveforms in that order, then slices the combined waveform. A segment can span
+the original file boundary. Generated selectors include a full inner range
+(`a.wav;b.wav#0%:100%#start%:end%`) so the segment range applies to the complete
+concatenation. Dataset preparation does not create a merged audio file.
+
+Alternatively, select duration mode instead of count mode:
+
+```yaml
+random_segment:
+  segment_count: null
+  segment_len: [10, 20]  # Seconds; draw a new length for every segment.
+  seed: 42
+```
+
+`segment_len` defaults to `null`, selecting count mode. If neither range is
+provided, count mode defaults to `segment_count: [1, 2]`. Two non-null ranges
+raise an error; when switching the training config to duration mode, set
+`segment_count: null` and supply `segment_len`. The old `range` and `max_segment_length` options
+are removed. Count mode samples an inclusive integer count and needs no duration
+lookup and always randomizes cut points. `min_segment_fraction` is an optional
+count-mode-only floor relative to the full recording,
+defaulting to `0.1` (10% of the full recording) and limited to
+`1 / segment_count[1]`. For more than ten possible segments, explicitly lower
+this fraction so the requested counts remain feasible.
+
+Duration mode independently draws a new length from `segment_len` for every
+segment, rather than choosing one length for the entire recording. Sampling
+continues until the remaining audio fits within the upper bound. The final
+remainder is retained and may be shorter than the lower bound; a recording
+shorter than the lower bound stays as one segment. Segment count has no configured
+upper limit in this mode. A degenerate range such as `[20, 20]` explicitly requests 20-second segments
+plus the final remainder.
+
+Duration mode first uses the row's `audio_length` (seconds); if absent, it reads
+audio header metadata without waveform decoding. Ordinary remote files use
+seekable metadata reads; archive and legacy chunk sources inspect the selected
+encoded entry using the byte index rather than ChunkManager. Building an index
+for an uncached legacy chunk may first localize the encoded chunk to disk;
+supplying `audio_length` avoids that IO as well. Existing time selectors are
+accounted for when reading duration metadata. `audio_length`, when supplied,
+must describe the selected source's duration.
+
+`data.random_segment` applies the block to every training source; a source's
+own `post_process.random_segment` takes precedence, including `enabled: false`.
+The opt-in config above sets this global default and disables duration
+cropping. The standard per-segment prompt/response token limits still apply.
+Without the opt-in config, a listed segment exceeding `max_audio_dur` fails
+instead of silently cropping audio against a full reference. Validation is
+not augmented by the global training option.
+
+Each segment is transcribed independently with its task prompt and its own
+audio: `prompt + segment1 -> response1`, `prompt + segment2 -> response2`.
+No previous response or segment is included in the next request. The reward
+scorer receives an ordered list of raw segment responses. It extracts and
+joins their text for lexical, keyword, punctuation and capitalization
+metrics against the original full reference. Language and format checks run
+separately on each response and are averaged with equal segment weights;
+when a reference lists multiple languages (for example `English_Chinese`),
+each header may match any listed language, with matching `src` and `tgt`.
+An independent response need not contain all reference languages. Mixed
+responses check every header; unsupported or mismatched languages lose credit.
+Single-language references retain their existing extra-header penalties.
+For all references,
+missing or malformed responses remain visible to these checks. Combined
+metrics (`word_lang`, `char_lang`, `word_fmt`) use those averaged checks.
+Only model response format 2609 is supported; omitted versions default to
+2609 and other configured versions raise an error.
+ReMax likewise generates all greedy segment responses and scores them as one
+sample before sampled trajectories start. The agent returns independent
+outputs through Main's multi-output interface (`uid_session_segment`), each
+with the shared sample reward and its original generated IDs, logprobs and
+audio features. Actor loss uses each segment's independent context and the
+existing sequence/token aggregation; samples with more segments contribute
+more segment loss terms. Dataset length, source mixing budgets and
+`max_samples` continue to count original recordings. Segment count can thus
+increase actor work and optimizer minibatches without increasing prompt count.
 
 Sampling passes `ngram_size=15` and `window_size=512` to the registered
 DeepSeek processor. The configured window now takes effect for sampled

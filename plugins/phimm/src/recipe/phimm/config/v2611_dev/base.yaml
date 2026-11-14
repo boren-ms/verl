@@ -3,6 +3,7 @@
 
 defaults:
   - /ppo_trainer
+  - /reward/asr@_global_
   - _self_
 
 actor_rollout_ref:
@@ -108,6 +109,7 @@ data:
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   max_audio_dur: 40
   chunk_load_mode: indexed
+  random_segment: null
 
 algorithm:
   # Source on-policy token importance correction, capped without batch normalization.
@@ -139,39 +141,97 @@ trainer:
   resume_mode: auto
   val_before_train: true
 
-val_reward:
-  reward_functions:
-    openasr_expansion:
-      path: recipe/phimm/reward/openasr_expansion.py
-      name: openasr_expansion_eval
-      reward_kwargs:
-        version: 2609
-    inhouse_zh:
-      path: recipe/phimm/reward/asr_inhouse_measure.py
-      name: eval_score
-      reward_kwargs:
-        version: 2609
-        locale: zh-cn
-    inhouse_all:
-      path: recipe/phimm/reward/asr_inhouse_measure.py
-      name: eval_score
-      reward_kwargs:
-        version: 2609
-    openasr_ml:
-      path: recipe/phimm/reward/asr_eval.py
-      name: openasr_eval
-      reward_kwargs:
-        version: 2609
-    openasr_en:
-      path: recipe/phimm/reward/asr_eval.py
-      name: openasr_en_eval
-      reward_kwargs:
-        version: 2609
-    openasr_hi_in:
-      path: recipe/phimm/reward/asr_eval.py
-      name: openasr_hi_in_eval
-      reward_kwargs:
-        version: 2609
+reward_map:
+  monsoon_hi_in: val_openasr_hi_in
+  mixlang: val_inhouse_zh
+  earning: val_openasr_en
+  openml_bad: val_openasr_ml
+  earning_num: val_openasr_en
+  earning_chunk_verb: val_openasr_en
+  earning_chunk_lex: val_openasr_en
+  earnings_pre_chunk_verb: val_openasr_en
+  earnings_pre_chunk_lex: val_openasr_en
+  urgent2024_delta: val_openasr_en
+  earnings21_u2: val_openasr_en
+  earnings22_u2: val_openasr_en
+  coraal_u2: val_openasr_en
+  earnings22_cleaned_aa_u2: val_openasr_en
+  zh_aishell1_top500_2611r2: val_openasr_expansion
+  zh_fleurs_top500_2611r2: val_openasr_expansion
+  ls_clean: val_openasr_en
+  ls_other: val_openasr_en
+  earnings21: val_openasr_en
+  earnings22: val_openasr_en
+  coraal: val_openasr_en
+  zh_fleurs: val_openasr_expansion
+  zh_aishell1: val_openasr_expansion
+  vi_fleurs: val_openasr_expansion
+  vi_mcv: val_openasr_expansion
+  eslo_telephony_fr: val_openasr_expansion
+  accueil_ubs_fr: val_openasr_expansion
+  coraal_atl: val_openasr_en
+  coraal_dca: val_openasr_en
+  coraal_dcb: val_openasr_en
+  coraal_dta: val_openasr_en
+  coraal_les: val_openasr_en
+  coraal_prv: val_openasr_en
+  coraal_roc: val_openasr_en
+  coraal_vld: val_openasr_en
+  mixlang_fy26q2: val_inhouse_zh
+  name_val: val_openasr_en
+  gigaspeech_clean: val_openasr_en
+  voxpopuli-cleaned-aa: val_openasr_en
+  earnings22-cleaned-aa-chunked: val_openasr_en
+  spgispeech: val_openasr_en
+  spgispeech_clean: val_openasr_en
+  ami: val_openasr_en
+  ami_clean: val_openasr_en
+  gigaspeech: val_openasr_en
+  voxpopuli_cleaned_aa: val_openasr_en
+  earnings22_cleaned_aa: val_openasr_en
+  earnings22_cleaned_aa_chunked: val_openasr_en
+  monsoon_en_in: val_openasr_en
+  urgent2024: val_openasr_en
+  urgent2024_clean: val_openasr_en
+  de_fleurs: val_openasr_ml
+  fr_fleurs: val_openasr_ml
+  it_fleurs: val_openasr_ml
+  es_fleurs: val_openasr_ml
+  pt_fleurs: val_openasr_ml
+  de_mcv: val_openasr_ml
+  fr_mcv: val_openasr_ml
+  it_mcv: val_openasr_ml
+  es_mcv: val_openasr_ml
+  fr_mls: val_openasr_ml
+  it_mls: val_openasr_ml
+  es_mls: val_openasr_ml
+  pt_mls: val_openasr_ml
+  nl_fleurs: val_openasr_ml
+  nl_mcv: val_openasr_ml
+  nl_mls: val_openasr_ml
+  enus_conv_fy21q1: val_inhouse_all
+  enus_conv_om_fy25q3: val_inhouse_all
+  enus_dict_office_fy24q3: val_inhouse_all
+  dadk_conv_fy21q3: val_inhouse_all
+  dadk_conv_om_fy23q1: val_inhouse_all
+  dadk_dict_fy23q4: val_inhouse_all
+  huhu_conv_fy22q4: val_inhouse_all
+  huhu_conv_om_fy24q2: val_inhouse_all
+  huhu_dict_fy25q2: val_inhouse_all
+  nbno_conv_fy21q3: val_inhouse_all
+  nbno_conv_om_fy23q1: val_inhouse_all
+  nbno_dict_fy23q4: val_inhouse_all
+  nlnl_conv_fy23q2: val_inhouse_all
+  nlnl_conv_om_fy23q1: val_inhouse_all
+  nlnl_dict_fy23q4: val_inhouse_all
+  cscz_conv_fy23q2: val_inhouse_all
+  cscz_conv_om_fy24q2: val_inhouse_all
+  cscz_dict_fy24q2: val_inhouse_all
+  hiin_conversation_dtest_fy23q3_hi_in_dtest: val_inhouse_all
+  hiin_conversation_domainset_dtest_banking_entity_fy25q2_hi_in_dtest_offlinedatacollection: val_inhouse_all
+  hiin_conversation_domainset_dtest_medical_entity_fy24q1_hi_in_dtest: val_inhouse_all
+  hiin_conversation_onlinemeetings_dtest_fy24q2_hi_in: val_inhouse_all
+  hiin_dictation_dtest_l_d_fy23q2_hi_in_dtest: val_inhouse_all
 
 asr:
   validation_remote_dir: ${trainer.default_hdfs_dir}/val_data_gen

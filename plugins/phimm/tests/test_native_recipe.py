@@ -16,12 +16,34 @@ def compose_recipe():
     directory = Path(recipe.phimm.__file__).parent / "config/v2611_dev"
     OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)
 
-    def load(kind="main", overrides=()):
-        name = "remax_main_base3a_2611r2" if kind == "main" else "eval_openfull_zip"
+    def load(kind="main", overrides=(), name=None):
+        name = name or ("remax_main_base3a_2611r2" if kind == "main" else "eval_openfull_zip")
         with initialize_config_dir(config_dir=str(directory / kind), version_base=None):
             return compose(config_name=name, overrides=list(overrides))
 
     return load
+
+
+@pytest.mark.parametrize("mode, bounds", [("segment_count", [1, 2]), ("segment_len", [5, 30])])
+def test_base3a_segment_variants_inherit_training_and_validation(compose_recipe, mode, bounds):
+    base = compose_recipe()
+    name = f"remax_main_base3a_2611r2_{mode}"
+    config = compose_recipe(name=name)
+    OmegaConf.resolve(config)
+    other_mode = "segment_len" if mode == "segment_count" else "segment_count"
+    assert list(config.data.random_segment[mode]) == bounds
+    assert config.data.random_segment[other_mode] is None
+    assert config.data.random_segment.seed == 42
+    assert config.data.max_audio_dur is None
+    for field in ("train_data", "val_data", "mix", "train_batch_size"):
+        assert config.data[field] == base.data[field]
+    assert config.rewards == base.rewards
+    assert config.reward_map == base.reward_map
+    assert config.actor_rollout_ref.model.path == base.actor_rollout_ref.model.path
+    assert config.asr.expected_training_rows == base.asr.expected_training_rows == 55664
+    assert config.asr.expected_training_steps == base.asr.expected_training_steps == 868
+    assert config.trainer.experiment_name == name
+    assert config.trainer.default_hdfs_dir.endswith(f"/{name}")
 
 
 def test_native_overrides_propagate_from_any_working_directory(compose_recipe, monkeypatch, tmp_path):
@@ -79,7 +101,7 @@ def test_evaluation_composes_native_base_without_training_manifests(compose_reci
     assert config.actor_rollout_ref.model.lora_rank == 0
     assert "compilation_config" not in config.actor_rollout_ref.rollout.engine_kwargs.vllm
     assert "mix" not in config.data
-    assert "reward_functions" not in config
+    assert "val_reward" not in config
     assert "expected_training_steps" not in config.asr
     assert config.data.val_batch_size == 768
     assert config.data.train_data == config.data.val_data
@@ -88,8 +110,9 @@ def test_evaluation_composes_native_base_without_training_manifests(compose_reci
     sources = {item.post_process.add_field.fields.data_source for item in configs}
     assert {"eslo_telephony_fr", "accueil_ubs_fr"} <= sources
     for source in sources:
-        scorer = config.val_reward.reward_function_by_data_source.get(source, source)
-        assert scorer in config.val_reward.reward_functions, source
+        scorer = config.reward_map.get(source, source)
+        assert scorer.startswith("val_"), source
+        assert scorer in config.rewards, source
 
 
 def test_evaluation_requires_explicit_model_and_experiment(compose_recipe):

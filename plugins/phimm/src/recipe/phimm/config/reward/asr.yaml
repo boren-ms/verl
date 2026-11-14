@@ -1,0 +1,60 @@
+# @package _global_
+# Shared scorer presets; reward_map selects them by data_source in either mode.
+
+rewards:
+  train_librispeech:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 2}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.1, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.2, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+  train_aishell1_char:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      version: 2609
+      reduce: {mode: average, total: 1}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+
+  val_openasr_expansion:
+    path: recipe/phimm/reward/openasr_expansion.py
+    name: openasr_expansion_eval
+    reward_kwargs:
+      version: 2609
+  val_inhouse_zh:
+    path: recipe/phimm/reward/asr_inhouse_measure.py
+    name: eval_score
+    reward_kwargs:
+      version: 2609
+      locale: zh-cn
+  val_inhouse_all:
+    path: recipe/phimm/reward/asr_inhouse_measure.py
+    name: eval_score
+    reward_kwargs:
+      version: 2609
+  val_openasr_ml:
+    path: recipe/phimm/reward/asr_eval.py
+    name: openasr_eval
+    reward_kwargs:
+      version: 2609
+  val_openasr_en:
+    path: recipe/phimm/reward/asr_eval.py
+    name: openasr_en_eval
+    reward_kwargs:
+      version: 2609
+  val_openasr_hi_in:
+    path: recipe/phimm/reward/asr_eval.py
+    name: openasr_hi_in_eval
+    reward_kwargs:
+      version: 2609

@@ -27,6 +27,18 @@ def _flatten_data_confs(data_confs):
     return flattened
 
 
+def _prepare_data_confs(config, *, is_train):
+    """Flatten source configs and apply training defaults below source overrides."""
+    sources = config.train_data if is_train else config.val_data
+    data_confs = [dict(conf) for conf in _flatten_data_confs(sources)]
+    if is_train and config.get("random_segment") is not None:
+        for conf in data_confs:
+            post_process = dict(conf.get("post_process") or {})
+            post_process.setdefault("random_segment", dict(config.random_segment))
+            conf["post_process"] = post_process
+    return data_confs
+
+
 def _promote_null_feature(feat):
     """Promote ``null``-typed leaves to ``string`` while preserving structure.
 
@@ -75,6 +87,17 @@ def _align_null_features(data_sets):
             ds = ds.cast(promoted)
         aligned.append(ds)
     return aligned
+
+
+def _align_source_features(data_sets):
+    """Align scalar/list audio paths and empty optional fields before merging sources."""
+    list_paths = any(hasattr(ds.features.get("audio_path"), "feature") for ds in data_sets)
+    aligned = []
+    for ds in data_sets:
+        if list_paths and "audio_path" in ds.features and not hasattr(ds.features["audio_path"], "feature"):
+            ds = ds.map(lambda row: {"audio_path": [row["audio_path"]] if row["audio_path"] else None})
+        aligned.append(ds)
+    return _align_null_features(aligned)
 
 
 def _collect_datasources(data_sets: Sequence[datasets.Dataset]) -> dict[str, datasets.Dataset]:
@@ -205,6 +228,16 @@ def mix_datasets(
     return datasets.concatenate_datasets(groups) if len(groups) > 1 else groups[0]
 
 
+def _combine_datasets(data_sets, config, *, is_train):
+    """Apply ordered training mix budgets or concatenate unbudgeted sources."""
+    if not is_train or config.get("mix") is None:
+        return datasets.concatenate_datasets(data_sets)
+    if config.get("shuffle", False):
+        raise ValueError("Set data.shuffle=false when using data.mix to preserve ordered mix groups.")
+    # Preserve the source's effective seed: data.seed=null (or 0) uses 42.
+    return mix_datasets(data_sets, config.mix, config.train_batch_size, seed=config.get("seed") or 42)
+
+
 def group_validation_rows(rows):
     """Match LongAudioGroupedRewardManager's source/parent and segment ordering."""
     groups = defaultdict(list)
@@ -227,19 +260,13 @@ def group_validation_rows(rows):
 class ASRDataset(Dataset):
     def __init__(self, data_files, tokenizer, config, processor=None, max_samples=-1):
         is_train = config.get("train_data") is not None and data_files == config.train_files
-        data_confs = config.train_data if is_train else config.val_data
         self.prompt_key = config.get("prompt_key", "prompt")
         set_chunk_load_mode(config.get("chunk_load_mode") or "indexed")
-        data_sets = _align_null_features(
-            [create_audio_dataset(**{**conf, "version": config.version}) for conf in _flatten_data_confs(data_confs)]
-        )
-        if is_train and config.get("mix") is not None:
-            if config.get("shuffle", False):
-                raise ValueError("Set data.shuffle=false when using data.mix to preserve ordered mix groups.")
-            # Preserve the source's effective seed: data.seed=null (or 0) uses 42.
-            self.ds = mix_datasets(data_sets, config.mix, config.train_batch_size, seed=config.get("seed") or 42)
-        else:
-            self.ds = datasets.concatenate_datasets(data_sets)
+
+        data_confs = _prepare_data_confs(config, is_train=is_train)
+        data_sets = [create_audio_dataset(**{**conf, "version": config.version}) for conf in data_confs]
+        data_sets = _align_source_features(data_sets)
+        self.ds = _combine_datasets(data_sets, config, is_train=is_train)
         if max_samples > 0:
             self.ds = self.ds.select(range(min(max_samples, len(self.ds))))
         self.groups = None if is_train else group_validation_rows(self.ds)
@@ -251,9 +278,22 @@ class ASRDataset(Dataset):
         indices = [index] if self.groups is None else self.groups[index]
         rows = [self.ds[i] for i in indices]
         row = dict(rows[0])
+        segments = []
+        for item in rows:
+            paths = item.get("audio_path")
+            if isinstance(paths, list):
+                if not paths or any(not isinstance(path, str) or not path for path in paths):
+                    raise ValueError("ASR audio_path lists must contain at least one non-empty path")
+                for path in paths:
+                    segment = {**item, "audio_path": path, "asr_full_reference": True}
+                    # Path selectors must take precedence over inline audio.
+                    segment.pop("audio", None)
+                    segments.append(segment)
+            else:
+                segments.append(item)
         row["raw_prompt"] = row[self.prompt_key]
         row["index"] = index
-        row["asr_segments"] = rows
+        row["asr_segments"] = segments
         row["asr_validate"] = self.groups is not None
         row["agent_name"] = "asr"
         return row

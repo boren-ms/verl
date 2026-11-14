@@ -13,14 +13,14 @@ def load_score_function(path, name):
     return getattr(module, name)
 
 
-def score_response(config, row, response, *, validate=False, extra_info=None):
-    section = config.get("val_reward", {}) if validate else config
-    registrations = section.get("reward_functions", {})
-    mapping = section.get("reward_function_by_data_source", {})
+def score_response(config, row, response, *, extra_info=None):
+    """Dispatch through the shared reward map and registry in both modes."""
+    registrations = config.get("rewards", {})
+    mapping = config.get("reward_map", {})
     source = row["data_source"]
     name = mapping.get(source, source)
     if name not in registrations:
-        raise ValueError(f"No {'validation' if validate else 'training'} scorer for {source!r}")
+        raise ValueError(f"No scorer for {source!r}")
     spec = registrations[name]
     fn = load_score_function(spec["path"], spec["name"])
     return fn(
@@ -38,7 +38,7 @@ def aggregate_error_rates(data_sources, extra_infos):
     for i, source in enumerate(data_sources):
         for key, values in extra_infos.items():
             value = values[i]
-            if value is not None and isinstance(value, (int, float)):
+            if value is not None and isinstance(value, int | float):
                 totals[source][key] += value
     metrics = {}
     for source, counts in totals.items():
@@ -60,7 +60,7 @@ def _compute_reward_metrics(reward_extra_infos: dict[str, list]) -> dict[str, fl
     metrics = {}
     for key, values in reward_extra_infos.items():
         numeric_values = np.asarray(
-            [value for value in values if isinstance(value, (bool, int, float, np.bool_, np.number))],
+            [value for value in values if isinstance(value, bool | int | float | np.bool_ | np.number)],
             dtype=np.float64,
         )
         numeric_values = numeric_values[np.isfinite(numeric_values)]

@@ -135,6 +135,57 @@ def _parse_range_endpoint(value: str, default=None):
     return number, is_percent
 
 
+def get_audio_duration(source):
+    """Read duration from headers without decoding waveforms or using ChunkManager.
+
+    Archive references read only the selected encoded entry. Legacy chunk
+    references use the byte index rather than ChunkManager. Ordinary remote
+    files use a seekable BlobFile, preferring an existing local copy.
+    """
+    if _is_time_chunk_spec(source) and (";" not in source or _is_time_chunk_spec(source.rpartition("#")[0])):
+        inner, _, tail = source.rpartition("#")
+        duration = get_audio_duration(inner)
+        s_str, _, e_str = tail.partition(":")
+        start, start_percent = _parse_range_endpoint(s_str, default=0.0)
+        end, end_percent = _parse_range_endpoint(e_str)
+        if start_percent != end_percent:
+            raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
+        limit = 100.0 if start_percent else duration
+        end = limit if end is None else end
+        if end < 0:
+            end += limit
+        if (
+            not start_percent
+            and e_str.startswith("-")
+            and (start >= duration or end <= 0 or end <= start or end - start < MIN_AUDIO_DURATION)
+        ):
+            return duration
+        if not 0 <= start < end <= limit:
+            raise ValueError(f"Invalid audio range: {tail!r}")
+        return (end - start) * duration / 100 if start_percent else end - start
+    sources = split_audio_sources(source)
+    if len(sources) > 1:
+        return sum(get_audio_duration(path) for path in sources)
+
+    if _is_chunk_spec(source):
+        from recipe.phimm.data.indexed_chunk import chunk_audio_byte_references
+
+        path, count, index = source.rsplit(":", 2)
+        references = chunk_audio_byte_references(path, int(count))
+        if not 0 <= int(index) < len(references):
+            raise ValueError(f"Chunk index out of range: {source}")
+        source = references[int(index)]
+    if split_chunk_audio_source(source) is not None:
+        return sf.info(io.BytesIO(read_chunk_audio(source))).duration
+    if split_zip_audio_source(source) is not None:
+        return sf.info(io.BytesIO(read_zip_audio(source))).duration
+
+    from verl.audio_cache import resolve_audio_source
+
+    with bf.BlobFile(resolve_audio_source(source), "rb", streaming=True) as stream:
+        return sf.info(stream).duration
+
+
 def _load_time_chunk(spec):
     file_path, _, tail = spec.rpartition("#")
     s_str, _, e_str = tail.partition(":")
@@ -148,7 +199,12 @@ def _load_time_chunk(spec):
         chunk_audio, sr = sf_read(file_path)
         chunk_audio = np.asarray(chunk_audio)
         frames = len(chunk_audio)
-    elif _is_chunk_spec(file_path):
+    elif ";" in file_path:
+        # Merge the source waveforms before applying the outer segment range.
+        chunk_audio, sr = _load_audio_source(file_path)
+        chunk_audio = np.asarray(chunk_audio)
+        frames = len(chunk_audio)
+    elif _is_time_chunk_spec(file_path) or _is_chunk_spec(file_path):
         chunk_audio, sr = _load_chunk(file_path)
         chunk_audio = np.asarray(chunk_audio)
         frames = len(chunk_audio)
@@ -225,6 +281,10 @@ def _load_chunk(spec):
 
 def _load_audio_source(source):
     """Load one source, or concatenate semicolon-separated sources in order."""
+    # Apply an outer selector before splitting concatenated inner time ranges.
+    if _is_time_chunk_spec(source) and _is_time_chunk_spec(source.rpartition("#")[0]):
+        data, sr = _load_time_chunk(source)
+        return _to_mono(data, source), sr
     sources = split_audio_sources(source)
 
     audios = []
@@ -262,6 +322,11 @@ def load_raw_audio(x):
 
 def load_audio(x, max_dur=None, min_dur=0.16):
     data, fs = load_raw_audio(x)
+    if x.get("asr_full_reference") and max_dur is not None and len(data) / fs > max_dur:
+        raise ValueError(
+            "A segmented training sample would be truncated against its full reference; "
+            "set data.max_audio_dur=null or use shorter segments"
+        )
     return limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur)
 
 

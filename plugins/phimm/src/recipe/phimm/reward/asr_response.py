@@ -1,15 +1,11 @@
 import re
 from typing import TypedDict
 
-
 _SEGMENT_RE = re.compile(
     r"(?:\A|\n)<src=(?P<src>[^>\n]+)><tgt=(?P<tgt>[^>\n]+)>[^\S\n]*\n"
     r"(?P<text>.*?)(?=\n<src=|\Z)",
     re.DOTALL,
 )
-_2607_HEADER_RE = re.compile(r"^Audio Language:\s*(?P<langs>[^\n]+?)\.?\n(?P<body>.*)$", re.DOTALL)
-_2607_TAG_RE = re.compile(r"^<(?P<tag>ASR(?:_[^>]+)?)>(?P<inner>.*)</(?P=tag)>$", re.DOTALL)
-_2607_SEGMENT_RE = re.compile(r"\s*<lang=(?P<lang>[^>]+)><TXT>(?P<text>.*?)</TXT>\s*", re.DOTALL)
 
 
 class TaskOutputSegment(TypedDict):
@@ -32,8 +28,6 @@ def clean_text(text: str) -> str:
         r"</?readable>",
         r"<sep>",
         r"</?TXT>",
-        r"</?AS[RT][^>]*>",
-        r"</?lang(?:=[^>]*)?>",
     )
     cleaned = text
 
@@ -49,71 +43,19 @@ def clean_text(text: str) -> str:
     return cleaned
 
 
-def parse_task_output(solution_str, version=None):
-    """Parse an ASR response into a list of ``src``/``tgt``/``text`` segments."""
-    if str(version) == "2609":
-        return _parse_task_output_2609(solution_str)
-    if str(version) == "2607":
-        return _parse_task_output_2607(solution_str)
-    return _parse_task_output_2607(solution_str)
-
-
 def get_asr_text(task_output):
     """Join parsed ASR text segments without modifying their content."""
     return " ".join(segment["text"] for segment in task_output if segment["text"] is not None)
 
 
-def _parse_task_output_2607(solution_str):
-    """Parse the legacy 2607 ``Audio Language`` / ``<ASR>`` envelope."""
-    if not isinstance(solution_str, str):
-        return [_segment()]
-    output = solution_str.strip()
-    header_match = _2607_HEADER_RE.match(output)
-    body = header_match.group("body").strip() if header_match else output
-    tag_match = _2607_TAG_RE.match(body)
-    if tag_match is None:
-        return [_segment()]
+def parse_task_output(solution_str: str, version=None):
+    """Parse a 2609 response, preserving malformed text for reward checks.
 
-    segments = []
-    inner = tag_match.group("inner")
-    pos = 0
-    while pos < len(inner):
-        segment_match = _2607_SEGMENT_RE.match(inner, pos)
-        if segment_match is None:
-            return [_segment()]
-        segments.append((segment_match.group("lang").strip(), segment_match.group("text")))
-        pos = segment_match.end()
-    if not segments:
-        return [_segment()]
-
-    header_langs = _split_2607_langs(header_match.group("langs")) if header_match else []
-    if len(header_langs) > len(segments):
-        # Keep surplus source languages visible to language scoring.
-        last_index = len(segments) - 1
-        header_langs[last_index:] = [" ".join(header_langs[last_index:])]
-    return [
-        _segment(
-            src=header_langs[index] if index < len(header_langs) else None,
-            tgt=lang,
-            text=text,
-        )
-        for index, (lang, text) in enumerate(segments)
-    ]
-
-
-def _split_2607_langs(header: str) -> list[str]:
-    """Split a 2607 header into its individual language names."""
-    header = header.strip().rstrip(".")
-    header = re.sub(r"\band\b", " ", header, flags=re.IGNORECASE)
-    return [part for part in re.split(r"[,\s、&/]+", header) if part]
-
-
-def _parse_task_output_2609(solution_str: str):
-    """Require 2609 language headers except for standalone ``<nonspeech>``.
-
-    ``<TXT>`` tags are optional. Preserve an unparsed remainder in a final
-    segment without source or target language information.
+    Complete language headers and optional ``<TXT>`` tags are supported, as
+    is standalone ``<nonspeech>``. An omitted version selects 2609.
     """
+    if version is not None and str(version) != "2609":
+        raise ValueError(f"ASR reward supports only model version 2609; got {version!r}")
     output = solution_str.strip()
     if output.lower() == "<nonspeech>":
         return [_segment(text="<nonspeech>")]
@@ -135,8 +77,18 @@ def _parse_task_output_2609(solution_str: str):
     return segments or [_segment()]
 
 
-def get_hyp_text(solution_str, version=None):
-    """Extract and clean lexical text from each parsed segment."""
-    task_output = parse_task_output(solution_str, version=version)
-    cleaned = (clean_text(segment["text"] or "") for segment in task_output)
+def parse_response_outputs(solution_str: str | list[str], version=None) -> list[list[TaskOutputSegment]]:
+    """Parse one response or an ordered list, preserving independent boundaries."""
+    responses = solution_str if isinstance(solution_str, list) else [solution_str]
+    if not responses:
+        raise ValueError("ASR reward requires at least one segment response")
+    if any(not isinstance(response, str) for response in responses):
+        raise TypeError("ASR reward expects a string or a list of strings")
+    return [parse_task_output(response, version=version) for response in responses]
+
+
+def get_hyp_text(solution_str: str | list[str], version=None):
+    """Join cleaned text from one response or ordered independent responses."""
+    task_outputs = parse_response_outputs(solution_str, version=version)
+    cleaned = (clean_text(segment["text"] or "") for output in task_outputs for segment in output)
     return " ".join(filter(None, cleaned))

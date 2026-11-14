@@ -56,6 +56,69 @@ def test_recipe_contract(config):
     assert len(cohorts) == 9
 
 
+def test_shared_rewards_cover_all_training_and_validation_sources(config):
+    for prefix, collection in (("train_", config.data.train_data), ("val_", config.data.val_data)):
+        cohorts = [item for group in collection for item in (group if OmegaConf.is_list(group) else [group])]
+        for cohort in cohorts:
+            source = cohort.post_process.add_field.fields.data_source
+            scorer = config.reward_map.get(source, source)
+            assert scorer.startswith(prefix), source
+            assert scorer in config.rewards, source
+    assert "val_reward" not in config
+    assert "reward_function_by_data_source" not in config
+
+
+@pytest.mark.parametrize(
+    ("source", "name"),
+    [("noisy_ls", "train_librispeech"), ("earning", "val_openasr_en"), ("mixlang", "val_inhouse_zh")],
+)
+def test_shared_reward_dispatch(config, monkeypatch, source, name):
+    from recipe.phimm.agentic import scoring
+
+    calls = []
+
+    def load(path, function):
+        def score(**kwargs):
+            calls.append((path, function, kwargs))
+            return {"score": 0.25}
+
+        return score
+
+    monkeypatch.setattr(scoring, "load_score_function", load)
+    responses = ["first", "second"]
+    row = {
+        "data_source": source,
+        "reward_model": {"ground_truth": "full reference"},
+        "extra_info": {"language": "English"},
+    }
+    assert score_response(config, row, responses) == {"score": 0.25}
+    spec = config.rewards[name]
+    assert calls == [
+        (
+            spec.path,
+            spec.name,
+            {
+                "solution_str": responses,
+                "ground_truth": "full reference",
+                "extra_info": row["extra_info"],
+                **OmegaConf.to_container(spec.reward_kwargs),
+            },
+        )
+    ]
+
+
+def test_reward_dispatch_uses_source_name_when_unmapped(monkeypatch):
+    from recipe.phimm.agentic import scoring
+
+    config = {"rewards": {"direct": {"path": "test_module", "name": "score"}}}
+    monkeypatch.setattr(scoring, "load_score_function", lambda path, name: lambda **kwargs: {"score": 1})
+    row = {"data_source": "direct", "reward_model": {"ground_truth": "reference"}}
+    assert score_response(config, row, ["response"]) == {"score": 1}
+    row["data_source"] = "missing"
+    with pytest.raises(ValueError, match="scorer for 'missing'"):
+        score_response(config, row, ["response"])
+
+
 def test_corpus_counts_and_missing_fields():
     metrics = aggregate_error_rates(
         ["a", "a", "b"],
@@ -95,6 +158,25 @@ def test_baseline_measures_drive_vote_reward(config):
     improved = score_response(config, row, good, extra_info=info)
     unchanged = score_response(config, row, bad, extra_info=info)
     assert improved["score"] > unchanged["score"]
+
+
+def test_joint_segment_reward_uses_full_reference_and_joint_greedy_measures(config):
+    row = {
+        "data_source": "noisy_ls",
+        "reward_model": {"ground_truth": "hello world"},
+        "extra_info": {"language": "English"},
+    }
+    first = "<src=English><tgt=English>\n<verbatim>hello</verbatim>"
+    second = "<src=English><tgt=English>\n<verbatim>world</verbatim>"
+    baseline = score_response(config, row, [first, ""])
+    result = score_response(config, row, [first, second], extra_info={"language": "English", "greedy_reward": baseline})
+    assert baseline["word"] == 0.5
+    assert baseline["lang"] == baseline["fmt"] == 0.5
+    assert result["word"] == 1.0
+    assert result["char"] == 1.0
+    assert result["lang"] == result["fmt"] == 1.0
+    assert result["v_lang"] == result["v_fmt"] == 1.0
+    assert result["score"] > 0
 
 
 def test_vllm_no_repeat_uses_configured_window(config):
