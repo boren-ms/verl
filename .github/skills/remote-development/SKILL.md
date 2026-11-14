@@ -43,7 +43,7 @@ specifies another image. Do not select an arbitrary latest tag or rebuild the
 image as part of ordinary devbox creation. The currently documented reference is:
 
 ```text
-iridiumsdc.azurecr.io/boren/verl-remax@sha256:d3624316721afeb2cf072b803cecac5a01e45f691b84e58e2cb43fc70d565b4e
+iridiumsdc.azurecr.io/boren/verl-remax@sha256:d92ae2602a53dbe81fea9ee6e6c51325275b56ad2f71f26659b93155f47ff830
 ```
 
 Recheck those files when using this skill; the reference above may be superseded.
@@ -77,7 +77,7 @@ For a missing pool that the user asked to create:
 
 ```bash
 # Run from the current verl checkout/worktree; use its documented image digest.
-VERL_DOCKER_IMAGE=iridiumsdc.azurecr.io/boren/verl-remax@sha256:d3624316721afeb2cf072b803cecac5a01e45f691b84e58e2cb43fc70d565b4e \
+VERL_DOCKER_IMAGE=iridiumsdc.azurecr.io/boren/verl-remax@sha256:d92ae2602a53dbe81fea9ee6e6c51325275b56ad2f71f26659b93155f47ff830 \
 twdev create-ray-devbox \
   cluster=prod-westus2-cw-6 num_pods=1 num_gpu=8 \
   job_name=<POOL> priority_class=team-critical team=team-moonfire-speech \
@@ -131,11 +131,13 @@ local changes produce a snapshot SHA distinct from local HEAD).
 Use the repository's required installer and install only requested or necessary
 dependencies. For the custom verl image, run `bash quick_install.sh` from
 `/root/code/verl` after syncing; it checks and reuses the baked environment,
-binds editable packages to the pushed checkout, and runs GPU kernel checks.
-Inspect the current installer's marker/version requirements against the image
-before invoking it: a mismatch triggers automatic reinstallation without a
-confirmation prompt. Diagnose mismatches first rather than treating a full
-reinstall as normal image reuse. Do not replace Ray in a running cluster.
+binds editable packages to the pushed checkout, and checks CUDA availability.
+Use the dedicated verifier for compiled GPU kernel checks.
+The Main installer validates baked versions and installs only the repository
+and both ASR/model plugins with `uv --no-deps --no-build-isolation`. A mismatch
+fails with a rebuild instruction; it does not reinstall the runtime. Inspect
+legacy installers separately because older branches can automatically reinstall
+on a marker mismatch. Do not replace Ray in a running cluster.
 Verify the observable result—for example, an import, version,
 targeted test, or generated artifact—and surface errors immediately.
 

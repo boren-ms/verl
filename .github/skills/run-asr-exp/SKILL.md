@@ -119,21 +119,39 @@ Typical checks, adapted to the actual live environment:
 ```bash
 brix pools -a
 brix ssh -c prod-westus2-cw-6 -n boren <pool> -- \
-  'bash -l -c "python /root/code/verl/ray_job.py list; ray status"'
+  'bash -l -c "ray job list; ray status"'
 brix ssh -c prod-westus2-cw-6 -n boren <pod> -- \
   'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
 ```
 
 ## Submit and verify
 
-Sync the exact local revision to the selected pool. Prefer `quick_run.sh` for
-Hydra overrides because it prepares the Ray environment and forwards them:
+Sync the exact local revision to every selected GPU node with `bpush`, then use
+the Main ASR submitter from that checkout:
 
 ```bash
 bpush <pool>
 brix ssh -c prod-westus2-cw-6 -n boren <pool> -- \
-  'bash -l /root/code/verl/quick_run.sh <config.yaml> <hydra-overrides...>'
+  'bash -lc "cd /root/code/verl && python plugins/phimm/submit.py --name <unique-id> <hydra-overrides...>"'
 ```
+
+The default is original `remax_main_base3a_2611r2`, with no random segmentation.
+Use `--config <installed-config-name>` for another recipe and `--evaluate` for
+full evaluation. `--name` supplies both the Ray submission ID and default
+experiment name; an explicit `trainer.experiment_name=` override wins.
+`--dry-run` prints the command without connecting to Ray. Do not select `sc`
+or `sl` unless the requested experiment calls for segmentation.
+
+The submitter checks for duplicate IDs, prepares editable packages on every
+live GPU Ray node, composes the effective YAML, verifies node/GPU topology, and
+saves receipts under `tmp/phimm-submissions/<id>/`. It reuses the synchronized
+checkout instead of uploading another Ray working directory. It also sets the
+repository and both plugin source paths in the job runtime environment, so
+workers prefer the synced checkout over baked editable paths. `quick_install.sh`
+requires the curated Docker image and fails on dependency mismatch; it does not
+upgrade a live Ray cluster. Follow the Docker skill only when an image update
+is required. On older branches, inspect the available legacy submitter rather
+than copying its `quick_run.sh`/`ray_tool.py` assumptions into Main.
 
 Capture the submission ID; verify its live entrypoint, config, experiment,
 resources, logs and GPU activity. Submission output alone is insufficient.

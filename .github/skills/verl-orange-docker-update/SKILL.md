@@ -26,7 +26,7 @@ description: 更新 verl/ReMax 的 Orange Docker 训练环境，通过 Azure Dev
 | `docker/remax/stage_source.py` | 选择并整理运行源码；检查当前文件选择与排除逻辑 |
 | `docker/remax/image.rcall.py` | 专用镜像选择、TorchFlow 启动适配 |
 | `docker/remax/verify.py`、`verify_nccl.py` | 环境、GPU 算子、Ray 与多卡通信检查 |
-| `quick_install.sh`、`quick_install_linear_attention.sh`、`requirements_vllm.txt` | 普通节点安装、镜像复用与版本检查的一致性 |
+| `quick_install.sh`（旧分支另查 linear-attention installer/requirements） | 普通节点安装、镜像复用与版本检查的一致性 |
 | `docker/remax/README.md`、`VERIFICATION.md` | 操作说明、上次发布与验证证据 |
 
 构建身份、网络或镜像策略不清楚时，查阅本地 Penny.wiki：
@@ -57,7 +57,7 @@ cp docker/remax/Dockerfile <bootstrapping>/images/verl-remax/Dockerfile
 cp docker/remax/orange-pipeline.yaml <bootstrapping>/.azuredevops/kube-orange-box.yaml
 ```
 
-检查 staging 结果确实包含本次运行文件、排除了本机凭据和临时日志，并处理已删除文件的残留。新增文件是否会被整理工具发现，要检查当前实现。只 stage 预期构建路径；sparse checkout 下使用 `git add --sparse`。审阅 diff 后提交、正常 push，记录完整提交 SHA。遇到并发远端更新时先同步，禁止强推覆盖。
+当前 Main 的整理工具要求空的目标 source 目录，防止旧文件残留；先核对专用构建 checkout 的状态，再清理其旧 source。检查 staging 包含 `verl/`、`plugins/phimm/`（含 `hydra_plugins`）、`plugins/qwen35_audio/`、setup 与 verifier，排除本机凭据和临时日志。新增文件是否会被整理工具发现，要检查当前实现。只 stage 预期构建路径；sparse checkout 下使用 `git add --sparse`。审阅 diff 后提交、正常 push，记录完整提交 SHA。遇到并发远端更新时先同步，禁止强推覆盖。
 
 构建采用两类机器：
 
@@ -118,7 +118,7 @@ https://dev.azure.com/project-argos/Mimco/_build/results?buildId=<BUILD_ID>
    ```
 
 3. 运行 `python -m torch.distributed.run --standalone --nproc-per-node=<实际GPU数> /root/code/verl/docker/remax/verify_nccl.py`，要求覆盖分配的全部 GPU。
-4. 在 `/root/code/verl` 运行正常 `bash quick_install.sh`，核对它复用 baked 环境、没有重新安装主依赖，并把 editable 源码绑定到当前 checkout。再次运行 verifier，另存 report。
+4. 在 `/root/code/verl` 运行正常 `bash quick_install.sh`，核对它只通过 uv 安装当前 checkout 和两个插件的 editable 源码。当前 Main 的 installer 遇到镜像版本不匹配即失败，不会在运行的 Ray 集群中重装主依赖。再次运行 verifier，另存 report。
 5. 最后重新核对 UID、实际 imageID 和 restartCount，确认检查没有跨重启混用证据。保存启动日志中跳过广泛安装的证据、版本、GPU、Ray worker 和 NCCL 输出。
 
 启动失败时先查当前/previous 容器日志，再通过 Brix 查看 `/tmp/ray/session_latest/logs/` 的 `runtime_env_agent.err`、`raylet.err`、dashboard 日志。只提取相关行，原始日志私有保存。Ray 超时可能是插件 import 失败；短暂 SSH 拒绝也可能来自重启，不能未经诊断归因于登录失效。发现故障后做有依据的修复，避免无限重启或重复构建；若外部授权、配额或可访问性确实阻塞，记录未完成的验证边界。
