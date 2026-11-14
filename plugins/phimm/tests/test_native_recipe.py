@@ -40,6 +40,7 @@ def test_base3a_segment_variants_inherit_training_and_validation(compose_recipe,
     assert config.rewards == base.rewards
     assert config.reward_map == base.reward_map
     assert config.actor_rollout_ref.model.path == base.actor_rollout_ref.model.path
+    assert config.actor_rollout_ref.rollout.engine_kwargs.vllm.compilation_config.mode == 0
     assert config.asr.expected_training_rows == base.asr.expected_training_rows == 55664
     assert config.asr.expected_training_steps == base.asr.expected_training_steps == 868
     assert config.trainer.experiment_name == name
@@ -72,6 +73,7 @@ def test_native_overrides_propagate_from_any_working_directory(compose_recipe, m
     assert actor.rollout.max_num_batched_tokens == 32 * (512 + 256)
     assert actor.model.lora_alpha == 32
     assert actor.rollout.engine_kwargs.vllm.seed == 7
+    assert actor.rollout.engine_kwargs.vllm.compilation_config.mode == 0
     assert actor.rollout.trace.experiment_name == "test-run"
     assert actor.rollout.prometheus.served_model_name == "/models/audio"
     assert config.trainer.default_hdfs_dir.endswith("/test-project/test-run")
@@ -99,7 +101,7 @@ def test_evaluation_composes_native_base_without_training_manifests(compose_reci
     assert config.trainer.val_only
     assert config.trainer.resume_mode == "disable"
     assert config.actor_rollout_ref.model.lora_rank == 0
-    assert "compilation_config" not in config.actor_rollout_ref.rollout.engine_kwargs.vllm
+    assert config.actor_rollout_ref.rollout.engine_kwargs.vllm.compilation_config.mode == 0
     assert "mix" not in config.data
     assert "val_reward" not in config
     assert "expected_training_steps" not in config.asr

@@ -51,6 +51,8 @@ actor_rollout_ref:
     n: 8
     engine_kwargs:
       vllm:
+        compilation_config:
+          mode: 0
         gdn_prefill_backend: triton
         lora_target_modules:
           - gate_proj
