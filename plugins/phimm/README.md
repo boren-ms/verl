@@ -209,11 +209,16 @@ and its 512-token response limit.
 It also preserves the source LLM's seed0 on every replica and raw rollout
 log probabilities, rather than inheriting main's seed42 and processed scores.
 
+Use the curated [Docker image](../../docker/remax/README.md) and sync this checkout
+to both nodes with `bpush`. The submitter prepares editable packages on every
+GPU node, composes the config, checks topology and records a receipt before
+submitting. It uses `--name` as both submission ID and default experiment name.
+Use `--config <installed-name>` for another recipe or `--dry-run` to preview.
+
 For an already synced two-node Ray pool:
 
 ```bash
-python plugins/phimm/submit.py --submission-id <unique-id> \
-  trainer.experiment_name=<unique-name>
+python plugins/phimm/submit.py --name <unique-name>
 ```
 
 Initial validation can be checked separately with `trainer.val_only=true`
@@ -221,8 +226,7 @@ and a separate experiment name. It does not replace the training run.
 After the final checkpoint is exported and verified, full evaluation uses:
 
 ```bash
-python plugins/phimm/submit.py --evaluate --submission-id <unique-eval-id> \
-  trainer.experiment_name=<unique-eval-name> \
+python plugins/phimm/submit.py --evaluate --name <unique-eval-name> \
   actor_rollout_ref.model.path=<verified-merged-HF-path>
 ```
 

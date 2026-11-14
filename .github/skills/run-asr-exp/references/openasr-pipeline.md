@@ -9,7 +9,7 @@ their stated stages:
 
 For an evaluation-only request recover producer config, base model, rank/alpha,
 topology and output root from checkpoint provenance. Default eval config is
-`recipe/phimm/config/v2611_dev/eval/eval_openfull_zip.yaml`, covering OpenEN,
+`plugins/phimm/src/recipe/phimm/config/v2611_dev/eval/eval_openfull_zip.yaml`, covering OpenEN,
 OpenML, OpenLong and Chinese/Vietnamese OpenExt. Set its required model path to
 the verified export, experiment name to a unique candidate identity and topology
 to the producer's verified node/GPU counts. Preserve explicitly narrower suites;
