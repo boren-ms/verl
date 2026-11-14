@@ -312,10 +312,8 @@ class Qwen3_5AudioDummyInputsBuilder(BaseDummyInputsBuilder[Qwen3_5AudioProcessi
 class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProcessingInfo]):
     def _call_hf_processor(
         self,
-        prompt: str,
-        mm_data: Mapping[str, object],
-        mm_kwargs: Mapping[str, object],
-        tok_kwargs: Mapping[str, object],
+        hf_data: Mapping[str, object],
+        hf_kwargs: Mapping[str, object],
     ) -> BatchFeature:
         """Process text and audio data into model inputs.
 
@@ -324,13 +322,12 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
         Feature extraction uses the SpeechLib-compatible LogFbank pipeline
         (same as Phi4-MM).
         """
-        tokenizer = self.info.get_tokenizer()
-        input_ids = tokenizer.encode(prompt)
-
-        if not mm_data or (not mm_data.get("audios") and not mm_data.get("audio")):
-            return BatchFeature(dict(input_ids=[input_ids]), tensor_type="pt")
-
-        audio_data = mm_data.get("audios") or mm_data.get("audio", [])
+        # vLLM 0.32 tokenizes the original prompt separately and passes only
+        # normalized multimodal data here. Prompt expansion remains in
+        # _get_prompt_updates; this hook must not retokenize dummy text.
+        audio_data = hf_data.get("audio", [])
+        if not audio_data:
+            return BatchFeature()
 
         audio_features_list = []
         audio_embed_sizes = []
@@ -355,23 +352,12 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
 
         return BatchFeature(
             dict(
-                input_ids=[input_ids],
                 input_audio_embeds=input_audio_embeds,
                 audio_embed_sizes=torch.tensor(audio_embed_sizes, dtype=torch.long),
                 audio_attention_mask=audio_attention_mask,
             ),
             tensor_type="pt",
         )
-
-    def _hf_processor_applies_updates(
-        self,
-        prompt_text: str,
-        mm_items: MultiModalDataItems,
-        hf_processor_mm_kwargs: Mapping[str, object],
-        tokenization_kwargs: Mapping[str, object],
-    ) -> bool:
-        # We handle prompt updates ourselves via _get_prompt_updates
-        return False
 
     def _get_mm_fields_config(
         self,
@@ -391,6 +377,7 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
         out_mm_kwargs: MultiModalKwargsItems,
     ) -> Sequence[PromptUpdate]:
         audio_tokens: list[str] = self.info.audio_tokens
+        tokenizer = self.info.get_tokenizer()
 
         def get_audio_replacement(item_idx: int):
             audios = mm_items.get_items("audio", AudioProcessorItems)
@@ -402,7 +389,7 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
         return [
             PromptReplacement(
                 modality="audio",
-                target=audio_tokens.__getitem__,
+                target=lambda item_idx: tokenizer.encode(audio_tokens[item_idx], add_special_tokens=False),
                 replacement=get_audio_replacement,
             ),
         ]
@@ -419,7 +406,8 @@ class Qwen3_5AudioMultiModalProcessor(BaseMultiModalProcessor[Qwen3_5AudioProces
 
         if cached_update.modality == "audio":
             audio_tokens: list[str] = self.info.audio_tokens
-            new_update = new_update.with_target(audio_tokens[new_item_idx])
+            target = self.info.get_tokenizer().encode(audio_tokens[new_item_idx], add_special_tokens=False)
+            new_update = new_update.with_target(target)
 
         return new_update
 
