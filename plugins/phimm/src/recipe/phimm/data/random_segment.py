@@ -90,9 +90,9 @@ def random_segment(
         raise ValueError("random_segment seed must be an integer")
 
     def partition(row, index):
-        source = row.get("audio_path")
+        source = row.get("audio_path") or row.get("audio_file") or row.get("audio_chunk")
         if not isinstance(source, str) or not source:
-            raise ValueError("random_segment requires one non-empty audio_path string per input row")
+            raise ValueError("random_segment requires one non-empty audio source string per input row")
         rng = random.Random(seed + index)
         if segment_count is not None:
             count = rng.randint(lower, upper)
