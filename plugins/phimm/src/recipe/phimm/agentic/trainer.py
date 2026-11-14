@@ -98,13 +98,17 @@ class ASRTrainerSync(PPOTrainerSync):
             if remote:
                 upload_path(target, f"{remote}/{source}/{global_steps}.jsonl")
 
-    def _val_metrics_update(self, data_sources, sample_uids, reward_extra_infos_dict, sample_turns):
+    def _val_metrics_update(
+        self, data_sources, sample_uids, reward_extra_infos_dict, sample_turns, expected_acc_counts=None
+    ):
         numeric = {
             key: values
             for key, values in reward_extra_infos_dict.items()
             if values and all(isinstance(value, (int, float)) for value in values)
         }
-        metrics = super()._val_metrics_update(data_sources, sample_uids, numeric, sample_turns)
+        metrics = super()._val_metrics_update(
+            data_sources, sample_uids, numeric, sample_turns, expected_acc_counts=expected_acc_counts
+        )
         metrics.update(aggregate_error_rates(data_sources, reward_extra_infos_dict))
         metrics = {key: value.item() if isinstance(value, np.generic) else value for key, value in metrics.items()}
         destination = Path(self.config.trainer.validation_data_dir) / f"{self.global_steps}.metrics.json"
