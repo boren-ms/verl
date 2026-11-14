@@ -88,8 +88,8 @@ source objective; end-to-end quality still requires actual experiment results.
 
 Two Base3a variants can be selected with `--config-name`:
 
-- `remax_main_base3a_2611r2_segment_count`: `segment_count: [1, 2]`.
-- `remax_main_base3a_2611r2_segment_len`: `segment_len: [5, 30]` seconds.
+- `remax_main_base3a_2611r2_sc`: `segment_count: [1, 2]`.
+- `remax_main_base3a_2611r2_sl`: `segment_len: [5, 30]` seconds.
 
 Both inherit the Base3a model, data mix and rewards, disable duration cropping,
 and use separate experiment names. For other training configs,

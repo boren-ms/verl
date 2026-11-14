@@ -69,7 +69,7 @@ reward_map:
   aishell1_train_top10k: train_aishell1_char
 
 trainer:
-  experiment_name: remax_main_base3a_2611r2_segment_count
+  experiment_name: remax_main_base3a_2611r2_sc
 
 asr:
   expected_training_rows: 55664

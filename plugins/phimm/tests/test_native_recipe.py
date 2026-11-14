@@ -24,10 +24,10 @@ def compose_recipe():
     return load
 
 
-@pytest.mark.parametrize("mode, bounds", [("segment_count", [1, 2]), ("segment_len", [5, 30])])
-def test_base3a_segment_variants_inherit_training_and_validation(compose_recipe, mode, bounds):
+@pytest.mark.parametrize("tag, mode, bounds", [("sc", "segment_count", [1, 2]), ("sl", "segment_len", [5, 30])])
+def test_base3a_segment_variants_inherit_training_and_validation(compose_recipe, tag, mode, bounds):
     base = compose_recipe()
-    name = f"remax_main_base3a_2611r2_{mode}"
+    name = f"remax_main_base3a_2611r2_{tag}"
     config = compose_recipe(name=name)
     OmegaConf.resolve(config)
     other_mode = "segment_len" if mode == "segment_count" else "segment_count"
