@@ -1,0 +1,16 @@
+# @package _global_
+# Base3a with random segment_count: [2, 5].
+
+defaults:
+  - remax_main_base3a_2611r2
+  - _self_
+
+data:
+  random_segment:
+    segment_count: [2, 5]
+    segment_len: null
+    seed: 42
+  max_audio_dur: null
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sc1
