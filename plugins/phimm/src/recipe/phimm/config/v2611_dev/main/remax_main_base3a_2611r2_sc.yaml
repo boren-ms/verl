@@ -1,29 +1,9 @@
 # @package _global_
 # Base3a with random segment_count: [1, 2].
 
-hydra:
-  searchpath:
-    - pkg://recipe.phimm.config
-    - pkg://verl.trainer.config
-
 defaults:
-  - ../base@_global_
-  - /data/val_data/earnings22_verb_langhint@_earning_val
-  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
-  - /data/val_data/urgent2024_delta@_urgent_delta
-  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_openlong
-  - /data/val_data/aishell/openasr_zh_hard_top500_2611r2_verb_langhint_zip@_zh_hard_val
-  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
-  - /data/train_data/earn_fy27@_earning_train
-  - /data/train_data/quartr_1st23@_quartr_first23_train
-  - /data/train_data/quartr_2nd48@_quartr_second48_train
-  - /data/train_data/quartr_3rd38@_quartr_third38_train
-  - /data/train_data/aishell/aishell1_train_top10k_2611r2_verb_langhint@_aishell_train
+  - remax_main_base3a_2611r2
   - _self_
-
-actor_rollout_ref:
-  model:
-    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
 
 data:
   random_segment:
@@ -31,41 +11,6 @@ data:
     segment_len: null
     seed: 42
   max_audio_dur: null
-  train_data:
-    - ${_noisy_ls_train}
-    - ${_earning_train}
-    - ${_quartr_first23_train}
-    - ${_quartr_second48_train}
-    - ${_quartr_third38_train}
-    - ${_aishell_train}
-  shuffle: false
-  mix:
-    - shuffle: true
-      datasource:
-        - {name: noisy_ls, sample: 20424, shuffle: true}
-        - {name: earn_fy27, sample: 9568, shuffle: true}
-        - {name: quartr_1st23, sample: 3125, shuffle: true}
-        - {name: quartr_2nd48, sample: 6392, shuffle: true}
-        - {name: quartr_3rd38, sample: 6155, shuffle: true}
-        - {name: aishell1_train_top10k, sample: 10000, shuffle: true}
-  val_data:
-    - ${_earning_val}
-    - ${_ml_val}
-    - ${_urgent_delta}
-    - ${_openlong}
-    - ${_zh_hard_val}
-
-reward_map:
-  noisy_ls: train_librispeech
-  earn_fy27: train_librispeech
-  quartr_1st23: train_librispeech
-  quartr_2nd48: train_librispeech
-  quartr_3rd38: train_librispeech
-  aishell1_train_top10k: train_aishell1_char
 
 trainer:
   experiment_name: remax_main_base3a_2611r2_sc
-
-asr:
-  expected_training_rows: 55664
-  expected_training_steps: 868

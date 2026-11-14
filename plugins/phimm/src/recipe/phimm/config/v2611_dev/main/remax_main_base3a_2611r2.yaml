@@ -1,11 +1,6 @@
 # @package _global_
 # Base3a: the six-source training mix and the nine validation cohorts.
 
-hydra:
-  searchpath:
-    - pkg://recipe.phimm.config
-    - pkg://verl.trainer.config
-
 defaults:
   - ../base@_global_
   - /data/val_data/earnings22_verb_langhint@_earning_val

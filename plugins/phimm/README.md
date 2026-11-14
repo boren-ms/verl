@@ -5,7 +5,9 @@ extensions on Main's V1 PPO/ReMax stack. It retains the `recipe.phimm` import
 namespace while leaving Main's `recipe` submodule intact.
 
 The entry point composes `verl.trainer.config.ppo_trainer` directly through
-Hydra. `config/v2611_dev/base.yaml` declares Main worker/model/rollout settings;
+Hydra. A bundled Hydra search-path plugin registers the recipe and verl config
+roots, allowing the main YAML files to be inherited directly.
+`config/v2611_dev/base.yaml` declares Main worker/model/rollout settings;
 `main/remax_main_base3a_2611r2.yaml` declares the training and validation
 manifests, source rewards and row/update contract. Evaluation composes the same
 native base. CLI overrides are applied once and remain live in interpolations;
@@ -34,6 +36,8 @@ python -m recipe.phimm.preflight trainer.experiment_name=<unique-name>
 ```
 
 The two pinned text-normalizer dependencies match the source requirements.
+Reinstall `plugins/phimm` in existing environments after this update so its
+`hydra_plugins` namespace is discoverable before composing recipe configs.
 Preflight exercises the Chinese, Vietnamese, and French scorers before model
 initialization, including dependencies loaded lazily by the Chinese scorer.
 
@@ -91,7 +95,7 @@ Two Base3a variants can be selected with `--config-name`:
 - `remax_main_base3a_2611r2_sc`: `segment_count: [1, 2]`.
 - `remax_main_base3a_2611r2_sl`: `segment_len: [5, 30]` seconds.
 
-Both inherit the Base3a model, data mix and rewards, disable duration cropping,
+Both directly inherit `remax_main_base3a_2611r2.yaml`, disable duration cropping,
 and use separate experiment names. For other training configs,
 multi-segment training can be enabled with `+asr_training=multi_segment` and
 an explicit `trainer.experiment_name=<unique-name>`. Each original recording

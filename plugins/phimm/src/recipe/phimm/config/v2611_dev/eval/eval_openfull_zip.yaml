@@ -2,11 +2,6 @@
 # Full evaluation: OpenEN, OpenML, OpenLong and zh/vi OpenExt.
 # Supply a verified merged HF checkpoint and a unique experiment name.
 
-hydra:
-  searchpath:
-    - pkg://recipe.phimm.config
-    - pkg://verl.trainer.config
-
 defaults:
   - eval_base
   - /data/val_data/openasr/openasr_verb_langhint_zip@_openen
