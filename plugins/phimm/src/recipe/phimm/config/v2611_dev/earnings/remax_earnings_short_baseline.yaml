@@ -1,0 +1,12 @@
+# @package _global_
+# Matched earnings-short control: retain full clips without SC or SL augmentation.
+defaults:
+  - base_short
+  - _self_
+
+data:
+  random_segment:
+    enabled: false
+
+trainer:
+  experiment_name: remax_earnings_short_baseline

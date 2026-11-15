@@ -1,0 +1,14 @@
+# @package _global_
+# Canonical OpenLong only: Earnings21, Earnings22 and CORAAL.
+defaults:
+  - eval_base
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong
+  - _self_
+
+data:
+  val_data:
+    - ${_openlong}
+
+trainer:
+  nnodes: 2
+  n_gpus_per_node: 8
