@@ -2,7 +2,7 @@
 # Offline random packing (<180s) per source, followed by unchanged SL 5-30s.
 # No online random merge and no resampling to the old short-utterance budgets.
 defaults:
-  - ../main/remax_main_base3a_2611r2_sl
+  - ../rand_segment/remax_main_base3a_2611r2_sl
   - /data/train_data/offline_random_merge3m_20261114@_offline_merge3m_train
   - _self_
 

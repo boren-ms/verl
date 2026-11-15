@@ -121,12 +121,19 @@ Older TransferQueue versions retain V1's
 fallback behavior without queue recovery. GPU throughput and quality still
 need validation in an actual training run.
 
-Two segment variants can also be selected with `--config-name`:
+Random segment variants are grouped under `config/v2611_dev/rand_segment/`.
+Select them with `--config-path config/v2611_dev/rand_segment` and `--config-name`:
 
 - `remax_main_base3a_2611r2_sc`: `segment_count: [1, 2]`.
+- `remax_main_base3a_2611r2_sc1`: `segment_count: [2, 5]`.
+- `remax_main_base3a_2611r2_sc2`: `segment_count: [1, 4]` (inherits the SC preset).
 - `remax_main_base3a_2611r2_sl`: `segment_len: [5, 30]` seconds.
+- `remax_main_base3a_2611r2_sl1`: `segment_len: [1, 10]` seconds.
+- `remax_main_base3a_2611r2_sl2`: `segment_len: [2, 5]` seconds.
+- `remax_main_base3a_2611r2_sl3`: `segment_len: [10, 20]` seconds.
+- `remax_main_base3a_2611r2_sl4`: `segment_len: [2, 10]` seconds.
 
-Both directly inherit `remax_main_base3a_2611r2.yaml`, disable duration cropping,
+These presets inherit `main/remax_main_base3a_2611r2.yaml`, disable duration cropping,
 and use separate experiment names. For other training configs,
 multi-segment training can be enabled with `+asr_training=multi_segment` and
 an explicit `trainer.experiment_name=<unique-name>`. Each original recording
@@ -172,9 +179,26 @@ provided, count mode defaults to `segment_count: [1, 2]`. Two non-null ranges
 raise an error; when switching the training config to duration mode, set
 `segment_count: null` and supply `segment_len`. The old `range` and `max_segment_length` options
 are removed. Count mode samples an inclusive integer count and needs no duration
-lookup and always randomizes cut points. `min_segment_fraction` is an optional
+lookup. Cut points are random by default. Set `even_split: true` in the
+`random_segment` block to divide the sampled count into equal-duration segments:
+
+```yaml
+random_segment:
+  segment_count: [2, 2]
+  segment_len: null
+  even_split: true  # Two halves: [0%, 50%] and [50%, 100%].
+  seed: 42
+```
+
+The count is still sampled uniformly when its bounds differ. Even splitting
+uses the full recording, preserves the original reference, and needs no duration
+lookup. It is supported only in count mode; combining it with `segment_len`
+raises an error. For the earnings-short SC preset, enable it with
+`data.random_segment.even_split=true`.
+
+`min_segment_fraction` is an optional
 count-mode-only floor relative to the full recording,
-defaulting to `0.1` (10% of the full recording) and limited to
+defaulting to `0.1` for random cuts and `0` for even splits, and limited to
 `1 / segment_count[1]`. For more than ten possible segments, explicitly lower
 this fraction so the requested counts remain feasible.
 

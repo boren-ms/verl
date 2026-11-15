@@ -2,13 +2,14 @@
 # Base3a with random segment_count: [2, 5].
 
 defaults:
-  - remax_main_base3a_2611r2
+  - ../main/remax_main_base3a_2611r2
   - _self_
 
 data:
   random_segment:
     segment_count: [2, 5]
     segment_len: null
+    even_split: false
     seed: 42
   max_audio_dur: null
 

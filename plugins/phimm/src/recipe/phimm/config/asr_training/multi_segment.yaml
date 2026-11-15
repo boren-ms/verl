@@ -5,6 +5,7 @@ data:
   random_segment:
     segment_count: [1, 2]  # Set null when selecting segment_len.
     segment_len: null  # Or [10, 20] in seconds.
+    even_split: false  # Equal-duration segments; supported only with segment_count.
     seed: 42
   # Every sample is scored against its full original reference. Never crop
   # individual segments; oversized prompts still fail the model token limit.

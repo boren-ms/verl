@@ -2,7 +2,7 @@
 # Base3a with random segment_len: [1, 10].
 
 defaults:
-  - remax_main_base3a_2611r2
+  - ../main/remax_main_base3a_2611r2
   - _self_
 
 data:

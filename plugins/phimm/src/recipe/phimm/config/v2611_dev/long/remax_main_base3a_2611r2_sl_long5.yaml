@@ -5,7 +5,7 @@
 # Two epochs at batch128 give floor(31,163 / 128) * 2 = 486 optimizer updates.
 
 defaults:
-  - ../main/remax_main_base3a_2611r2_sl
+  - ../rand_segment/remax_main_base3a_2611r2_sl
   - /data/train_data/earn_fy26_batch1@_earn_fy26_batch1_long_train
   - /data/train_data/earn_fy26_batch2@_earn_fy26_batch2_long_train
   - /data/train_data/quartr_1st23_long@_quartr_first23_long_train

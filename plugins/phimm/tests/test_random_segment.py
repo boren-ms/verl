@@ -26,7 +26,9 @@ def test_random_segments_preserve_the_single_full_reference():
     assert result[0]["text"] == "full original reference"
 
 
-@pytest.mark.parametrize("mode", [{"segment_count": [1, 4]}, {"segment_len": [0.1, 0.3]}])
+@pytest.mark.parametrize(
+    "mode", [{"segment_count": [1, 4]}, {"segment_count": [1, 4], "even_split": True}, {"segment_len": [0.1, 0.3]}]
+)
 def test_parallel_preparation_preserves_every_partition_and_reference(tmp_path, mode):
     path = tmp_path / "audio.wav"
     sf.write(path, np.zeros(16000), 16000)
@@ -71,6 +73,40 @@ def test_default_minimum_fraction_rejects_infeasible_count_range():
         random_segment(ds, segment_count=[1, 20])
 
 
+@pytest.mark.parametrize("count", [1, 2, 3, 20])
+def test_even_segments_preserve_full_reference_and_equal_durations(count):
+    ds = datasets.Dataset.from_list([{"audio_path": "missing.wav", "text": "full reference"}])
+    result = random_segment(ds, segment_count=[count, count], even_split=True)
+    assert len(result) == 1 and result[0]["text"] == "full reference"
+    paths = result[0]["audio_path"]
+    assert len(paths) == count
+    ranges = [tuple(float(value[:-1]) for value in path.rsplit("#", 1)[1].split(":")) for path in paths]
+    assert ranges[0][0] == 0 and ranges[-1][1] == 100
+    assert all(end - start == pytest.approx(100 / count) for start, end in ranges)
+    assert all(left[1] == right[0] for left, right in zip(ranges, ranges[1:], strict=False))
+
+
+def test_even_splitting_preserves_seeded_count_sampling():
+    ds = datasets.Dataset.from_list([{"audio_path": f"{i}.wav"} for i in range(40)])
+    even = random_segment(ds, segment_count=[1, 4], even_split=True, seed=7)
+    random_cuts = random_segment(ds, segment_count=[1, 4], seed=7)
+    assert [len(row["audio_path"]) for row in even] == [len(row["audio_path"]) for row in random_cuts]
+    assert {len(row["audio_path"]) for row in even} == {1, 2, 3, 4}
+
+
+@pytest.mark.parametrize("even_split", [1, "true", None])
+def test_even_splitting_requires_boolean(even_split):
+    ds = datasets.Dataset.from_list([{"audio_path": "missing.wav"}])
+    with pytest.raises(ValueError, match="even_split must be a boolean"):
+        random_segment(ds, even_split=even_split)
+
+
+def test_even_splitting_rejects_duration_mode():
+    ds = datasets.Dataset.from_list([{"audio_path": "missing.wav"}])
+    with pytest.raises(ValueError, match="even_split applies only to segment_count mode"):
+        random_segment(ds, segment_len=[1, 10], even_split=True)
+
+
 @pytest.mark.parametrize(
     "options",
     [
@@ -94,7 +130,9 @@ def test_random_segment_rejects_invalid_settings(options):
         random_segment(ds, **({"segment_count": [1, 4]} | options))
 
 
-@pytest.mark.parametrize("mode", [{"segment_count": [2, 2]}, {"segment_len": [20, 20]}])
+@pytest.mark.parametrize(
+    "mode", [{"segment_count": [2, 2]}, {"segment_count": [2, 2], "even_split": True}, {"segment_len": [20, 20]}]
+)
 @pytest.mark.parametrize("audio_field", ["audio_path", "audio_file", "audio_chunk"])
 def test_dataset_block_expands_paths_without_splitting_reference_or_loading_audio(tmp_path, mode, audio_field):
     path = tmp_path / "rows.jsonl"
@@ -131,6 +169,8 @@ def test_dataset_block_expands_paths_without_splitting_reference_or_loading_audi
     assert len(row["audio_path"]) == 2
     assert row["audio_path"][0].startswith("A.wav#0%:")
     assert row["audio_path"][-1].endswith(":100%")
+    if mode.get("even_split"):
+        assert row["audio_path"] == ["A.wav#0%:50%", "A.wav#50%:100%"]
     assert row["reward_model"]["ground_truth"] == "full reference"
     assert [segment["audio_path"] for segment in row["asr_segments"]] == row["audio_path"]
     assert all(segment["prompt"] == row["prompt"] for segment in row["asr_segments"])
@@ -167,7 +207,9 @@ def test_segmented_and_unsegmented_sources_share_a_mix(tmp_path):
     assert train[1]["asr_segments"][0]["audio_path"] == "A.wav"
 
 
-@pytest.mark.parametrize("mode", [{"segment_count": [4, 4]}, {"segment_len": [0.1, 0.3]}])
+@pytest.mark.parametrize(
+    "mode", [{"segment_count": [4, 4]}, {"segment_count": [4, 4], "even_split": True}, {"segment_len": [0.1, 0.3]}]
+)
 @pytest.mark.parametrize("source_suffix", ["", "#0.2:0.8"])
 def test_percent_segments_reassemble_exact_waveform_without_gaps_or_overlap(tmp_path, source_suffix, mode):
     path = tmp_path / "A.wav"

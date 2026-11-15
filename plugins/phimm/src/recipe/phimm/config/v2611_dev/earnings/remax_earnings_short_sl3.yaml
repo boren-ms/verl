@@ -1,0 +1,13 @@
+# @package _global_
+# Earnings-only short-form SL3: random segments in [10, 20] seconds.
+
+defaults:
+  - base_short
+  - _self_
+
+data:
+  random_segment:
+    segment_len: [10, 20]
+
+trainer:
+  experiment_name: remax_earnings_short_2611r2_sl3

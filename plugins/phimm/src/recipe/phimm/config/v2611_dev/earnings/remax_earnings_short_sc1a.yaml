@@ -1,0 +1,13 @@
+# @package _global_
+# Earnings-only short-form SC1a with exactly two equal-duration segments.
+
+defaults:
+  - remax_earnings_short_sc1
+  - _self_
+
+data:
+  random_segment:
+    even_split: true
+
+trainer:
+  experiment_name: remax_earnings_short_sc1a

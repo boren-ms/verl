@@ -1,0 +1,13 @@
+# @package _global_
+# SL1 with random segment_len: [2, 10] seconds.
+
+defaults:
+  - remax_main_base3a_2611r2_sl1
+  - _self_
+
+data:
+  random_segment:
+    segment_len: [2, 10]
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl4
