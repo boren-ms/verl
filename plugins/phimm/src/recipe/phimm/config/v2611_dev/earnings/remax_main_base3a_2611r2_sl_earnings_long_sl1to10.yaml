@@ -1,0 +1,47 @@
+# @package _global_
+# Earnings-only long-form ablation; paired SL range [1, 10] seconds.
+# Retain the original five-batch Earnings/Quartr coverage (FY26 short batches share earn_fy27).
+# Remove noisy LibriSpeech and AISHELL training; use only the same four OpenLong U2 validations (including CORAAL).
+# Train: 739 rows; batch/gen/mini-batch 128; two epochs, drop_last.
+# Target: floor(739 / 128) * 2 = 10 optimizer updates.
+# Row units differ between short clips and long parents; equal epochs do not imply equal updates.
+# Fresh base-model initialization; auto resume is restricted to this experiment's recovery.
+defaults:
+  - ../long/remax_main_base3a_2611r2_sl_long5
+  - _self_
+
+data:
+  train_batch_size: 128
+  random_segment:
+    segment_len: [1, 10]
+    segment_count: null
+    seed: 42
+    num_proc: 16
+  train_data:
+    - ${_earn_fy26_batch1_long_train}
+    - ${_earn_fy26_batch2_long_train}
+    - ${_quartr_first23_long_train}
+    - ${_quartr_second48_long_train}
+    - ${_quartr_third38_long_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy26_batch1, sample: 80, shuffle: true}
+        - {name: earn_fy26_batch2, sample: 104, shuffle: true}
+        - {name: quartr_1st23_long, sample: 98, shuffle: true}
+        - {name: quartr_2nd48_long, sample: 235, shuffle: true}
+        - {name: quartr_3rd38_long, sample: 222, shuffle: true}
+  val_data:
+    - ${_openlong}
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_earnings_long_sl1to10_20261115
+  total_epochs: 2
+  total_training_steps: 10
+  val_only: false
+  resume_mode: auto
+  resume_from_path: null
+
+asr:
+  expected_training_rows: 739
+  expected_training_steps: 10

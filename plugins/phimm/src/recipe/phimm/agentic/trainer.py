@@ -54,9 +54,11 @@ class ASRTrainerMixin:
     def _init_dataloader(self):
         super()._init_dataloader()
         if not self.config.trainer.val_only:
-            if len(self.train_dataset) != self.config.asr.expected_training_rows:
+            expected_rows = self.config.asr.get("expected_training_rows")
+            expected_steps = self.config.asr.get("expected_training_steps")
+            if expected_rows is not None and len(self.train_dataset) != expected_rows:
                 raise ValueError(f"ASR training row count changed: {len(self.train_dataset)}")
-            if self.total_training_steps != self.config.asr.expected_training_steps:
+            if expected_steps is not None and self.total_training_steps != expected_steps:
                 raise ValueError(f"ASR training target changed: {self.total_training_steps}")
 
     def _load_checkpoint(self):

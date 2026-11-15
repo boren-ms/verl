@@ -1,0 +1,22 @@
+# @package _global_
+# Merge 3M: offline parents strictly below 180 seconds, then SL 1-10 seconds.
+# User-confirmed FL means SL; retain the Base3a SL model/reward/optimizer recipe.
+defaults:
+  - remax_main_base3a_2611r2_sl_offline_merge3m
+  - _self_
+
+data:
+  # 3,548 parents; drop_last=true: floor(3548 / 16) * 2 = 442 updates.
+  train_batch_size: 16
+  gen_batch_size: 16
+  random_segment:
+    segment_len: [1, 10]
+    segment_count: null
+    seed: 42
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 16
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_merge3m_sl1to10

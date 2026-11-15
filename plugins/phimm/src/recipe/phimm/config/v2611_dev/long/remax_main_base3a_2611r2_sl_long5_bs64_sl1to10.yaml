@@ -1,0 +1,15 @@
+# @package _global_
+# Segment-length ablation of Long5 BS64: random partitions in [1, 10] seconds.
+# Keep the same full-parent references, 31,163 parent rows, seed, and two epochs.
+# Parent-batch count is unchanged: floor(31,163 / 64) * 2 = 972 updates.
+# Tag: long5-bs64-sl1to10. Compare against BS64 SL5-30 at the same epoch budget.
+defaults:
+  - remax_main_base3a_2611r2_sl_long5_bs64
+  - _self_
+
+data:
+  random_segment:
+    segment_len: [1, 10]
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_long5_bs64_sl1to10_20261114

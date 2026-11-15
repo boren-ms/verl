@@ -1,0 +1,22 @@
+# @package _global_
+# Long5 batch-size ablation: same 31,163 parent rows and SL [5, 30] seconds.
+# drop_last: floor(31,163 / 64) = 486 batches/epoch; two epochs = 972 updates.
+# The inherited gen_batch_size and ppo_mini_batch_size resolve to 64 as well.
+# Fresh experiment from the identical base model; auto resume is for recovery only.
+defaults:
+  - remax_main_base3a_2611r2_sl_long5
+  - _self_
+
+data:
+  train_batch_size: 64
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_long5_bs64_20261114
+  total_epochs: 2
+  total_training_steps: 972
+  val_only: false
+  resume_mode: auto
+  resume_from_path: null
+
+asr:
+  expected_training_steps: 972

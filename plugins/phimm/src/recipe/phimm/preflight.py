@@ -6,11 +6,11 @@ from pathlib import Path
 
 import hydra
 from omegaconf import OmegaConf
-
 from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.main_asr_remax import main as _register_resolvers  # noqa: F401
 from recipe.phimm.reward.openasr_expansion import measure_expansion
 from recipe.phimm.utils.audio import load_audio
+
 from verl.utils.config import omega_conf_to_dataclass
 
 
@@ -45,10 +45,18 @@ def main(config):
     train = ASRDataset(config.data.train_files, model.tokenizer, config.data, model.processor)
     val = ASRDataset(config.data.val_files, model.tokenizer, config.data, model.processor)
     counts = dict(Counter(train.ds["data_source"]))
-    expected = {item.name: item.sample for group in config.data.mix for item in group.datasource}
-    assert counts == expected, (counts, expected)
-    assert len(train) == 55664
-    assert len(train) // config.data.train_batch_size * config.trainer.total_epochs == 868
+    expected = {item.name: item.get("sample") for group in config.data.mix for item in group.datasource}
+    assert set(counts) == set(expected), (counts, expected)
+    for source, count in expected.items():
+        if count is not None:
+            assert counts[source] == count, (source, counts[source], count)
+    if config.asr.get("expected_training_rows") is not None:
+        assert len(train) == config.asr.expected_training_rows
+    epoch_capacity = len(train) // config.data.train_batch_size * config.trainer.total_epochs
+    target = config.trainer.total_training_steps or epoch_capacity
+    assert target <= epoch_capacity, (target, epoch_capacity)
+    if config.asr.get("expected_training_steps") is not None:
+        assert target == config.asr.expected_training_steps
     prompt_lengths = {}
     inference_prompt_checks = {}
     for source_name in counts:
@@ -78,7 +86,7 @@ def main(config):
         "training_counts": counts,
         "validation_segments": len(val.ds),
         "validation_parents": len(val),
-        "target": 868,
+        "target": target,
         "expansion_scorers": scorer_checks,
         "prompt_lengths": prompt_lengths,
         "inference_prompt_equivalence": inference_prompt_checks,

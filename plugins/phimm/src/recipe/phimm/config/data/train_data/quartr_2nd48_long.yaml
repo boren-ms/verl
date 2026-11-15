@@ -1,0 +1,50 @@
+# Measured five-batch long-form preparation: 2026-11-14 UTC.
+# Source: https://highperf01eus2.blob.core.windows.net/data/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/
+# Orange root: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/
+# Corresponding original short manifest: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl
+# Counts are parent rows; packed containers and sidecars are not extra samples.
+# SL runtime partitions remain random 5-30 seconds; original short rows are not runtime partition counts.
+# Word count = len(text.split()) after actual Base3a clean_tagged_text; not model tokens.
+# All new parent samples include audio_length in seconds; full parent audio is preserved.
+# Audio: FY26 long/short and Quartr long verified from WAV headers; Quartr short uses supplied manifest durations.
+# Percentiles: numpy linear interpolation. Histogram bins: [lower, upper), last unbounded.
+# Long Input_WAV_Count sums to 6391 vs 6392 short rows; long duration is 4.680 seconds shorter.
+# Count discrepancy is in event_35315; exact omitted component is not proven by count/duration alone.
+# LONG: samples=235; recording_groups=48; audio_total_seconds=129005.885000; audio_hours=35.834968056; audio_mean_seconds=548.961213; words_total=316167; words_mean=1345.391489; empty_cleaned_references=0
+# LONG audio_seconds quantiles: min=76.606000; p25=588.805000; p50=598.060000; p75=604.785750; p90=610.250400; p95=612.187650; p99=614.176890; max=663.280000
+# LONG word_count quantiles: min=175.000000; p25=1232.000000; p50=1429.000000; p75=1546.000000; p90=1690.800000; p95=1792.600000; p99=1909.560000; max=1957.000000
+# LONG audio_seconds distribution: [0,5)=0 (0.0000%); [5,10)=0 (0.0000%); [10,15)=0 (0.0000%); [15,20)=0 (0.0000%); [20,30)=0 (0.0000%); [30,40)=0 (0.0000%); [40,60)=0 (0.0000%); [60,120)=5 (2.1277%); [120,300)=16 (6.8085%); [300,600)=114 (48.5106%); [600,900)=100 (42.5532%); [900,1200)=0 (0.0000%); [1200,1800)=0 (0.0000%); [1800,3600)=0 (0.0000%); [3600,inf)=0 (0.0000%)
+# LONG word_count distribution: [0,25)=0 (0.0000%); [25,50)=0 (0.0000%); [50,75)=0 (0.0000%); [75,100)=0 (0.0000%); [100,150)=0 (0.0000%); [150,200)=1 (0.4255%); [200,300)=4 (1.7021%); [300,500)=4 (1.7021%); [500,1000)=25 (10.6383%); [1000,1500)=118 (50.2128%); [1500,2000)=83 (35.3191%); [2000,inf)=0 (0.0000%)
+# SHORT: samples=6392; recording_groups=48; audio_total_seconds=129010.565000; audio_hours=35.836268056; audio_mean_seconds=20.183130; words_total=316183; words_mean=49.465426; empty_cleaned_references=2
+# SHORT audio_seconds quantiles: min=0.100000; p25=11.115000; p50=24.110000; p75=29.220000; p90=29.748900; p95=29.911000; p99=31.440900; max=32.990000
+# SHORT word_count quantiles: min=0.000000; p25=28.000000; p50=54.000000; p75=69.000000; p90=81.000000; p95=87.000000; p99=101.000000; max=126.000000
+# SHORT audio_seconds distribution: [0,5)=750 (11.7334%); [5,10)=704 (11.0138%); [10,15)=611 (9.5588%); [15,20)=612 (9.5745%); [20,30)=3581 (56.0232%); [30,40)=134 (2.0964%); [40,60)=0 (0.0000%); [60,120)=0 (0.0000%); [120,300)=0 (0.0000%); [300,600)=0 (0.0000%); [600,900)=0 (0.0000%); [900,1200)=0 (0.0000%); [1200,1800)=0 (0.0000%); [1800,3600)=0 (0.0000%); [3600,inf)=0 (0.0000%)
+# SHORT word_count distribution: [0,25)=1425 (22.2935%); [25,50)=1366 (21.3705%); [50,75)=2546 (39.8310%); [75,100)=971 (15.1909%); [100,150)=84 (1.3141%); [150,200)=0 (0.0000%); [200,300)=0 (0.0000%); [300,500)=0 (0.0000%); [500,1000)=0 (0.0000%); [1000,1500)=0 (0.0000%); [1500,2000)=0 (0.0000%); [2000,inf)=0 (0.0000%)
+# LONG minus SHORT: samples=-6157; audio_seconds=-4.680000; words=-16
+# Detailed report: reports/base3a_sl_long5_20261114/dataset_statistics/REPORT.md
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/training_base3a_v1/quartr_2nd48_long.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: audio/
+      dst_part: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/audio/
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0.0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length

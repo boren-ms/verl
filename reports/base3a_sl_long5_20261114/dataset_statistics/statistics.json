@@ -1,0 +1,2098 @@
+{
+  "methodology": {
+    "audio": "seconds; FY26 long/short and Quartr long verified WAV headers; Quartr short manifest durations",
+    "words": "len(cleaned_text.split()); actual Base3a clean_tagged_text",
+    "percentile": "numpy linear",
+    "bins": "[lower, upper), last unbounded"
+  },
+  "datasets": [
+    {
+      "name": "earn_fy26_batch1",
+      "version": "segments",
+      "source_file": "/home/boren/code/verl/tmp/earnings_fy26_20261114/earn_fy26_batch1/segments.source.jsonl",
+      "event_count": 35,
+      "packed_containers": 0,
+      "samples": 4695,
+      "total_hours": 15.304944444444445,
+      "empty_transcripts": 26,
+      "audio_seconds": {
+        "count": 4695,
+        "total": 55097.8,
+        "mean": 11.73542066027689,
+        "min": 1.0,
+        "p25": 5.41,
+        "p50": 9.96,
+        "p75": 17.14,
+        "p90": 23.74,
+        "p95": 26.813000000000002,
+        "p99": 29.311200000000007,
+        "max": 29.99
+      },
+      "word_count": {
+        "count": 4695,
+        "total": 125199.0,
+        "mean": 26.666453674121406,
+        "min": 0.0,
+        "p25": 12.0,
+        "p50": 22.0,
+        "p75": 38.5,
+        "p90": 55.0,
+        "p95": 64.0,
+        "p99": 77.0,
+        "max": 94.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 1058,
+          "percent": 22.5346112886049
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 1299,
+          "percent": 27.66773162939297
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 884,
+          "percent": 18.828541001064963
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 614,
+          "percent": 13.077742279020235
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 840,
+          "percent": 17.89137380191693
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 2563,
+          "percent": 54.58998935037273
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 1477,
+          "percent": 31.458998935037275
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 574,
+          "percent": 12.225772097976572
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 81,
+          "percent": 1.7252396166134185
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    },
+    {
+      "name": "earn_fy26_batch1",
+      "version": "long",
+      "source_file": "/home/boren/code/verl/tmp/earnings_fy26_20261114/earn_fy26_batch1/long.source.jsonl",
+      "event_count": 35,
+      "packed_containers": 8,
+      "samples": 80,
+      "total_hours": 16.753793975694443,
+      "empty_transcripts": 0,
+      "audio_seconds": {
+        "count": 80,
+        "total": 60313.658312499996,
+        "mean": 753.9207289062499,
+        "min": 601.5848125,
+        "p25": 654.6500000000001,
+        "p50": 723.24,
+        "p75": 822.26765625,
+        "p90": 877.7620000000001,
+        "p95": 1123.6856,
+        "p99": 1193.9763337499999,
+        "max": 1206.3869375
+      },
+      "word_count": {
+        "count": 80,
+        "total": 125199.0,
+        "mean": 1564.9875,
+        "min": 55.0,
+        "p25": 1299.0,
+        "p50": 1552.5,
+        "p75": 1728.25,
+        "p90": 2081.0000000000005,
+        "p95": 2365.0,
+        "p99": 2580.729999999999,
+        "max": 2670.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 74,
+          "percent": 92.5
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 5,
+          "percent": 6.25
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 1,
+          "percent": 1.25
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 1,
+          "percent": 1.25
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 2,
+          "percent": 2.5
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 32,
+          "percent": 40.0
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 32,
+          "percent": 40.0
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 13,
+          "percent": 16.25
+        }
+      ]
+    },
+    {
+      "name": "earn_fy26_batch2",
+      "version": "segments",
+      "source_file": "/home/boren/code/verl/tmp/earnings_fy26_20261114/earn_fy26_batch2/segments.source.jsonl",
+      "event_count": 39,
+      "packed_containers": 0,
+      "samples": 4873,
+      "total_hours": 17.44488888888889,
+      "empty_transcripts": 1,
+      "audio_seconds": {
+        "count": 4873,
+        "total": 62801.6,
+        "mean": 12.887666735070798,
+        "min": 1.12,
+        "p25": 6.8,
+        "p50": 11.42,
+        "p75": 18.03,
+        "p90": 24.088,
+        "p95": 26.903999999999996,
+        "p99": 29.382799999999996,
+        "max": 29.99
+      },
+      "word_count": {
+        "count": 4873,
+        "total": 154488.0,
+        "mean": 31.70285245228812,
+        "min": 0.0,
+        "p25": 17.0,
+        "p50": 27.0,
+        "p75": 43.0,
+        "p90": 61.0,
+        "p95": 71.0,
+        "p99": 87.0,
+        "max": 116.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 629,
+          "percent": 12.907859634721937
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 1455,
+          "percent": 29.858403447568232
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 1085,
+          "percent": 22.26554483890827
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 741,
+          "percent": 15.20623845680279
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 963,
+          "percent": 19.761953621998767
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 2176,
+          "percent": 44.65421711471373
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 1762,
+          "percent": 36.15842396880772
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 747,
+          "percent": 15.329365893699979
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 181,
+          "percent": 3.7143443463985224
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 7,
+          "percent": 0.14364867638005335
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    },
+    {
+      "name": "earn_fy26_batch2",
+      "version": "long",
+      "source_file": "/home/boren/code/verl/tmp/earnings_fy26_20261114/earn_fy26_batch2/long.source.jsonl",
+      "event_count": 39,
+      "packed_containers": 11,
+      "samples": 104,
+      "total_hours": 21.04185657986111,
+      "empty_transcripts": 0,
+      "audio_seconds": {
+        "count": 104,
+        "total": 75750.6836875,
+        "mean": 728.3719585336538,
+        "min": 613.5965,
+        "p25": 638.2635,
+        "p50": 693.4005,
+        "p75": 784.3160625,
+        "p90": 881.48936875,
+        "p95": 899.791096875,
+        "p99": 1072.5752118749997,
+        "max": 1191.648125
+      },
+      "word_count": {
+        "count": 104,
+        "total": 154450.0,
+        "mean": 1485.0961538461538,
+        "min": 712.0,
+        "p25": 1213.5,
+        "p50": 1483.0,
+        "p75": 1738.5,
+        "p90": 1980.7,
+        "p95": 2123.6499999999996,
+        "p99": 2275.94,
+        "max": 2360.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 98,
+          "percent": 94.23076923076923
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 6,
+          "percent": 5.769230769230769
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 10,
+          "percent": 9.615384615384617
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 43,
+          "percent": 41.34615384615385
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 42,
+          "percent": 40.38461538461539
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 9,
+          "percent": 8.653846153846153
+        }
+      ]
+    },
+    {
+      "name": "quartr_1st23",
+      "version": "segments",
+      "source_file": "/home/boren/code/verl/tmp/quartr_longform_20261114/quartr_1st23_long/segments.source.jsonl",
+      "event_count": 23,
+      "packed_containers": 0,
+      "samples": 3125,
+      "total_hours": 15.031996388888889,
+      "empty_transcripts": 6,
+      "audio_seconds": {
+        "count": 3125,
+        "total": 54115.187000000005,
+        "mean": 17.316859840000003,
+        "min": 0.16,
+        "p25": 8.39,
+        "p50": 17.63,
+        "p75": 27.283,
+        "p90": 29.6182,
+        "p95": 30.137999999999998,
+        "p99": 32.18559999999999,
+        "max": 32.975
+      },
+      "word_count": {
+        "count": 3125,
+        "total": 139063.0,
+        "mean": 44.50016,
+        "min": 0.0,
+        "p25": 22.0,
+        "p50": 44.0,
+        "p75": 65.0,
+        "p90": 79.0,
+        "p95": 88.0,
+        "p99": 102.75999999999976,
+        "max": 124.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 424,
+          "percent": 13.568
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 497,
+          "percent": 15.903999999999998
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 426,
+          "percent": 13.632
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 416,
+          "percent": 13.312
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 1199,
+          "percent": 38.368
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 163,
+          "percent": 5.216
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 888,
+          "percent": 28.416000000000004
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 868,
+          "percent": 27.776
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 925,
+          "percent": 29.599999999999998
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 398,
+          "percent": 12.736
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 46,
+          "percent": 1.472
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    },
+    {
+      "name": "quartr_1st23",
+      "version": "long",
+      "source_file": "/home/boren/code/verl/tmp/quartr_longform_20261114/quartr_1st23_long/long.source.jsonl",
+      "event_count": 23,
+      "packed_containers": 0,
+      "samples": 98,
+      "total_hours": 15.031996388888889,
+      "empty_transcripts": 0,
+      "audio_seconds": {
+        "count": 98,
+        "total": 54115.187,
+        "mean": 552.1957857142856,
+        "min": 65.413,
+        "p25": 590.445,
+        "p50": 597.9300000000001,
+        "p75": 603.04425,
+        "p90": 608.5767,
+        "p95": 611.584,
+        "p99": 613.880345,
+        "max": 614.3765
+      },
+      "word_count": {
+        "count": 98,
+        "total": 139058.0,
+        "mean": 1418.9591836734694,
+        "min": 171.0,
+        "p25": 1310.5,
+        "p50": 1454.0,
+        "p75": 1662.0,
+        "p90": 1839.5,
+        "p95": 1878.0,
+        "p99": 1937.89,
+        "max": 1999.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 5,
+          "percent": 5.1020408163265305
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 1,
+          "percent": 1.0204081632653061
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 54,
+          "percent": 55.10204081632652
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 38,
+          "percent": 38.775510204081634
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 3,
+          "percent": 3.061224489795918
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 2,
+          "percent": 2.0408163265306123
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 1,
+          "percent": 1.0204081632653061
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 1,
+          "percent": 1.0204081632653061
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 49,
+          "percent": 50.0
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 42,
+          "percent": 42.857142857142854
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    },
+    {
+      "name": "quartr_2nd48",
+      "version": "segments",
+      "source_file": "/home/boren/code/verl/tmp/quartr_longform_20261114/quartr_2nd48_long/segments.source.jsonl",
+      "event_count": 48,
+      "packed_containers": 0,
+      "samples": 6392,
+      "total_hours": 35.83626805555556,
+      "empty_transcripts": 2,
+      "audio_seconds": {
+        "count": 6392,
+        "total": 129010.565,
+        "mean": 20.18312969336671,
+        "min": 0.1,
+        "p25": 11.114999999999998,
+        "p50": 24.11,
+        "p75": 29.22,
+        "p90": 29.7489,
+        "p95": 29.911,
+        "p99": 31.440900000000003,
+        "max": 32.99
+      },
+      "word_count": {
+        "count": 6392,
+        "total": 316183.0,
+        "mean": 49.465425531914896,
+        "min": 0.0,
+        "p25": 28.0,
+        "p50": 54.0,
+        "p75": 69.0,
+        "p90": 81.0,
+        "p95": 87.0,
+        "p99": 101.0,
+        "max": 126.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 750,
+          "percent": 11.733416770963705
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 704,
+          "percent": 11.013767209011265
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 611,
+          "percent": 9.558823529411764
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 612,
+          "percent": 9.574468085106384
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 3581,
+          "percent": 56.02315394242804
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 134,
+          "percent": 2.096370463078849
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 1425,
+          "percent": 22.29349186483104
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 1366,
+          "percent": 21.370463078848562
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 2546,
+          "percent": 39.83103879849813
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 971,
+          "percent": 15.190863579474343
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 84,
+          "percent": 1.3141426783479349
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    },
+    {
+      "name": "quartr_2nd48",
+      "version": "long",
+      "source_file": "/home/boren/code/verl/tmp/quartr_longform_20261114/quartr_2nd48_long/long.source.jsonl",
+      "event_count": 48,
+      "packed_containers": 0,
+      "samples": 235,
+      "total_hours": 35.83496805555556,
+      "empty_transcripts": 0,
+      "audio_seconds": {
+        "count": 235,
+        "total": 129005.885,
+        "mean": 548.9612127659574,
+        "min": 76.606,
+        "p25": 588.8050000000001,
+        "p50": 598.06,
+        "p75": 604.78575,
+        "p90": 610.2504,
+        "p95": 612.1876500000001,
+        "p99": 614.17689,
+        "max": 663.28
+      },
+      "word_count": {
+        "count": 235,
+        "total": 316167.0,
+        "mean": 1345.391489361702,
+        "min": 175.0,
+        "p25": 1232.0,
+        "p50": 1429.0,
+        "p75": 1546.0,
+        "p90": 1690.8,
+        "p95": 1792.6,
+        "p99": 1909.56,
+        "max": 1957.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 5,
+          "percent": 2.127659574468085
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 16,
+          "percent": 6.808510638297872
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 114,
+          "percent": 48.51063829787234
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 100,
+          "percent": 42.5531914893617
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 1,
+          "percent": 0.425531914893617
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 4,
+          "percent": 1.702127659574468
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 4,
+          "percent": 1.702127659574468
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 25,
+          "percent": 10.638297872340425
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 118,
+          "percent": 50.212765957446805
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 83,
+          "percent": 35.319148936170215
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    },
+    {
+      "name": "quartr_3rd38",
+      "version": "segments",
+      "source_file": "/home/boren/code/verl/tmp/quartr_longform_20261114/quartr_3rd38_long/segments.source.jsonl",
+      "event_count": 35,
+      "packed_containers": 0,
+      "samples": 6155,
+      "total_hours": 34.211219149305556,
+      "empty_transcripts": 1,
+      "audio_seconds": {
+        "count": 6155,
+        "total": 123160.3889375,
+        "mean": 20.00981136271324,
+        "min": 0.11,
+        "p25": 11.20275,
+        "p50": 23.699,
+        "p75": 29.17825,
+        "p90": 29.749,
+        "p95": 29.903,
+        "p99": 31.4292,
+        "max": 32.98
+      },
+      "word_count": {
+        "count": 6155,
+        "total": 309254.0,
+        "mean": 50.24435418359057,
+        "min": 0.0,
+        "p25": 29.0,
+        "p50": 55.0,
+        "p75": 70.0,
+        "p90": 82.0,
+        "p95": 89.0,
+        "p99": 101.0,
+        "max": 119.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 767,
+          "percent": 12.461413484971567
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 645,
+          "percent": 10.479285134037369
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 586,
+          "percent": 9.520714865962631
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 612,
+          "percent": 9.943135662063362
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 3428,
+          "percent": 55.69455727051178
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 117,
+          "percent": 1.9008935824532902
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 1393,
+          "percent": 22.63200649878148
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 1243,
+          "percent": 20.194963444354183
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 2363,
+          "percent": 38.39155158407799
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 1080,
+          "percent": 17.546709991876522
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 76,
+          "percent": 1.2347684809098294
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    },
+    {
+      "name": "quartr_3rd38",
+      "version": "long",
+      "source_file": "/home/boren/code/verl/tmp/quartr_longform_20261114/quartr_3rd38_long/long.source.jsonl",
+      "event_count": 35,
+      "packed_containers": 0,
+      "samples": 222,
+      "total_hours": 34.211219149305556,
+      "empty_transcripts": 0,
+      "audio_seconds": {
+        "count": 222,
+        "total": 123160.38893749999,
+        "mean": 554.7765267454954,
+        "min": 66.975,
+        "p25": 589.4522499999999,
+        "p50": 598.11125,
+        "p75": 605.558,
+        "p90": 612.3068,
+        "p95": 612.89375,
+        "p99": 627.3690199999999,
+        "max": 636.815
+      },
+      "word_count": {
+        "count": 222,
+        "total": 308988.0,
+        "mean": 1391.837837837838,
+        "min": 154.0,
+        "p25": 1284.25,
+        "p50": 1463.0,
+        "p75": 1619.75,
+        "p90": 1740.8,
+        "p95": 1797.5,
+        "p99": 1932.7699999999995,
+        "max": 1963.0
+      },
+      "audio_histogram": [
+        {
+          "lower": 0,
+          "upper": 5,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 5,
+          "upper": 10,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 10,
+          "upper": 15,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 15,
+          "upper": 20,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 20,
+          "upper": 30,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 30,
+          "upper": 40,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 40,
+          "upper": 60,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 60,
+          "upper": 120,
+          "count": 5,
+          "percent": 2.2522522522522523
+        },
+        {
+          "lower": 120,
+          "upper": 300,
+          "count": 14,
+          "percent": 6.306306306306306
+        },
+        {
+          "lower": 300,
+          "upper": 600,
+          "count": 108,
+          "percent": 48.64864864864865
+        },
+        {
+          "lower": 600,
+          "upper": 900,
+          "count": 95,
+          "percent": 42.792792792792795
+        },
+        {
+          "lower": 900,
+          "upper": 1200,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1200,
+          "upper": 1800,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 1800,
+          "upper": 3600,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 3600,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ],
+      "word_histogram": [
+        {
+          "lower": 0,
+          "upper": 25,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 25,
+          "upper": 50,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 50,
+          "upper": 75,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 75,
+          "upper": 100,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 100,
+          "upper": 150,
+          "count": 0,
+          "percent": 0.0
+        },
+        {
+          "lower": 150,
+          "upper": 200,
+          "count": 2,
+          "percent": 0.9009009009009009
+        },
+        {
+          "lower": 200,
+          "upper": 300,
+          "count": 4,
+          "percent": 1.8018018018018018
+        },
+        {
+          "lower": 300,
+          "upper": 500,
+          "count": 6,
+          "percent": 2.7027027027027026
+        },
+        {
+          "lower": 500,
+          "upper": 1000,
+          "count": 14,
+          "percent": 6.306306306306306
+        },
+        {
+          "lower": 1000,
+          "upper": 1500,
+          "count": 100,
+          "percent": 45.04504504504504
+        },
+        {
+          "lower": 1500,
+          "upper": 2000,
+          "count": 96,
+          "percent": 43.24324324324324
+        },
+        {
+          "lower": 2000,
+          "upper": null,
+          "count": 0,
+          "percent": 0.0
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "data_source": "earn_fy26_batch1",
+      "relative_path": "users/qimiao/EarningsCall_FY26/Chunks/Batch1/",
+      "source": "https://highperf01safn.blob.core.windows.net/data/users/qimiao/EarningsCall_FY26/Chunks/Batch1/",
+      "bridge": "https://orngtransfer.blob.core.windows.net/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch1/",
+      "destination": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch1/",
+      "work_root": "/home/boren/code/verl/tmp/earnings_fy26_20261114",
+      "short_manifest": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl"
+    },
+    {
+      "data_source": "earn_fy26_batch2",
+      "relative_path": "users/qimiao/EarningsCall_FY26/Chunks/Batch2/",
+      "source": "https://highperf01safn.blob.core.windows.net/data/users/qimiao/EarningsCall_FY26/Chunks/Batch2/",
+      "bridge": "https://orngtransfer.blob.core.windows.net/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch2/",
+      "destination": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch2/",
+      "work_root": "/home/boren/code/verl/tmp/earnings_fy26_20261114",
+      "short_manifest": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl"
+    },
+    {
+      "data_source": "quartr_1st23_long",
+      "relative_path": "users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/",
+      "source": "https://highperf01eus2.blob.core.windows.net/data/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/",
+      "bridge": "https://orngtransfer.blob.core.windows.net/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/",
+      "destination": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/",
+      "segment_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+      "work_root": "/home/boren/code/verl/tmp/quartr_longform_20261114",
+      "short_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl"
+    },
+    {
+      "data_source": "quartr_2nd48_long",
+      "relative_path": "users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/",
+      "source": "https://highperf01eus2.blob.core.windows.net/data/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/",
+      "bridge": "https://orngtransfer.blob.core.windows.net/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/",
+      "destination": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/",
+      "segment_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+      "work_root": "/home/boren/code/verl/tmp/quartr_longform_20261114",
+      "short_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl"
+    },
+    {
+      "data_source": "quartr_3rd38_long",
+      "relative_path": "users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/",
+      "source": "https://highperf01eus2.blob.core.windows.net/data/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/",
+      "bridge": "https://orngtransfer.blob.core.windows.net/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/",
+      "destination": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/",
+      "segment_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+      "work_root": "/home/boren/code/verl/tmp/quartr_longform_20261114",
+      "short_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl"
+    }
+  ],
+  "totals": {
+    "long": {
+      "samples": 739,
+      "audio_seconds": 442345.80293749995,
+      "audio_hours": 122.87383414930554,
+      "audio_mean_seconds": 598.5734816474966,
+      "words": 1043862.0,
+      "words_mean": 1412.5331529093369
+    },
+    "segments": {
+      "samples": 25240,
+      "audio_seconds": 424185.5409375,
+      "audio_hours": 117.82931692708334,
+      "audio_mean_seconds": 16.806083238411254,
+      "words": 1044187.0,
+      "words_mean": 41.370324881141045
+    }
+  }
+}

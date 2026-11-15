@@ -1,0 +1,19 @@
+# @package _global_
+# Continue the completed Long5 checkpoint486 to absolute optimizer step868.
+# Retain model, optimizer, constant-LR scheduler, RNG and dataloader state.
+# 31,163 parent rows / batch128 =243 updates/epoch; four-epoch ceiling
+# permits step868; total_training_steps is the fixed stopping condition.
+defaults:
+  - remax_main_base3a_2611r2_sl_long5
+  - _self_
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_long5_continue868_20261114
+  total_epochs: 4
+  total_training_steps: 868
+  val_only: false
+  resume_mode: resume_path
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/remax_main_base3a_2611r2_sl_long5_20261114/global_step_486
+
+asr:
+  expected_training_steps: 868

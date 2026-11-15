@@ -8,7 +8,6 @@ import numpy as np
 import pytest
 import soundfile as sf
 from omegaconf import OmegaConf
-
 from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.data.random_segment import random_segment
 from recipe.phimm.utils.audio import _is_chunk_spec, get_audio_duration, load_audio
@@ -25,6 +24,16 @@ def test_random_segments_preserve_the_single_full_reference():
     assert paths[0].rsplit(":", 1)[1] == paths[1].rsplit("#", 1)[1].split(":")[0]
     assert paths != ["A.wav#0%:50%", "A.wav#50%:100%"]
     assert result[0]["text"] == "full original reference"
+
+
+@pytest.mark.parametrize("mode", [{"segment_count": [1, 4]}, {"segment_len": [0.1, 0.3]}])
+def test_parallel_preparation_preserves_every_partition_and_reference(tmp_path, mode):
+    path = tmp_path / "audio.wav"
+    sf.write(path, np.zeros(16000), 16000)
+    ds = datasets.Dataset.from_list([{"audio_chunk": str(path), "text": f"full reference {i}"} for i in range(13)])
+    sequential = random_segment(ds, seed=7, **mode)
+    parallel = random_segment(ds, seed=7, num_proc=3, **mode)
+    assert parallel.to_list() == sequential.to_list()
 
 
 def test_random_segment_counts_and_boundaries_are_reproducible_complete_partitions():
@@ -71,11 +80,11 @@ def test_random_segment_rejects_invalid_settings(options):
 
 
 @pytest.mark.parametrize("mode", [{"segment_count": [2, 2]}, {"segment_len": [20, 20]}])
-def test_dataset_block_expands_paths_without_splitting_reference_or_loading_audio(tmp_path, mode):
+@pytest.mark.parametrize("audio_field", ["audio_path", "audio_file", "audio_chunk"])
+def test_dataset_block_expands_paths_without_splitting_reference_or_loading_audio(tmp_path, mode, audio_field):
     path = tmp_path / "rows.jsonl"
     path.write_text(
-        json.dumps({"audio_path": "A.wav", "audio_length": 40, "text": "full reference", "prompt": "task<audio>"})
-        + "\n"
+        json.dumps({audio_field: "A.wav", "audio_length": 40, "text": "full reference", "prompt": "task<audio>"}) + "\n"
     )
     config = OmegaConf.create(
         {
@@ -114,7 +123,7 @@ def test_dataset_block_expands_paths_without_splitting_reference_or_loading_audi
     assert not row["asr_validate"]
     # Global training augmentation must not change validation inputs.
     val = ASRDataset("val", object(), config)
-    assert val[0]["audio_path"] == "A.wav"
+    assert val[0][audio_field] == "A.wav"
 
 
 def test_segmented_and_unsegmented_sources_share_a_mix(tmp_path):

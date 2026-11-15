@@ -1,0 +1,14 @@
+# @package _global_
+# Fresh Merge3M comparison: change SL from 1-10s to 5-30s; keep batch16.
+# Seven offline <180s manifests, 3,548 parents, 177.04h; buffer100/seed42.
+# Two epochs, drop_last=true: floor(3548 / 16) * 2 = 442 updates.
+defaults:
+  - remax_main_base3a_2611r2_sl_merge3m_sl1to10
+  - _self_
+
+data:
+  random_segment:
+    segment_len: [5, 30]
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs16

@@ -1,0 +1,116 @@
+[
+  {
+    "dataset": "quartr_1st23",
+    "sha256_verified": true,
+    "full_training_loader_roundtrip": true,
+    "count": 301,
+    "headers": [
+      {
+        "recorded_seconds": 179.801,
+        "header_seconds": 179.801
+      },
+      {
+        "recorded_seconds": 179.9995,
+        "header_seconds": 179.9995
+      }
+    ]
+  },
+  {
+    "dataset": "quartr_2nd48",
+    "sha256_verified": true,
+    "full_training_loader_roundtrip": true,
+    "count": 718,
+    "headers": [
+      {
+        "recorded_seconds": 179.976,
+        "header_seconds": 179.976
+      },
+      {
+        "recorded_seconds": 179.9995,
+        "header_seconds": 179.9995
+      }
+    ]
+  },
+  {
+    "dataset": "quartr_3rd38",
+    "sha256_verified": true,
+    "full_training_loader_roundtrip": true,
+    "count": 685,
+    "headers": [
+      {
+        "recorded_seconds": 179.84799999999998,
+        "header_seconds": 179.84799999999998
+      },
+      {
+        "recorded_seconds": 179.9995,
+        "header_seconds": 179.9995
+      }
+    ]
+  },
+  {
+    "dataset": "aishell1_train_top10k",
+    "sha256_verified": true,
+    "full_training_loader_roundtrip": true,
+    "count": 257,
+    "headers": [
+      {
+        "recorded_seconds": 176.894375,
+        "header_seconds": 176.894375
+      },
+      {
+        "recorded_seconds": 179.9999375,
+        "header_seconds": 179.9999375
+      }
+    ]
+  },
+  {
+    "dataset": "noisy_ls",
+    "sha256_verified": true,
+    "full_training_loader_roundtrip": true,
+    "count": 930,
+    "headers": [
+      {
+        "recorded_seconds": 179.0980625,
+        "header_seconds": 179.0980625
+      },
+      {
+        "recorded_seconds": 179.99993750000002,
+        "header_seconds": 179.99993750000002
+      }
+    ]
+  },
+  {
+    "dataset": "earn_fy27_batch1",
+    "sha256_verified": true,
+    "full_training_loader_roundtrip": true,
+    "count": 307,
+    "headers": [
+      {
+        "recorded_seconds": 179.88,
+        "header_seconds": 179.88
+      },
+      {
+        "recorded_seconds": 179.998,
+        "header_seconds": 179.998
+      }
+    ],
+    "decoded_sample_seconds": 179.88,
+    "decoded_sample_rate": 16000
+  },
+  {
+    "dataset": "earn_fy27_batch2",
+    "sha256_verified": true,
+    "full_training_loader_roundtrip": true,
+    "count": 350,
+    "headers": [
+      {
+        "recorded_seconds": 179.91,
+        "header_seconds": 179.91
+      },
+      {
+        "recorded_seconds": 179.99,
+        "header_seconds": 179.99
+      }
+    ]
+  }
+]

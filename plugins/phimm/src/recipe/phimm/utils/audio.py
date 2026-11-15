@@ -1,13 +1,14 @@
 import io
 import logging
 from pathlib import Path
+from threading import RLock
 
 import blobfile as bf
 import numpy as np
 import soundfile as sf
 from cachetools import FIFOCache, cached
-
 from recipe.phimm.data.chunk import load_chunk_example, load_chunk_sample
+
 from verl.audio_cache import localize_audio_source, split_audio_sources
 from verl.audio_chunk import read_chunk_audio, split_chunk_audio_source
 from verl.audio_zip import read_zip_audio, split_zip_audio_source
@@ -41,7 +42,7 @@ def set_chunk_load_mode(mode: str):
     logger.info("Chunk load mode set to: %s", mode)
 
 
-@cached(FIFOCache(maxsize=100))
+@cached(FIFOCache(maxsize=100), lock=RLock())
 def sf_read(file_path):
     """Load audio from a file."""
     # print("Audio file:", file_path)

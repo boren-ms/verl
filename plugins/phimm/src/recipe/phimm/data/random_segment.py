@@ -52,6 +52,7 @@ def random_segment(
     min_segment_fraction=None,
     seed=42,
     enabled=True,
+    num_proc=None,
 ):
     """Replace audio_path with ordered percentage ranges without decoding audio.
 
@@ -63,7 +64,8 @@ def random_segment(
     ``audio_length`` or falls back to header IO. Its final remainder may be
     shorter than the lower duration bound, preserving the complete recording.
     ``min_segment_fraction`` defaults to 0.1 in count mode and is not applied
-    in duration mode.
+    in duration mode. ``num_proc`` controls preparation workers only; partition
+    randomness remains keyed by the original row index.
     """
     if not enabled:
         return ds
@@ -90,9 +92,9 @@ def random_segment(
         raise ValueError("random_segment seed must be an integer")
 
     def partition(row, index):
-        source = row.get("audio_path")
+        source = row.get("audio_path") or row.get("audio_file") or row.get("audio_chunk")
         if not isinstance(source, str) or not source:
-            raise ValueError("random_segment requires one non-empty audio_path string per input row")
+            raise ValueError("random_segment requires one non-empty audio source string per input row")
         rng = random.Random(seed + index)
         if segment_count is not None:
             count = rng.randint(lower, upper)
@@ -122,4 +124,4 @@ def random_segment(
             ]
         }
 
-    return ds.map(partition, with_indices=True, desc="Random audio segmentation")
+    return ds.map(partition, with_indices=True, num_proc=num_proc, desc="Random audio segmentation")

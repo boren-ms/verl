@@ -1,0 +1,18 @@
+# @package _global_
+# Merge 3M batch-size comparison: retain the independent batch16 experiment.
+# 3,548 parents; drop_last=true: floor(3548 / 8) * 2 = 886 updates.
+# Reuse the same seven offline manifests, SL 1-10s, seed, model and rewards.
+defaults:
+  - remax_main_base3a_2611r2_sl_merge3m_sl1to10
+  - _self_
+
+data:
+  train_batch_size: 8
+  gen_batch_size: 8
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 8
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_merge3m_sl1to10_bs8

@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Workflow walkthrough: remax_main_base3a_2611r2</title>
+<style>
+  :root { --ink:#142c3c; --muted:#4c6473; --paper:#f4f7fa; --line:#cfdae2; --blue:#215ac4;
+    --green:#086348; --green-bg:#e2f5ed; --amber:#81530a; --amber-bg:#fff3d6; --red:#9b2c2c; --red-bg:#fde8e8; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.65 system-ui,sans-serif; }
+  main { max-width:1120px; margin:auto; padding:48px 24px 64px; }
+  h1,h2,h3 { line-height:1.2; letter-spacing:-.02em; }
+  h1 { font-size:clamp(2.1rem,4.6vw,3.4rem); max-width:900px; margin:14px 0 22px; }
+  h2 { font-size:1.6rem; margin:0 0 18px; }
+  h3 { font-size:1.1rem; margin:18px 0 10px; }
+  p { margin:10px 0 14px; }
+  a { color:#184fab; text-underline-offset:3px; }
+  code,pre,.mono { font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
+  code { font-size:.88em; background:#edf2f7; padding:1px 5px; border-radius:5px; overflow-wrap:anywhere; }
+  pre { background:#edf2f7; border-radius:10px; padding:16px 18px; overflow-x:auto; font-size:.86rem; line-height:1.5; }
+  pre code { background:none; padding:0; }
+  .eyebrow { text-transform:uppercase; color:var(--blue); font-size:.78rem; letter-spacing:.13em; font-weight:800; }
+  .lead { font-size:1.15rem; max-width:860px; color:var(--muted); }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin:22px 0 28px; }
+  .chip { border:1px solid var(--line); border-radius:99px; padding:4px 12px; font-size:.85rem; background:white; }
+  nav { display:flex; flex-wrap:wrap; gap:10px 22px; border-top:1px solid var(--line); padding-top:18px; }
+  section { margin-top:28px; padding:28px; border-radius:16px; background:white; border:1px solid var(--line); }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .card { background:var(--paper); border-radius:12px; padding:18px 20px; }
+  .note { border-left:4px solid #ae781a; padding:12px 18px; background:var(--amber-bg); border-radius:0 10px 10px 0; margin:14px 0; }
+  .good { border-left:4px solid var(--green); padding:12px 18px; background:var(--green-bg); border-radius:0 10px 10px 0; margin:14px 0; }
+  .formula { padding:20px 22px; background:#112d43; color:white; border-radius:12px; font-family:ui-monospace,Consolas,monospace; font-size:.95rem; line-height:1.7; overflow-x:auto; white-space:pre; }
+  .formula .c { color:#9fc0dc; }
+  .muted { color:var(--muted); } .small { font-size:.88rem; }
+  table { border-collapse:collapse; width:100%; font-size:.9rem; }
+  th,td { text-align:left; padding:9px 11px; border-bottom:1px solid var(--line); vertical-align:top; }
+  thead th { background:#edf2f7; }
+  td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+  .scroll { overflow-x:auto; }
+  .tree { font-family:ui-monospace,Consolas,monospace; font-size:.86rem; line-height:1.7; background:var(--paper); border-radius:12px; padding:16px 20px; white-space:pre; overflow-x:auto; }
+  .tree b { color:var(--blue); } .tree i { color:var(--muted); font-style:normal; }
+  /* step pipeline */
+  .pipeline { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:8px 0 6px; }
+  .stage { background:var(--paper); border:2px solid var(--line); border-radius:12px; padding:12px 14px; cursor:pointer; text-align:left; font:inherit; color:inherit; }
+  .stage:hover { border-color:#8fb0e6; }
+  .stage.on { border-color:var(--blue); background:#edf4ff; }
+  .stage .n { color:var(--blue); font-weight:800; font-size:.8rem; display:block; }
+  .stage .t { font-weight:700; }
+  .stage .s { font-size:.8rem; color:var(--muted); display:block; }
+  .detail { margin-top:16px; border:1px solid var(--line); border-radius:12px; padding:18px 22px; min-height:220px; }
+  .detail h3 { margin-top:0; }
+  .ref { font-size:.8rem; color:var(--muted); }
+  /* bars */
+  .bar { display:flex; height:30px; border-radius:8px; overflow:hidden; margin:10px 0 6px; font-size:.75rem; color:white; font-weight:700; }
+  .bar div { display:flex; align-items:center; justify-content:center; white-space:nowrap; overflow:hidden; }
+  .legend { display:flex; flex-wrap:wrap; gap:14px; font-size:.82rem; }
+  .sw { display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:5px; vertical-align:-1px; }
+  /* calculator */
+  .calc { display:grid; grid-template-columns:1.2fr 1fr; gap:22px; }
+  .row { display:grid; grid-template-columns:120px 1fr 64px; gap:10px; align-items:center; margin:6px 0; font-size:.9rem; }
+  .row input { width:100%; accent-color:var(--blue); }
+  .out { background:#112d43; color:white; border-radius:12px; padding:18px 20px; font-family:ui-monospace,Consolas,monospace; font-size:.88rem; }
+  .out .big { font-size:1.8rem; font-weight:700; }
+  select { font:inherit; border:1px solid #9eafbe; border-radius:8px; padding:6px 10px; background:white; }
+  .tag { display:inline-block; font-size:.72rem; font-weight:700; padding:1px 7px; border-radius:99px; background:#edf4ff; color:var(--blue); }
+  .tag.w { background:var(--amber-bg); color:var(--amber); }
+  ol li, ul li { margin:4px 0; }
+  @media (max-width:820px){ .grid,.calc{grid-template-columns:1fr;} .pipeline{grid-template-columns:1fr 1fr;} }
+</style>
+</head>
+<body>
+<main>
+
+<div class="eyebrow">verl · recipe/phimm · v2611_dev / main</div>
+<h1>From one YAML to one gradient step: <span style="color:var(--blue)">remax_main_base3a_2611r2</span></h1>
+<p class="lead">This page follows Base3a from launch to checkpoint. It covers how the config is built from inherited layers, how six ASR training sources become one fixed-order stream of prompts, how ReMax compares eight sampled transcripts against a greedy one, how the vote reward turns that comparison into a scalar, and how validation is scored. Every claim points to the code that implements it.</p>
+<div class="chips">
+  <span class="chip">ReMax (greedy baseline)</span><span class="chip">n = 8 rollouts</span><span class="chip">batch 128 prompts</span>
+  <span class="chip">LoRA r=320 · FSDP2</span><span class="chip">vLLM rollout</span><span class="chip">2 nodes × 8 GPUs</span>
+  <span class="chip">lr 6e-7 constant</span><span class="chip">2 epochs ≈ 868 steps</span><span class="chip">asr_vote reward v2609</span>
+</div>
+<nav>
+  <a href="#launch">01 Launch</a><a href="#config">02 Config layers</a><a href="#data">03 Training data</a>
+  <a href="#step">04 One training step</a><a href="#reward">05 Reward</a><a href="#update">06 Advantage &amp; loss</a>
+  <a href="#val">07 Validation &amp; ckpt</a><a href="#gotchas">08 Things to know</a><a href="#files">09 File map</a>
+</nav>
+
+<!-- ============================================================ -->
+<section id="launch">
+<div class="eyebrow">01</div>
+<h2>Launch: file name chooses the entry point</h2>
+<pre><code>bash quick_run.sh recipe/phimm/config/v2611_dev/main/remax_main_base3a_2611r2.yaml [hydra overrides...]</code></pre>
+<div class="grid">
+  <div class="card">
+    <h3>quick_run.sh</h3>
+    <ol class="small">
+      <li>Splits the path into <code>--config-dir</code> and <code>--config-name</code>.</li>
+      <li>Chooses a module from the name prefix: <code>remax_*</code> → <code>recipe.phimm.main_asr_remax</code>. Other prefixes: <code>gen_</code>, <code>eval_</code>, <code>grpo_</code>, <code>rloo_</code>, …</li>
+      <li>Runs <code>python3 ray_tool.py prepare_env</code> on every Ray node.</li>
+      <li>Submits with <code>ray job submit --no-wait</code> and passes <code>trainer.experiment_name=&lt;config name&gt;</code>. The log is tee'd to <code>&lt;name&gt;.log</code>.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <h3>main_asr_remax → main_asr_dapo.run_ppo</h3>
+    <ol class="small">
+      <li><code>main_asr_remax.py</code> is a thin Hydra wrapper that calls <code>run_ppo(config)</code>.</li>
+      <li><code>run_ppo</code> runs <code>ray.init</code> with env vars (<code>VLLM_PLUGINS=qwen35_audio</code>, <code>VERL_USE_EXTERNAL_MODULES=hf_qwen35_audio</code>, <code>DATA_PATH</code> is required) and starts a remote <code>TaskRunner</code>.</li>
+      <li><code>TaskRunner.run</code> resolves the config, runs <code>copy_to_local(model.path)</code> (az:// download), loads the tokenizer and processor, and maps the FSDP worker roles (ActorRollout, plus RefPolicy because <code>use_kl_loss</code> is on).</li>
+      <li>It builds two reward managers: <b>train</b> (<code>dapo</code>) and <b>val</b> (<code>long_audio_grouped</code>).</li>
+      <li>It creates <code>RayDAPOTrainer</code> with <code>dump_fn=get_hyp_text</code>, then calls <code>init_workers()</code> and <code>fit()</code>.</li>
+    </ol>
+  </div>
+</div>
+<p class="ref">quick_run.sh:15-49 · recipe/phimm/main_asr_remax.py:8-10 · recipe/phimm/main_asr_dapo.py:67-233</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="config">
+<div class="eyebrow">02</div>
+<h2>Config layers: Base3a is a delta on a delta</h2>
+<p>Hydra composes from the bottom of this tree up, with later layers overriding earlier ones. Each layer adds only a small amount, so to read Base3a you have to read the whole chain.</p>
+<div class="tree"><b>remax_main_base3a_2611r2.yaml</b>  <i># model path (2611 qwen9b step 38000), 6 train sources + mix, aishell reward</i>
+ └─ <b>main/base2a_smts.yaml</b>     <i># + val: zh_hard top500 (AISHELL-1 test, FLEURS zh) → openasr_expansion</i>
+     └─ <b>main/base1a_smts.yaml</b>  <i># + val: OpenLong u2 cohorts (earnings21/22, coraal, e22_cleaned_aa)</i>
+         └─ <b>main/base1_smts.yaml</b> <i># LoRA 320, lr 6e-7 const, n=8, seq-mean-token-sum, bs 128, 2 epochs,</i>
+             │                    <i># val: earnings22 verb, OpenASR-ML bad, urgent2024_delta; 'librispeech' reward</i>
+             └─ <b>v2611_dev/base.yaml</b>  <i># ReMax, vLLM/FSDP2, KL loss, clip .2/.28, val reward fns, trainer freqs</i>
+                 └─ <b>/ppo_trainer</b>     <i># verl/trainer/config defaults</i></div>
+<div class="note small"><b>Base3a vs Base2c:</b> the only differences (besides <code>experiment_name</code>) are that the <code>openml_verb_langhint_v0</code> train source and its <code>{name: openml, sample: 13169}</code> mix entry are removed. Every validation setting is the same.</div>
+
+<h3>Effective settings that matter</h3>
+<div class="scroll"><table>
+<thead><tr><th>Key</th><th>Value</th><th>Set in</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td><code>algorithm.adv_estimator</code></td><td>remax</td><td>base</td><td>Adds a greedy rollout per prompt as the baseline</td></tr>
+<tr><td><code>actor_rollout_ref.model.path</code></td><td>…fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/</td><td>base3a</td><td>Policy init and frozen reference (the reference is the LoRA-disabled actor)</td></tr>
+<tr><td><code>model.lora_rank / alpha</code></td><td>320 / 640</td><td>base1 / base</td><td>LoRA on MLP, attention, and linear-attention projections</td></tr>
+<tr><td><code>rollout.n</code></td><td>8</td><td>base1</td><td>Sampled transcripts per audio clip (temperature 1.0)</td></tr>
+<tr><td><code>rollout.val_kwargs</code></td><td>temp 0, top_p 1, len 512</td><td>base</td><td>Used for <b>both</b> validation and the ReMax greedy baseline</td></tr>
+<tr><td><code>rollout.no_repeat_ngram_size</code></td><td>15</td><td>base</td><td>Repetition guard passed to vLLM</td></tr>
+<tr><td><code>data.train_batch_size</code> = ppo_mini_batch</td><td>128</td><td>base1</td><td>128 prompts × 8 = 1024 sequences per step, one optimizer step</td></tr>
+<tr><td><code>data.max_prompt / response_length</code></td><td>1024 / 768</td><td>base</td><td>Audio placeholder tokens count toward the prompt; audio is capped at 40 s</td></tr>
+<tr><td><code>actor.optim.lr</code></td><td>6e-7 constant, no warmup</td><td>base1</td><td></td></tr>
+<tr><td><code>actor.loss_agg_mode</code></td><td>seq-mean-token-sum</td><td>base1</td><td>Sum over tokens, mean over sequences</td></tr>
+<tr><td><code>actor.use_kl_loss</code></td><td>low_var_kl × 0.001</td><td>base</td><td>KL to the reference in the loss, not in the reward</td></tr>
+<tr><td><code>actor.clip_ratio_low/high</code></td><td>0.2 / 0.28</td><td>base</td><td>Asymmetric PPO clip</td></tr>
+<tr><td><code>rollout.use_rollout_log_probs_as_old</code></td><td>true</td><td>base</td><td>vLLM log-probs serve as π<sub>old</sub>, so the actor forward pass is skipped</td></tr>
+<tr><td><code>trainer.nnodes × gpus</code></td><td>2 × 8</td><td>base1 / base</td><td></td></tr>
+<tr><td><code>trainer.test_freq / save_freq</code></td><td>20 / 10</td><td>base</td><td>Also <code>val_before_train: true</code>, <code>max_actor_ckpt_to_keep: 2</code></td></tr>
+<tr><td><code>trainer.total_epochs / steps</code></td><td>2 / null</td><td>base1</td><td>The step count comes from the dataloader length</td></tr>
+</tbody></table></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="data">
+<div class="eyebrow">03</div>
+<h2>Training data: six sources, one fixed sequence</h2>
+<div class="bar" aria-label="mix composition">
+  <div style="flex:20424;background:#215ac4">noisy_ls 20,424</div>
+  <div style="flex:9568;background:#3f8f6b">earn_fy27 9,568</div>
+  <div style="flex:3125;background:#7a5bb5">q1</div>
+  <div style="flex:6392;background:#9a6fd0">quartr_2nd48</div>
+  <div style="flex:6155;background:#b48ae0">quartr_3rd38</div>
+  <div style="flex:10000;background:#c0702a">aishell 10,000</div>
+</div>
+<p class="small muted">Total 55,664 rows → 434 batches per epoch (drop_last) → about 868 steps over 2 epochs. English is about 82% of rows and Mandarin about 18%.</p>
+<div class="scroll"><table>
+<thead><tr><th>data_source</th><th>Config</th><th>Content</th><th class="num">sample</th><th>Language</th><th>Reward fn</th></tr></thead>
+<tbody>
+<tr><td><code>noisy_ls</code></td><td>train_data/noisy/ls_rir_verb_langhint</td><td>LibriSpeech with speed, BUT ReverbDB real RIRs, and noise at 10–12 dB SNR</td><td class="num">20,424</td><td>English</td><td>librispeech</td></tr>
+<tr><td><code>earn_fy27</code></td><td>train_data/earn_fy27 (2 specs merged)</td><td>FY27 earnings-call batch 1+2 svad segments; NE tags → keywords</td><td class="num">9,568</td><td>English</td><td>librispeech</td></tr>
+<tr><td><code>quartr_1st23</code></td><td>train_data/quartr_1st23</td><td>Quartr FY27, 23 events, about 15 h, cleaned; NE/PName tags → keywords</td><td class="num">3,125</td><td>English</td><td>librispeech</td></tr>
+<tr><td><code>quartr_2nd48</code></td><td>train_data/quartr_2nd48</td><td>Quartr FY27, 48 events</td><td class="num">6,392</td><td>English</td><td>librispeech</td></tr>
+<tr><td><code>quartr_3rd38</code></td><td>train_data/quartr_3rd38</td><td>Quartr FY27, final 38 events, cleaned</td><td class="num">6,155</td><td>English</td><td>librispeech</td></tr>
+<tr><td><code>aishell1_train_top10k</code></td><td>train_data/aishell/aishell1_train_top10k_2611r2_verb_langhint</td><td>AISHELL-1 train, first 10k rows of a list ranked by n_err (hardest first)</td><td class="num">10,000</td><td>Chinese</td><td>aishell1_char</td></tr>
+</tbody></table></div>
+
+<h3>How a YAML spec becomes rows</h3>
+<p><code>RLHFDataset.__init__</code> flattens <code>data.train_data</code> and calls <code>create_audio_dataset(**spec, version=2609)</code> for each spec.</p>
+<div class="grid">
+<div class="card small">
+<ol>
+  <li><b>cache_ds</b>: if <code>cache_name</code> is set and <code>~/data/cache_datasets/&lt;name&gt;</code> exists, it is loaded from disk and processing is skipped.</li>
+  <li><b>jsonl_dataset</b>: reads the JSONL from az:// with blobfile and pyarrow.</li>
+  <li><b>pre_process</b>, run in code order:
+    <ul>
+      <li><code>input_egs_limit</code> (take the first N)</li>
+      <li><code>path_map</code> (rewrite the audio_path prefix)</li>
+      <li><code>rename_fields</code> (<code>text: display</code> means new ← old)</li>
+      <li><code>clean_tagged_text</code> (strip <code>&lt;NE&gt;…&lt;/NE&gt;</code> / <code>[tag]</code> from text and push the inner spans to <code>keywords</code>)</li>
+    </ul>
+  </li>
+  <li><b>add_task_info</b>: builds <code>prompt</code>, <code>prefix</code>, <code>gt_output</code>, and <code>language</code>.</li>
+  <li><b>post_process</b>: <code>add_field</code> (sets <code>data_source</code>), <code>cache_audio</code>, then <code>verl_format</code>, which emits <code>prompt</code> as chat, <code>reward_model</code>, <code>extra_info</code> {id, language, keywords, prefix, extra_keys…}, and <code>data_source</code>.</li>
+</ol>
+<p class="ref">dataset.py:2152 create_audio_dataset · 2084 augment · 1885 process_ds · 940 clean_tagged_text · 1990 add_task_info · 1735 verl_format</p>
+</div>
+<div class="card small">
+<b>Prompt produced by <code>task: lang_asr_verb</code>, <code>lang_hint: true</code>, <code>prefix_prob: 0</code></b>
+<pre><code>Transcribe the audio clip into text. Transcribe verbatim,
+including all filler words and disfluencies.&lt;audio&gt;
+The language is English.</code></pre>
+<p>"Detect the language and" is dropped because the language is given. With no assistant prefix, the model has to write the 2609 header itself. The target format (<code>gt_output</code>) is:</p>
+<pre><code>&lt;src=English&gt;&lt;tgt=English&gt;
+&lt;VERBATIM&gt;
+{text}</code></pre>
+<p>The reward receives <code>reward_model.ground_truth</code> = plain cleaned <code>text</code>.</p>
+<p class="ref">prompts.py:347 LANG_ASR_VERB_PROMPTS · 120-142 get_task_prompt · 64 2609 format</p>
+</div>
+</div>
+
+<h3><code>data.mix</code> builds a deterministic stream</h3>
+<div class="grid">
+<div class="card small">
+<ul>
+  <li>Specs are grouped by the <code>data_source</code> of their <b>first row</b>, so the two earn_fy27 specs become one source. Each mix <code>name</code> must exist; sources not named in the mix are <b>silently dropped</b>.</li>
+  <li>Each source is shuffled with seed <code>42 + group + src</code>, then <code>sample</code> rows are taken. If <code>sample</code> exceeds the source size, the whole source repeats and the remainder is taken from the front. There is no random resampling.</li>
+  <li>Sources are concatenated and the group is shuffled once (<code>shuffle: true</code>).</li>
+</ul>
+</div>
+<div class="card small">
+<ul>
+  <li>Top-level <code>data.shuffle: false</code> is <b>required</b> with mix (otherwise it raises). It produces a <code>SequentialSampler</code>.</li>
+  <li>The mix is built <b>once</b>, so <code>sample</code> is a count for the whole dataset, not per epoch. Epoch 2 replays the same order.</li>
+  <li><code>data_source</code> names are also the keys of <code>reward_function_by_data_source</code>, so a typo in either place breaks routing.</li>
+</ul>
+<p class="ref">rl_dataset.py:341-360 load_datasets · 185 mix_datasets · 125 _collect_datasources · main_ppo.py:400 create_rl_sampler</p>
+</div>
+</div>
+
+<h3>Audio → model inputs (lazy, in <code>__getitem__</code>)</h3>
+<p class="small">The audio path goes through <code>localize_audio_source</code>, which maps az:// to <code>$VERL_AUDIO_CACHE_ROOT</code> (default <code>~/data</code>) and downloads under a lock. <code>load_audio</code> handles <code>;</code>-joined sources, <code>file:count:idx</code> chunks (<code>chunk_load_mode: indexed</code> reads one sample by byte offset), <code>file#s:e</code> slices, and zip members. <code>limit_audio</code> resamples to 16 kHz, pads clips under 0.16 s, and truncates to 40 s. The chat template is applied, then <code>processor(text, audios)</code> produces <code>input_ids</code> and <code>multi_modal_inputs</code>, and <code>multi_modal_data={"audio":[(wav,16000)]}</code> is passed to vLLM. Prompts are left-padded to 1024. If a load fails in training, it retries up to 8 times at other indices.</p>
+<p class="ref">rl_dataset.py:378-437 · rl_dataset.py:45 _load_audio_with_retries · utils/audio.py:261 load_audio · verl/audio_cache.py:242</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="step">
+<div class="eyebrow">04</div>
+<h2>One training step inside <code>RayDAPOTrainer.fit()</code></h2>
+<p class="small muted">Click a stage. Line numbers are in <code>recipe/dapo/dapo_ray_trainer.py</code> unless noted.</p>
+<div class="pipeline" id="pipeline"></div>
+<div class="detail" id="detail"></div>
+</section>
+
+<!-- ============================================================ -->
+<section id="reward">
+<div class="eyebrow">05</div>
+<h2>Reward: each sample is compared with the greedy hypothesis, measure by measure</h2>
+<p>The train reward manager is <code>dapo</code>. It calls the dispatcher <b>once per sample</b> with <code>(data_source, solution_str, ground_truth, extra_info)</code> and puts the score on the last response token. The dispatcher looks up <code>reward_function_by_data_source[data_source]</code>, which names an entry in <code>reward_functions</code>, which points to <code>recipe/phimm/reward/asr_vote.py:compute_score</code> with its <code>reward_kwargs</code> bound. The fn's other keys become <code>reward_extra_info</code> for logging.</p>
+<p class="ref">verl/trainer/ppo/reward.py:105-153 · verl/workers/reward_manager/dapo.py:71-140</p>
+
+<h3>Measures (all accuracies, 1 = perfect)</h3>
+<div class="grid">
+<div class="card small">
+<p>Parsing: <code>get_hyp_text</code> splits on <code>&lt;src=X&gt;&lt;tgt=Y&gt;</code> segments and strips markup such as <code>&lt;VERBATIM&gt;</code> and <code>&lt;nonspeech&gt;</code>. Both sides are text-normalized for the language, then aligned with difflib.</p>
+<table>
+<tr><td><code>char</code></td><td>1 − CER (whitespace removed)</td></tr>
+<tr><td><code>word</code></td><td>1 − WER</td></tr>
+<tr><td><code>word_del</code></td><td>1 − deletions / n_ref</td></tr>
+<tr><td><code>word_ins</code></td><td>1 − insertions / n_ref (can go negative)</td></tr>
+<tr><td><code>word_kw</code></td><td>1 − keyword errors / n_ref; 1.0 if there are no keywords</td></tr>
+<tr><td><code>lang</code></td><td>Alignment accuracy of the predicted src/tgt language tags</td></tr>
+<tr><td><code>fmt</code></td><td>Fraction of well-formed segments (empty output = 0)</td></tr>
+</table>
+</div>
+<div class="card small">
+<p>Per measure (<code>compute_measure_vote</code>, asr_vote.py:54-97):</p>
+<ul>
+<li><code>delta: abs</code> → <code>Δ = value − greedy_value</code></li>
+<li><code>vote: delta</code> → vote = Δ (the improvement over greedy)</li>
+<li><code>vote: abs</code> → vote = the absolute value, ignoring greedy</li>
+<li>Then <code>vote = clip(vote, -2, 2)</code>, <code>score = beta × vote</code></li>
+<li><code>reduce: {mode: average, total: T}</code> → <code>Σ scores / T</code>. This divides by T, not by the number of measures or the sum of betas.</li>
+</ul>
+<p>Keywords for <code>word_kw</code> come from <code>extra_info.keywords</code>, which is filled by <code>clean_tagged_text</code> from NE/PName tags in the earnings and Quartr transcripts.</p>
+</div>
+</div>
+
+<div class="formula"><span class="c"># librispeech  (noisy_ls, earn_fy27, quartr_*)          T = 2</span>
+r = [ Δchar + Δword + 0.2·Δword_del + 0.1·Δword_ins + 0.2·Δword_kw
+      + 0.05·lang + 0.05·fmt ] / 2
+
+<span class="c"># aishell1_char (aishell1_train_top10k)                 T = 1</span>
+r =   Δchar + 0.05·lang + 0.05·fmt
+
+<span class="c"># Δx = clip(x_sample − x_greedy, −2, 2);  lang/fmt are absolute (vote: abs)</span></div>
+
+<h3>Try it</h3>
+<div class="calc">
+<div>
+  <p class="small">Source:
+    <select id="src"><option value="ls">librispeech (English sources)</option><option value="zh">aishell1_char (AISHELL)</option></select>
+  </p>
+  <div id="sliders"></div>
+</div>
+<div class="out" id="calcout"></div>
+</div>
+<div class="note small"><b>Two consequences.</b> (1) A sample that matches greedy exactly still gets <code>0.05·lang + 0.05·fmt</code>: about <b>+0.05</b> for English and <b>+0.10</b> for AISHELL. Every response gets this constant bonus, and nothing subtracts it later. (2) Because of the different T and measure sets, one point of character accuracy is worth 0.5 for English and 1.0 for AISHELL, so AISHELL advantages are on a larger scale.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="update">
+<div class="eyebrow">06</div>
+<h2>Advantage &amp; actor loss</h2>
+<div class="grid">
+<div>
+<h3>ReMax advantage</h3>
+<div class="formula">returns    = reverse_cumsum(r · mask)  <span class="c"># = r at every token</span>
+advantages = returns − reward_baselines · mask
+advantages *= adv_scale[data_source]  <span class="c"># all 1.0</span></div>
+<p class="small">The greedy batch is scored by the same <code>reward_fn</code>. When that happens, <code>extra_info.greedy_reward</code> is not set yet, so <code>asr_vote</code> returns <code>score = 0</code> for every greedy row (asr_vote.py:211-213). Therefore <b><code>reward_baselines = 0</code> and A = r</b>. The comparison with greedy already happened inside the reward, measure by measure.</p>
+<p class="ref">core_algos.py:951-1043 compute_remax_outcome_advantage · ray_trainer.py:273 compute_advantage</p>
+</div>
+<div>
+<h3>Policy + KL loss (one mini-batch, one epoch)</h3>
+<div class="formula">ratio = exp(logπθ − logπ_old)        <span class="c"># π_old = vLLM log-probs</span>
+L_pg  = max(−A·ratio, −A·clip(ratio, 0.8, 1.28))
+L_pg  = A&lt;0 ? min(L_pg, −A·3.0) : L_pg   <span class="c"># dual-clip</span>
+L_pg *= min(exp(logπ_old − logπ_vllm), 5) <span class="c"># TIS ≡ 1 here</span>
+kl    = exp(ref−logπθ) − (ref−logπθ) − 1  <span class="c"># k3, clamp ±10</span>
+loss  = agg(L_pg) + 0.001 · agg(kl)
+agg   = mean_seqs( Σ_tokens · mask )     <span class="c"># seq-mean-token-sum</span></div>
+<p class="ref">core_algos.py:1320-1395 · 1233 agg_loss · 1839 low_var_kl · verl/workers/actor/dp_actor.py:390-501</p>
+</div>
+</div>
+<div class="note small">With <code>seq-mean-token-sum</code>, the per-sequence loss is a <b>sum</b> over tokens. Because every token gets the same advantage, a 300-token response pushes about 10× harder than a 30-token one. Long earnings segments therefore dominate the gradient compared with short AISHELL utterances.</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="val">
+<div class="eyebrow">07</div>
+<h2>Validation &amp; checkpointing</h2>
+<p><code>_validate()</code> runs before training, every 20 steps, and at the last step. Each val spec gets its <b>own</b> <code>RLHFDataset</code> and dataloader (no mix, batch 256; <code>val_batch_size: -1</code> means one batch for the whole spec). Generation is greedy (<code>val_kwargs</code>, max 512 tokens). Scoring uses the <code>long_audio_grouped</code> manager: it groups rows by <code>(data_source, parent audio)</code>, sorts by <code>seg_start</code>, joins the segment hypotheses, and scores the parent once against its full reference. Rows with no parent key are scored on their own. Metrics are logged as <code>val-core/&lt;data_source&gt;/…</code> and generations are dumped to <code>validation_data_dir</code>, split per data source.</p>
+<div class="scroll"><table>
+<thead><tr><th>data_source</th><th>From</th><th>What</th><th>Scorer</th><th>Metric</th></tr></thead>
+<tbody>
+<tr><td><code>earning_chunk_verb</code></td><td>base1</td><td>Earnings22 cleaned AA, 30 s chunks, regrouped per parent</td><td>openasr_en</td><td>WER</td></tr>
+<tr><td><code>openml_bad</code></td><td>base1</td><td>FLEURS / MCV / MLS de, es, fr, it, pt: bad fmt/lang subset</td><td>openasr_ml</td><td>WER</td></tr>
+<tr><td><code>urgent2024_delta</code></td><td>base1</td><td>283 URGENT2024 utterances where noisy &gt; clean errors</td><td>openasr_en</td><td>WER</td></tr>
+<tr><td><code>earnings21_u2</code>, <code>earnings22_u2</code>, <code>coraal_u2</code>, <code>earnings22_cleaned_aa_u2</code></td><td>base1a</td><td>OpenLong: all segments of the 2 highest-error parents. <span class="tag w">refs inferred</span></td><td>openasr_en</td><td>WER</td></tr>
+<tr><td><code>zh_aishell1_top500_2611r2</code>, <code>zh_fleurs_top500_2611r2</code></td><td>base2a</td><td>Top-500 hardest by n_err on the 2611r2 test eval</td><td>openasr_expansion</td><td>CER</td></tr>
+</tbody></table></div>
+<p class="small muted">Note: Base3a removes OpenML from <b>training</b> but still validates on <code>openml_bad</code>, so it shows the effect of the removal. The <code>val_data</code> list in base1/base1a/base2a <b>replaces</b> the list inherited from base.yaml (Hydra lists are not merged), so the lex variant of earnings in base.yaml is not evaluated.</p>
+<p><b>Checkpoint:</b> every 10 steps and at the end, written to <code>~/checkpoints/v2611/remax_main_base3a_2611r2/global_step_N/actor</code> and mirrored to <code>az://orngwus2cresco/data/boren/outputs/v2611/remax_main_base3a_2611r2</code>. The 2 most recent are kept. <code>resume_mode: auto</code> resumes from the latest checkpoint.</p>
+<p class="ref">dapo_ray_trainer.py:113-121, 505-520, 576-582 · ray_trainer.py:73, 505-546, 709-883, 991 · reward/long_audio_grouped.py:46-154 · reward/asr_eval.py · reward/openasr_expansion.py</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="gotchas">
+<div class="eyebrow">08</div>
+<h2>Things worth knowing</h2>
+<div class="grid">
+<div class="card small"><b>Greedy baseline costs one extra generation</b><br>Each step generates 128 greedy and 1024 sampled responses (timer <code>gen_max</code>). The greedy pass uses <code>val_kwargs</code> with response length 512, while samples get 768. A very long greedy hypothesis can be truncated and lose word/char accuracy, which inflates Δ for the samples.</div>
+<div class="card small"><b>The baseline lives inside the reward, not in <code>reward_baselines</code></b><br><code>reward_baselines</code> is always 0. If you change the reward function so it scores the greedy rows (nonzero), the comparison with greedy would be applied <i>twice</i>.</div>
+<div class="card small"><b><code>lang</code>/<code>fmt</code> are a constant bonus</b><br>With <code>vote: abs</code>, every well-formed sample gets +0.05 (EN) or +0.10 (ZH) advantage. With no group mean subtracted, this slightly raises the likelihood of all well-formed responses.</div>
+<div class="card small"><b>TIS and entropy</b><br>π_old = π_vllm, so the TIS weight is exactly 1, and the PPO ratio measures the mismatch between the training engine and vLLM. Skipping the actor's old-log-prob pass also means <code>actor/entropy</code> is not logged.</div>
+<div class="card small"><b>Fixed data order</b><br>Mix plus SequentialSampler means runs with the same YAML see identical batches, and epoch 2 replays epoch 1's order exactly. Changing any <code>sample</code> count reshuffles everything.</div>
+<div class="card small"><b>AISHELL is ranked "hard first"</b><br><code>input_egs_limit: 10000</code> keeps the 10k highest-n_err rows of the top-20k list. The mix shuffle then spreads them through training. The prefix is cut before the shuffle.</div>
+<div class="card small"><b>Sources not named in the mix are dropped silently</b><br>If you add a <code>train_data</code> entry and forget its <code>mix</code> line, it is loaded and processed but never trained on, with no error.</div>
+<div class="card small"><b>Reward map merges, val map replaces</b><br><code>reward_function_by_data_source</code> is a normal dict, so base3a's entries are merged with base1's (<code>noisy_ls</code> keeps <code>librispeech</code>). <code>_val_reward_sources</code> is redefined at each layer on purpose; see the comment in base1_smts.</div>
+</div>
+<p class="small">Related: <a href="remax-greedy-advantage-mask-explainer.html">ReMax greedy advantage mask explainer</a>, an opt-in token mask (<code>remax_advantage_mask</code>) that is <b>not</b> enabled in Base3a.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="files">
+<div class="eyebrow">09</div>
+<h2>File map</h2>
+<div class="scroll"><table>
+<thead><tr><th>Stage</th><th>Files</th></tr></thead>
+<tbody>
+<tr><td>Launch</td><td><code>quick_run.sh</code>, <code>recipe/phimm/main_asr_remax.py</code>, <code>recipe/phimm/main_asr_dapo.py</code></td></tr>
+<tr><td>Config</td><td><code>recipe/phimm/config/v2611_dev/{base.yaml, main/base1_smts, base1a_smts, base2a_smts, remax_main_base3a_2611r2}.yaml</code>, <code>recipe/phimm/config/data/{train_data,val_data}/…</code></td></tr>
+<tr><td>Data</td><td><code>recipe/phimm/data/rl_dataset.py</code> (RLHFDataset, mix), <code>recipe/phimm/data/dataset.py</code> (builders, pre/post-process), <code>recipe/phimm/data/prompts.py</code>, <code>recipe/phimm/data/indexed_chunk.py</code>, <code>recipe/phimm/utils/audio.py</code>, <code>verl/audio_cache.py</code></td></tr>
+<tr><td>Trainer loop</td><td><code>recipe/dapo/dapo_ray_trainer.py</code> (fit), <code>verl/trainer/ppo/ray_trainer.py</code> (validate, compute_advantage, checkpoint)</td></tr>
+<tr><td>Rollout</td><td><code>verl/workers/fsdp_workers.py</code>, <code>verl/workers/rollout/vllm_rollout/vllm_rollout_spmd.py</code></td></tr>
+<tr><td>Reward (train)</td><td><code>verl/trainer/ppo/reward.py</code> (dispatcher), <code>verl/workers/reward_manager/dapo.py</code>, <code>recipe/phimm/reward/asr_vote.py</code>, <code>asr_measure.py</code>, <code>asr_edge.py</code>, <code>asr_response.py</code></td></tr>
+<tr><td>Reward (val)</td><td><code>recipe/phimm/reward/long_audio_grouped.py</code>, <code>asr_eval.py</code>, <code>openasr_expansion.py</code></td></tr>
+<tr><td>Loss</td><td><code>verl/trainer/ppo/core_algos.py</code>, <code>verl/workers/actor/dp_actor.py</code></td></tr>
+</tbody></table></div>
+</section>
+
+<p class="small muted" style="margin-top:28px">Generated 2026-11-13 from branch boren/rl_2611_dev @ 89be15eef. Line numbers refer to that commit.</p>
+</main>
+
+<script>
+const STAGES = [
+ {t:"Batch", s:"128 prompts", h:`
+  <h3>1 · Pull a batch</h3>
+  <p>The dataloader yields 128 rows from the fixed mix order. <code>DataProto.from_single_dict</code> builds the batch, and <code>bad_case_replay.prepare</code> may add replayed hard cases.</p>
+  <p>The batch is split into the training batch and a <code>gen_batch</code>, which holds <code>input_ids / attention_mask / position_ids</code>, <code>raw_prompt_ids</code>, <code>multi_modal_data</code> (the waveform), and <code>reward_model</code>. <code>gen_batch</code> is repeated ×8, <b>interleaved</b>, so the 8 copies of a prompt are adjacent.</p>
+  <p class="ref">dapo_ray_trainer.py:153-174</p>`},
+ {t:"Sample ×8", s:"vLLM, T=1.0", h:`
+  <h3>2 · Sampled rollouts</h3>
+  <p><code>actor_rollout_wg.generate_sequences(gen_batch)</code> produces 1024 transcripts at temperature 1.0, max 768 tokens, with <code>no_repeat_ngram_size=15</code> and stop on <code>&lt;|im_end|&gt;</code>. vLLM serves the current LoRA weights (layered summon) and returns <code>rollout_log_probs</code>, because <code>calculate_log_probs: True</code>.</p>
+  <p><code>gt_rollout: false</code>, so no ground-truth response is injected.</p>
+  <p class="ref">dapo_ray_trainer.py:181 · vllm_rollout_spmd.py:271-277 (ngram), 415/475 (gt path, skipped)</p>`},
+ {t:"Greedy ×1", s:"ReMax baseline", h:`
+  <h3>3 · Greedy baseline (ReMax only)</h3>
+  <p>A deepcopy of the <b>un-repeated</b> gen_batch is created with <code>meta_info.validate=True</code>, which makes vLLM use <code>val_kwargs</code>: temperature 0, max 512 tokens. That gives 128 greedy transcripts.</p>
+  <ol>
+   <li>Greedy hypotheses are decoded into <code>extra_info.greedy_hyp</code>.</li>
+   <li><code>reward_fn(greedy batch)</code> is called. Because <code>greedy_reward</code> is not set yet, <code>asr_vote</code> returns score 0 but includes the <b>raw measures</b> (char, word, …).</li>
+   <li>Those raw measures are saved per prompt as <code>greedy_rewards[i]</code>.</li>
+   <li><code>reward_baselines</code> is set to the summed greedy score, which is 0.</li>
+  </ol>
+  <p class="ref">dapo_ray_trainer.py:186-245 · asr_vote.py:209-213</p>`},
+ {t:"Reward", s:"asr_vote per sample", h:`
+  <h3>4 · Score the 1024 samples</h3>
+  <p>A <code>uid</code> is attached per prompt, then the batch is repeated ×8 and joined with the rollouts. Each sample's <code>extra_info</code> gets <code>greedy_hyp</code> and <code>greedy_reward = greedy_rewards[i // 8]</code>.</p>
+  <p><code>reward_fn(new_batch)</code> runs the dapo manager. Each sample goes to the per-data_source function (librispeech or aishell1_char), which computes measure deltas against greedy (<a href="#reward">§05</a>). The score is placed on the last token, giving <code>token_level_scores</code>, and extras such as <code>d_char</code>, <code>v_word</code>, and raw measures are logged.</p>
+  <p><code>token_level_rewards = token_level_scores</code>, because <code>use_kl_in_reward: false</code>. <code>filter_groups</code> is off, so every group is kept.</p>
+  <p class="ref">dapo_ray_trainer.py:247-350</p>`},
+ {t:"Balance", s:"mask, balance", h:`
+  <h3>5 · Prepare for training</h3>
+  <p><code>response_mask</code> is computed, optional dedup runs, then <code>_balance_batch</code> reorders sequences so every DP rank gets a similar token count. <code>global_token_num</code> is recorded for MFU and throughput metrics.</p>
+  <p class="ref">dapo_ray_trainer.py:386-406</p>`},
+ {t:"Log-probs", s:"old = rollout, ref", h:`
+  <h3>6 · Old and reference log-probs</h3>
+  <ul>
+   <li><b>Old:</b> with <code>use_rollout_log_probs_as_old</code>, <code>old_log_probs = rollout_log_probs.clone()</code>. The actor forward pass is skipped (faster), and <code>actor/entropy</code> is not logged.</li>
+   <li><b>Ref:</b> <code>compute_ref_log_prob</code>. With LoRA, the reference is the actor with the adapter disabled.</li>
+   <li><b>filter_nonfinite_log_probs:</b> drops any trajectory with NaN or Inf in old, ref, or rollout log-probs, trims the batch to a multiple of the DP size, re-balances, and logs <code>nonfinite_prob/*</code>.</li>
+  </ul>
+  <p class="ref">dapo_ray_trainer.py:409-454 · core_algos.py:1109-1140</p>`},
+ {t:"Advantage", s:"A = r − 0", h:`
+  <h3>7 · ReMax advantage</h3>
+  <p><code>compute_advantage(adv_estimator=remax)</code> calls <code>compute_remax_outcome_advantage</code>, which takes the reverse cumulative sum of the token rewards (the scalar r on every response token) minus <code>reward_baselines</code> (0). <code>adv_scale</code> is {openml:1, default:1}, so it has no effect. Normalization options (<code>norm_adv_in_remax</code>, <code>binary_adv</code>) and <code>remax_advantage_mask</code> are unset.</p>
+  <p>All 8 samples of a prompt therefore get advantages equal to their own improvement over greedy. There is no group-mean subtraction as in GRPO or RLOO.</p>
+  <p class="ref">dapo_ray_trainer.py:470-482 · ray_trainer.py:273, 347-386 · core_algos.py:951-1043</p>`},
+ {t:"Update", s:"1 optimizer step", h:`
+  <h3>8 · Actor update, metrics, val, save</h3>
+  <p><code>update_actor</code> runs once: mini-batch = full batch and <code>ppo_epochs=1</code>, so there is one optimizer step with gradient accumulation over dynamic-batch micro-batches (≤ 2048 tokens/GPU). The loss is clipped PG plus 0.001 × low-var KL, aggregated seq-mean-token-sum (<a href="#update">§06</a>).</p>
+  <p>Metrics are logged to console and wandb: reward components, timing (<code>gen</code>, <code>gen_max</code>, <code>reward</code>, <code>ref</code>, <code>adv</code>, <code>update_actor</code>), and throughput. Every 20 steps: <code>_validate()</code>. Every 10 steps: <code>_save_checkpoint()</code>.</p>
+  <p class="ref">dapo_ray_trainer.py:494-566 · dp_actor.py:390-501</p>`},
+];
+const pipe = document.getElementById('pipeline'), det = document.getElementById('detail');
+STAGES.forEach((st,i)=>{
+  const b=document.createElement('button'); b.className='stage'; b.type='button';
+  b.innerHTML=`<span class="n">STEP ${i+1}</span><span class="t">${st.t}</span><span class="s">${st.s}</span>`;
+  b.onclick=()=>show(i); pipe.appendChild(b);
+});
+function show(i){ [...pipe.children].forEach((c,j)=>c.classList.toggle('on',i===j)); det.innerHTML=STAGES[i].h; }
+show(2);
+
+// ---- reward calculator ----
+const CFG = {
+  ls: {T:2, m:[["char",1,"delta"],["word",1,"delta"],["word_del",.2,"delta"],["word_ins",.1,"delta"],["word_kw",.2,"delta"],["lang",.05,"abs"],["fmt",.05,"abs"]]},
+  zh: {T:1, m:[["char",1,"delta"],["lang",.05,"abs"],["fmt",.05,"abs"]]}
+};
+const DEF = {char:.03,word:.05,word_del:0,word_ins:.02,word_kw:.1,lang:1,fmt:1};
+const sl = document.getElementById('sliders'), out = document.getElementById('calcout'), sel = document.getElementById('src');
+const clip=(x)=>Math.max(-2,Math.min(2,x));
+function build(){
+  const c=CFG[sel.value]; sl.innerHTML='';
+  c.m.forEach(([name,beta,mode])=>{
+    const isAbs=mode==="abs";
+    const r=document.createElement('div'); r.className='row';
+    const lbl = isAbs? `${name} (abs)` : `Δ${name}`;
+    r.innerHTML=`<label for="s_${name}" class="mono">${lbl}</label>
+      <input type="range" id="s_${name}" min="${isAbs?0:-0.5}" max="${isAbs?1:0.5}" step="0.01" value="${DEF[name]}">
+      <span class="mono" id="v_${name}"></span>`;
+    sl.appendChild(r);
+    r.querySelector('input').oninput=calc;
+  });
+  calc();
+}
+function calc(){
+  const c=CFG[sel.value]; let sum=0, lines=[];
+  c.m.forEach(([name,beta,mode])=>{
+    const v=parseFloat(document.getElementById('s_'+name).value);
+    document.getElementById('v_'+name).textContent=(v>=0&&mode!=="abs"?"+":"")+v.toFixed(2);
+    const s=beta*clip(v); sum+=s;
+    lines.push(`${(beta.toFixed(2)).padStart(4)} × ${(mode==="abs"?name:"Δ"+name).padEnd(10)} = ${s>=0?"+":""}${s.toFixed(4)}`);
+  });
+  const r=sum/c.T;
+  out.innerHTML=`<div>${lines.join('<br>')}</div><div style="margin-top:8px;color:#9fc0dc">Σ = ${sum.toFixed(4)}  ÷ T=${c.T}</div>
+   <div class="big" style="margin-top:6px">r = A = ${r>=0?"+":""}${r.toFixed(4)}</div>
+   <div class="small" style="color:#9fc0dc;margin-top:6px">Δ = sample accuracy − greedy accuracy. Positive means this sample beat greedy.<br>Set every Δ to 0 to see the constant lang/fmt bonus.</div>`;
+}
+sel.onchange=build; build();
+</script>
+</body>
+</html>

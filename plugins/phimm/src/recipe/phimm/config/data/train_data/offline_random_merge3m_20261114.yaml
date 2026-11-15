@@ -1,0 +1,787 @@
+# Offline merge: each dataset packed independently; do not merge again.
+# {
+#   "json_encoded_metadata_fields": [],
+#   "input": {
+#     "count": 3125,
+#     "total_audio_seconds": 54115.187,
+#     "mean_audio_seconds": 17.316859840000003,
+#     "min_audio_seconds": 0.16,
+#     "max_audio_seconds": 32.975,
+#     "audio_percentiles": {
+#       "p10": 3.9,
+#       "p50": 17.63,
+#       "p90": 29.6182,
+#       "p95": 30.137999999999998,
+#       "p99": 32.18559999999999
+#     },
+#     "mean_word_count": 44.50016,
+#     "mean_character_count": 257.45664,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 2962,
+#       "[30,60)": 163,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 0,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 285,
+#       "[10,50)": 1471,
+#       "[50,100)": 1323,
+#       "[100,200)": 46,
+#       "[200,300)": 0,
+#       "[300,400)": 0,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "output": {
+#     "count": 301,
+#     "total_audio_seconds": 54115.187,
+#     "mean_audio_seconds": 179.78467441860468,
+#     "min_audio_seconds": 150.281,
+#     "max_audio_seconds": 179.9995,
+#     "audio_percentiles": {
+#       "p10": 179.7,
+#       "p50": 179.9255,
+#       "p90": 179.99,
+#       "p95": 179.9935,
+#       "p99": 179.999
+#     },
+#     "mean_word_count": 462.0033222591362,
+#     "mean_character_count": 2682.312292358804,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 0,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 1,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 300,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 0,
+#       "[10,50)": 0,
+#       "[50,100)": 0,
+#       "[100,200)": 0,
+#       "[200,300)": 2,
+#       "[300,400)": 47,
+#       "[400,500)": 161,
+#       "[500,750)": 91,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "cap_seconds_exclusive": 180,
+#   "buffer_size": 100,
+#   "seed": 42,
+#   "source_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+#   "manifest_sha256": "b907ca6e92a435bf63b9b0d35644d44c60cc398e0d58cfe90dccd3489c22951f",
+#   "audit": {
+#     "all_sources_used_exactly_once": true,
+#     "duration_conserved": true,
+#     "jsonl_loader_roundtrip": true
+#   }
+# }
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_1st23/data.jsonl
+  add_task_info:
+    lang_hint: true
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+
+# {
+#   "json_encoded_metadata_fields": [],
+#   "input": {
+#     "count": 6392,
+#     "total_audio_seconds": 129010.565,
+#     "mean_audio_seconds": 20.18312969336671,
+#     "min_audio_seconds": 0.1,
+#     "max_audio_seconds": 32.99,
+#     "audio_percentiles": {
+#       "p10": 4.3112,
+#       "p50": 24.11,
+#       "p90": 29.7489,
+#       "p95": 29.911,
+#       "p99": 31.440900000000003
+#     },
+#     "mean_word_count": 49.465425531914896,
+#     "mean_character_count": 281.0040675844806,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 6258,
+#       "[30,60)": 134,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 0,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 597,
+#       "[10,50)": 2194,
+#       "[50,100)": 3517,
+#       "[100,200)": 84,
+#       "[200,300)": 0,
+#       "[300,400)": 0,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "output": {
+#     "count": 718,
+#     "total_audio_seconds": 129010.565,
+#     "mean_audio_seconds": 179.68045264623956,
+#     "min_audio_seconds": 75.026,
+#     "max_audio_seconds": 179.9995,
+#     "audio_percentiles": {
+#       "p10": 179.57585,
+#       "p50": 179.9105,
+#       "p90": 179.99099999999999,
+#       "p95": 179.995,
+#       "p99": 179.9985
+#     },
+#     "mean_word_count": 440.36629526462394,
+#     "mean_character_count": 2509.5431754874653,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 0,
+#       "[30,60)": 0,
+#       "[60,90)": 1,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 11,
+#       "[179,180)": 706,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 0,
+#       "[10,50)": 0,
+#       "[50,100)": 0,
+#       "[100,200)": 0,
+#       "[200,300)": 8,
+#       "[300,400)": 160,
+#       "[400,500)": 436,
+#       "[500,750)": 114,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "cap_seconds_exclusive": 180,
+#   "buffer_size": 100,
+#   "seed": 42,
+#   "source_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+#   "manifest_sha256": "c46780d4c1fc579097a874bc77fd1383027c88a9a3083989c048ec7c43614d86",
+#   "audit": {
+#     "all_sources_used_exactly_once": true,
+#     "duration_conserved": true,
+#     "jsonl_loader_roundtrip": true
+#   }
+# }
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_2nd48/data.jsonl
+  add_task_info:
+    lang_hint: true
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+
+# {
+#   "json_encoded_metadata_fields": [
+#     "lid_evidence",
+#     "review_reason",
+#     "step3_adjustment",
+#     "step3_evidence",
+#     "step3_transcript_status",
+#     "word_timing"
+#   ],
+#   "input": {
+#     "count": 6155,
+#     "total_audio_seconds": 123160.3889375,
+#     "mean_audio_seconds": 20.00981136271324,
+#     "min_audio_seconds": 0.11,
+#     "max_audio_seconds": 32.98,
+#     "audio_percentiles": {
+#       "p10": 4.115500000000001,
+#       "p50": 23.699,
+#       "p90": 29.749,
+#       "p95": 29.903,
+#       "p99": 31.4292
+#     },
+#     "mean_word_count": 50.24435418359057,
+#     "mean_character_count": 281.88578391551584,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 6038,
+#       "[30,60)": 117,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 0,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 603,
+#       "[10,50)": 2033,
+#       "[50,100)": 3443,
+#       "[100,200)": 76,
+#       "[200,300)": 0,
+#       "[300,400)": 0,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "output": {
+#     "count": 685,
+#     "total_audio_seconds": 123160.3889375,
+#     "mean_audio_seconds": 179.796188229927,
+#     "min_audio_seconds": 136.5765,
+#     "max_audio_seconds": 179.9995,
+#     "audio_percentiles": {
+#       "p10": 179.6664,
+#       "p50": 179.911,
+#       "p90": 179.98829999999998,
+#       "p95": 179.9935,
+#       "p99": 179.99808000000002
+#     },
+#     "mean_word_count": 451.4656934306569,
+#     "mean_character_count": 2540.8423357664233,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 0,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 1,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 2,
+#       "[179,180)": 682,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 0,
+#       "[10,50)": 0,
+#       "[50,100)": 0,
+#       "[100,200)": 0,
+#       "[200,300)": 9,
+#       "[300,400)": 125,
+#       "[400,500)": 389,
+#       "[500,750)": 162,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "cap_seconds_exclusive": 180,
+#   "buffer_size": 100,
+#   "seed": 42,
+#   "source_manifest": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+#   "manifest_sha256": "988ad40a4a3830ecb5b1731a3386e0af0d92ef35d54657a4d166ca873537422d",
+#   "audit": {
+#     "all_sources_used_exactly_once": true,
+#     "duration_conserved": true,
+#     "jsonl_loader_roundtrip": true
+#   }
+# }
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_3rd38/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+
+# {
+#   "json_encoded_metadata_fields": [],
+#   "input": {
+#     "count": 10000,
+#     "total_audio_seconds": 46092.076875,
+#     "mean_audio_seconds": 4.6092076875,
+#     "min_audio_seconds": 1.344,
+#     "max_audio_seconds": 14.53125,
+#     "audio_percentiles": {
+#       "p10": 2.9359625,
+#       "p50": 4.216,
+#       "p90": 6.8918125,
+#       "p95": 7.696159374999999,
+#       "p99": 9.422935625000001
+#     },
+#     "mean_word_count": 8.7692,
+#     "mean_character_count": 21.7799,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 10000,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 0,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 6235,
+#       "[10,50)": 3765,
+#       "[50,100)": 0,
+#       "[100,200)": 0,
+#       "[200,300)": 0,
+#       "[300,400)": 0,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "output": {
+#     "count": 257,
+#     "total_audio_seconds": 46092.076875,
+#     "mean_audio_seconds": 179.34660262645917,
+#     "min_audio_seconds": 162.879,
+#     "max_audio_seconds": 179.9999375,
+#     "audio_percentiles": {
+#       "p10": 178.595075,
+#       "p50": 179.6255,
+#       "p90": 179.9957625,
+#       "p95": 179.9987375,
+#       "p99": 179.9997075
+#     },
+#     "mean_word_count": 341.2140077821012,
+#     "mean_character_count": 885.3774319066148,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 0,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 1,
+#       "[170,175)": 0,
+#       "[175,179)": 71,
+#       "[179,180)": 185,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 0,
+#       "[10,50)": 0,
+#       "[50,100)": 0,
+#       "[100,200)": 0,
+#       "[200,300)": 3,
+#       "[300,400)": 254,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "cap_seconds_exclusive": 180,
+#   "buffer_size": 100,
+#   "seed": 42,
+#   "source_manifest": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+#   "manifest_sha256": "0e23a9a1693b57b3861d2ca4a027f098538c45468f986c193d1374f19c095ad3",
+#   "audit": {
+#     "all_sources_used_exactly_once": true,
+#     "duration_conserved": true,
+#     "jsonl_loader_roundtrip": true
+#   }
+# }
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/aishell1_train_top10k/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: Chinese
+    prefix_prob: 0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: aishell1_train_top10k
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+
+# {
+#   "json_encoded_metadata_fields": [
+#     "augmentation_order",
+#     "source_generation"
+#   ],
+#   "input": {
+#     "count": 20424,
+#     "total_audio_seconds": 167060.51925,
+#     "mean_audio_seconds": 8.179618059635724,
+#     "min_audio_seconds": 1.0173125,
+#     "max_audio_seconds": 17.0493125,
+#     "audio_percentiles": {
+#       "p10": 2.9809187500000003,
+#       "p50": 8.36996875,
+#       "p90": 12.58935,
+#       "p95": 13.66393125,
+#       "p99": 15.096747500000003
+#     },
+#     "mean_word_count": 31.22331570701136,
+#     "mean_character_count": 165.02036819428125,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 20424,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 0,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 1565,
+#       "[10,50)": 17959,
+#       "[50,100)": 900,
+#       "[100,200)": 0,
+#       "[200,300)": 0,
+#       "[300,400)": 0,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "output": {
+#     "count": 930,
+#     "total_audio_seconds": 167060.51925,
+#     "mean_audio_seconds": 179.63496693548387,
+#     "min_audio_seconds": 90.672625,
+#     "max_audio_seconds": 179.99993750000002,
+#     "audio_percentiles": {
+#       "p10": 179.1525375,
+#       "p50": 179.9255625,
+#       "p90": 179.99600625000002,
+#       "p95": 179.99825,
+#       "p99": 179.9996875
+#     },
+#     "mean_word_count": 685.7043010752689,
+#     "mean_character_count": 3645.021505376344,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 0,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 1,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 38,
+#       "[179,180)": 891,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 0,
+#       "[10,50)": 0,
+#       "[50,100)": 0,
+#       "[100,200)": 0,
+#       "[200,300)": 0,
+#       "[300,400)": 2,
+#       "[400,500)": 1,
+#       "[500,750)": 782,
+#       "[750,1000)": 145,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "cap_seconds_exclusive": 180,
+#   "buffer_size": 100,
+#   "seed": 42,
+#   "source_manifest": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+#   "manifest_sha256": "20d6ead38814582100484bb7b20aae23546627d5ebd785dabe08d7ffb43c57b9",
+#   "audit": {
+#     "all_sources_used_exactly_once": true,
+#     "duration_conserved": true,
+#     "jsonl_loader_roundtrip": true
+#   }
+# }
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/noisy_ls/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+    add_field:
+      fields:
+        data_source: noisy_ls
+
+# {
+#   "json_encoded_metadata_fields": [],
+#   "input": {
+#     "count": 4695,
+#     "total_audio_seconds": 55097.8,
+#     "mean_audio_seconds": 11.73542066027689,
+#     "min_audio_seconds": 1.0,
+#     "max_audio_seconds": 29.99,
+#     "audio_percentiles": {
+#       "p10": 3.0440000000000005,
+#       "p50": 9.96,
+#       "p90": 23.74,
+#       "p95": 26.813000000000002,
+#       "p99": 29.311200000000007
+#     },
+#     "mean_word_count": 26.666453674121406,
+#     "mean_character_count": 159.5188498402556,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 4695,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 0,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 925,
+#       "[10,50)": 3115,
+#       "[50,100)": 655,
+#       "[100,200)": 0,
+#       "[200,300)": 0,
+#       "[300,400)": 0,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "output": {
+#     "count": 307,
+#     "total_audio_seconds": 55097.8,
+#     "mean_audio_seconds": 179.471661237785,
+#     "min_audio_seconds": 78.95,
+#     "max_audio_seconds": 179.998,
+#     "audio_percentiles": {
+#       "p10": 179.32,
+#       "p50": 179.93,
+#       "p90": 179.99,
+#       "p95": 179.99,
+#       "p99": 179.99
+#     },
+#     "mean_word_count": 407.814332247557,
+#     "mean_character_count": 2453.840390879479,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 0,
+#       "[30,60)": 0,
+#       "[60,90)": 1,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 2,
+#       "[179,180)": 304,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 0,
+#       "[10,50)": 0,
+#       "[50,100)": 2,
+#       "[100,200)": 0,
+#       "[200,300)": 5,
+#       "[300,400)": 123,
+#       "[400,500)": 164,
+#       "[500,750)": 13,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "cap_seconds_exclusive": 180,
+#   "buffer_size": 100,
+#   "seed": 42,
+#   "source_manifest": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+#   "manifest_sha256": "e04159e28ecf256bda355f6afeb858d112975c5566c56022c0201973e11eb46d",
+#   "audit": {
+#     "all_sources_used_exactly_once": true,
+#     "duration_conserved": true,
+#     "jsonl_loader_roundtrip": true
+#   }
+# }
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch1/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+    add_field:
+      fields:
+        data_source: earn_fy27
+
+# {
+#   "json_encoded_metadata_fields": [],
+#   "input": {
+#     "count": 4873,
+#     "total_audio_seconds": 62801.6,
+#     "mean_audio_seconds": 12.887666735070798,
+#     "min_audio_seconds": 1.12,
+#     "max_audio_seconds": 29.99,
+#     "audio_percentiles": {
+#       "p10": 4.55,
+#       "p50": 11.42,
+#       "p90": 24.088,
+#       "p95": 26.903999999999996,
+#       "p99": 29.382799999999996
+#     },
+#     "mean_word_count": 31.70285245228812,
+#     "mean_character_count": 182.20192899651138,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 4873,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 0,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 0,
+#       "[179,180)": 0,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 400,
+#       "[10,50)": 3538,
+#       "[50,100)": 928,
+#       "[100,200)": 7,
+#       "[200,300)": 0,
+#       "[300,400)": 0,
+#       "[400,500)": 0,
+#       "[500,750)": 0,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "output": {
+#     "count": 350,
+#     "total_audio_seconds": 62801.6,
+#     "mean_audio_seconds": 179.43314285714285,
+#     "min_audio_seconds": 102.09,
+#     "max_audio_seconds": 179.99,
+#     "audio_percentiles": {
+#       "p10": 178.778,
+#       "p50": 179.905,
+#       "p90": 179.99,
+#       "p95": 179.99,
+#       "p99": 179.99
+#     },
+#     "mean_word_count": 441.39428571428573,
+#     "mean_character_count": 2549.694285714286,
+#     "word_count_definition": "whitespace-separated tokens (not Chinese word segmentation)",
+#     "audio_length_distribution": {
+#       "[0,30)": 0,
+#       "[30,60)": 0,
+#       "[60,90)": 0,
+#       "[90,120)": 1,
+#       "[120,150)": 0,
+#       "[150,170)": 0,
+#       "[170,175)": 0,
+#       "[175,179)": 47,
+#       "[179,180)": 302,
+#       "[180,inf)": 0
+#     },
+#     "word_count_distribution": {
+#       "[0,10)": 0,
+#       "[10,50)": 0,
+#       "[50,100)": 0,
+#       "[100,200)": 0,
+#       "[200,300)": 3,
+#       "[300,400)": 106,
+#       "[400,500)": 152,
+#       "[500,750)": 89,
+#       "[750,1000)": 0,
+#       "[1000,inf)": 0
+#     }
+#   },
+#   "cap_seconds_exclusive": 180,
+#   "buffer_size": 100,
+#   "seed": 42,
+#   "source_manifest": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+#   "manifest_sha256": "4d1ae8cf789b509d4b910da2d08df574c824428b87d7e3193618b679de3774d9",
+#   "audit": {
+#     "all_sources_used_exactly_once": true,
+#     "duration_conserved": true,
+#     "jsonl_loader_roundtrip": true
+#   }
+# }
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch2/data.jsonl
+  add_task_info:
+    task: lang_asr_verb
+    language: English
+    prefix_prob: 0
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source

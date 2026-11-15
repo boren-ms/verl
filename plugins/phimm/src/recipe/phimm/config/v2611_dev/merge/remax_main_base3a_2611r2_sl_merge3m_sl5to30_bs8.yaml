@@ -1,0 +1,17 @@
+# @package _global_
+# Independent fresh batch8 experiment with the same Merge3M data and SL5-30s.
+# Two epochs, drop_last=true: floor(3548 / 8) * 2 = 886 updates.
+defaults:
+  - remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs16
+  - _self_
+
+data:
+  train_batch_size: 8
+  gen_batch_size: 8
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 8
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs8

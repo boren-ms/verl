@@ -203,6 +203,39 @@ Without the opt-in config, a listed segment exceeding `max_audio_dur` fails
 instead of silently cropping audio against a full reference. Validation is
 not augmented by the global training option.
 
+Prepare merged parents offline before training. Dataset preprocessing supports
+loading prepared manifests and random segmentation. Use the preparation command:
+
+```bash
+python -m recipe.phimm.data.offline_random_merge \
+  --sources sources.json --output-dir /path/to/output \
+  --blob-root az://orngwus2cresco/data/boren/data/verl/my_offline_dataset \
+  --cap 180 --buffer-size 100 --seed 42 --workers 32
+```
+
+`sources.json` is a list of `{name, config}` objects; each `config` is an
+ordinary raw JSONL training-data block. Every entry is packed independently.
+Input limits, path mapping, field renaming and tagged-text cleaning retain
+the original recipe's behavior. Duration uses `audio_length`,
+`audio_duration_seconds` or `duration` when present; otherwise the command
+reads audio headers, with a resumable duration cache. No merged audio is
+written. All parents are strictly below the cap; leftovers are retained and
+oversized individual sources fail preparation.
+
+Each output directory contains `data.jsonl`, `statistics.json` and a
+`train_data.yaml` with statistics in comments. The command also creates a
+combined data YAML for the regular dataset loader.
+Text and transcript variants use the audio order, keywords are unioned, and
+components flattened. Other metadata is an ordered list rather than the
+first constituent's value. Nullable or structured ancillary values are
+JSON-encoded inside those lists; their field names are recorded in the
+statistics. `source_metadata_json` additionally retains each original record,
+including producer references and original timestamps. `source_audio_lengths`
+and `random_merge_source_indices` align with the semicolon-separated paths.
+The command audits exact row coverage, total duration and full JSONL loader
+roundtrip. For training, use one epoch per merged source rather than retaining
+the original short-row sample budgets.
+
 Each segment is transcribed independently with its task prompt and its own
 audio: `prompt + segment1 -> response1`, `prompt + segment2 -> response2`.
 No previous response or segment is included in the next request. The reward

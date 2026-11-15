@@ -1,0 +1,19 @@
+# @package _global_
+# Earnings-only long-form batch-size ablation. Same SL [1,10], data and two epochs.
+# 739 parents; drop_last: floor(739/4)=184 batches/epoch; final target=368 updates.
+# train/gen/ppo-mini sizes all resolve to4. n8 gives32 nominal sampled sessions,
+# divisible across the unchanged2x8GPU topology; actual audio segments vary per parent.
+# All4OpenLong U2 validations retained, including CORAAL; earning_chunk_verb excluded.
+defaults:
+  - remax_main_base3a_2611r2_sl_earnings_long_sl1to10
+  - _self_
+
+data:
+  train_batch_size: 4
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_earnings_long_bs4_sl1to10_20261115
+  total_training_steps: 368
+
+asr:
+  expected_training_steps: 368

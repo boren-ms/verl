@@ -137,6 +137,24 @@ def test_agent_loop_output_as_dict_handles_default_extra_fields():
     assert fields["extra_fields"] == {}
 
 
+@pytest.mark.parametrize("response_ids", [[], [11], [11, 12]])
+def test_agent_loop_output_as_dict_preserves_scored_empty_validation(response_ids):
+    output = AgentLoopOutput(
+        prompt_ids=[101, 102],
+        response_ids=response_ids,
+        response_mask=[1] * len(response_ids),
+        reward_score=0.25,
+        metrics=AgentLoopMetrics(),
+        extra_fields={"reward_extra_info": {"n_err": 3, "n_ref": 3}},
+    )
+
+    fields = output.as_dict()
+
+    assert fields["responses"].tolist() == response_ids
+    assert fields["rm_scores"].tolist() == ([0.0] * (len(response_ids) - 1) + [0.25] if response_ids else [])
+    assert fields["extra_fields"]["reward_extra_info"] == {"n_err": 3, "n_ref": 3}
+
+
 def test_agent_loop_output_as_dict_preserves_mutated_default_extra_fields():
     output = _make_agent_loop_output()
     output.extra_fields["raw_prompt"] = [{"role": "user", "content": "hello"}]

@@ -1,0 +1,27 @@
+# @package _global_
+# Offline random packing (<180s) per source, followed by unchanged SL 5-30s.
+# No online random merge and no resampling to the old short-utterance budgets.
+defaults:
+  - ../main/remax_main_base3a_2611r2_sl
+  - /data/train_data/offline_random_merge3m_20261114@_offline_merge3m_train
+  - _self_
+
+data:
+  train_data: ${_offline_merge3m_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: noisy_ls, epoch: 1, shuffle: true}
+        - {name: earn_fy27, epoch: 1, shuffle: true}
+        - {name: quartr_1st23, epoch: 1, shuffle: true}
+        - {name: quartr_2nd48, epoch: 1, shuffle: true}
+        - {name: quartr_3rd38, epoch: 1, shuffle: true}
+        - {name: aishell1_train_top10k, epoch: 1, shuffle: true}
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sl_offline_merge3m
+
+asr:
+  # Measure and pin these with preflight before a future training submission.
+  expected_training_rows: null
+  expected_training_steps: null

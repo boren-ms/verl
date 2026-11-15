@@ -141,7 +141,10 @@ class AgentLoopOutput(BaseModel):
         reward_score = output.pop("reward_score", None)
         if reward_score is not None:
             rm_scores = torch.zeros_like(output["response_mask"], dtype=torch.float32)
-            rm_scores[-1] = reward_score
+            # Normalized validation text may be empty; retain its metadata even
+            # when there is no response token on which to place a reward.
+            if rm_scores.numel():
+                rm_scores[-1] = reward_score
             output["rm_scores"] = rm_scores
 
         # Mutating a default dict does not add the field to Pydantic's fields-set,
