@@ -34,19 +34,14 @@ new node, these are defaults unless the user specifies otherwise:
 | cluster / namespace | `prod-westus2-cw-6` / `boren` |
 | pods / GPUs per pod | `1` / `8` |
 | priority / team | `team-critical` / `team-moonfire-speech` |
-| image / launch config | Published verl/ReMax image from `docker/remax/README.md` / `docker/remax/image.rcall.py` |
+| image / launch config | Immutable digest and launch configuration from the selected pool or its verified build receipt |
 
-For new verl devboxes, read `docker/remax/README.md` and the corresponding
-`docker/remax/VERIFICATION.md` entry in the current checkout. Use the published,
-verified immutable image reference (`repository@sha256:...`), unless the user
-specifies another image. Do not select an arbitrary latest tag or rebuild the
-image as part of ordinary devbox creation. The currently documented reference is:
-
-```text
-iridiumsdc.azurecr.io/boren/verl-remax@sha256:d3624316721afeb2cf072b803cecac5a01e45f691b84e58e2cb43fc70d565b4e
-```
-
-Recheck those files when using this skill; the reference above may be superseded.
+The former `docker/remax` build helpers and root quick installer were removed.
+For new devboxes, locate the current image build and launch configuration in
+its owning checkout (for Orange builds, the dedicated bootstrapping branch).
+Verify its source revision, immutable image digest and setup hooks before use.
+Existing pools retain their configured image. Do not select an arbitrary latest
+tag or rebuild an image as part of ordinary development.
 
 Inspect all matching states, including suspended pools:
 
@@ -73,26 +68,12 @@ brix resume -c prod-westus2-cw-6 -n boren <POOL>
 brix pools -a -c prod-westus2-cw-6 -n boren <POOL>
 ```
 
-For a missing pool that the user asked to create:
-
-```bash
-# Run from the current verl checkout/worktree; use its documented image digest.
-VERL_DOCKER_IMAGE=iridiumsdc.azurecr.io/boren/verl-remax@sha256:d3624316721afeb2cf072b803cecac5a01e45f691b84e58e2cb43fc70d565b4e \
-twdev create-ray-devbox \
-  cluster=prod-westus2-cw-6 num_pods=1 num_gpu=8 \
-  job_name=<POOL> priority_class=team-critical team=team-moonfire-speech \
-  skip_rcall_user_config=true \
-  extra_rcall_configs="$(pwd)/docker/remax/image.rcall.py"
-```
-
-Keep both launch options: `image.rcall.py` loads the normal user network,
-storage, and infrastructure settings first, then selects `VERL_DOCKER_IMAGE`.
-Without `skip_rcall_user_config=true`, the later user config can overwrite the
-custom image. The hook also recreates TorchFlow's setup marker and registers
-its mounted source with `--no-deps`, preserving the baked dependencies and Ray
-plugin. Do not change the shared user config or infrastructure image. This
-launch config accepts the dedicated `iridiumsdc.azurecr.io/boren/verl-remax`
-repository; do not pass an unrelated user-specified image through it.
+For a missing pool that the user asked to create, inspect the installed
+`twdev create-ray-devbox` interface and the selected image's launch configuration.
+Use its supported image/launch options; do not invoke the deleted repository
+hook or copy a historical digest. Preserve normal network, storage and
+infrastructure settings. Confirm setup hooks reuse baked dependencies and
+register any required TorchFlow Ray plugin without replacing live Ray.
 
 Poll at a reasonable interval until Ready or a scheduling/error condition
 requires user action. Report the exact pool, cluster, status, and GPU topology.
@@ -128,39 +109,29 @@ while a new pool is still starting. Once connected, verify the remote
 `git rev-parse HEAD` matches the snapshot commit reported by `bpush` (dirty
 local changes produce a snapshot SHA distinct from local HEAD).
 
-Use the repository's required installer and install only requested or necessary
-dependencies. For the custom verl image, run `bash quick_install.sh` from
-`/root/code/verl` after syncing; it checks and reuses the baked environment,
-binds editable packages to the pushed checkout, and runs GPU kernel checks.
-Inspect the current installer's marker/version requirements against the image
-before invoking it: a mismatch triggers automatic reinstallation without a
-confirmation prompt. Diagnose mismatches first rather than treating a full
-reinstall as normal image reuse. Do not replace Ray in a running cluster.
-Verify the observable result—for example, an import, version,
-targeted test, or generated artifact—and surface errors immediately.
+Use an existing compatible GPU environment. On every participating GPU node,
+register the synced source without replacing runtime dependencies:
+
+```bash
+uv pip install --system --no-deps --no-build-isolation -e . -e plugins/phimm -e plugins/qwen35_audio
+```
+
+Run from `/root/code/verl` in a login shell. Check the actual environment's
+versions/imports first and diagnose missing dependencies separately. The ASR
+submitter sets source paths for its driver and workers, but editable registration
+is still needed for Hydra plugin discovery. Do not replace Ray in a running
+cluster. Verify an import, targeted test or generated artifact as appropriate.
 
 ## Validate the image when requested
 
-For a fresh-image validation, save pod UID, node, `main` imageID, readiness,
-and restartCount before and after the checks. After syncing code, run the
-verifier against the baked source **before** `quick_install.sh`, so setup does
-not mask a broken image:
-
-```bash
-brix ssh -c prod-westus2-cw-6 -n boren <POOL> -- \
-  'bash -l -c "cd /opt/verl-source && VERL_VERIFY_REPORT=/tmp/verl-image-verification.json timeout 600 python /root/code/verl/docker/remax/verify.py"'
-brix ssh -c prod-westus2-cw-6 -n boren <POOL> -- \
-  'bash -l -c "cd /root/code/verl && timeout 300 python -m torch.distributed.run --standalone --nproc-per-node=8 docker/remax/verify_nccl.py"'
-```
-
-Use the actual allocated GPU count for `--nproc-per-node`. Then run normal
-`bash quick_install.sh` from the synced checkout and rerun `verify.py` there
-with a separate report path. Inspect the installer log to confirm that main
-dependencies were reused, and preserve verifier reports and relevant logs
-locally through `bbb` before cleanup. GPU kernels, managed Ray worker, and
-NCCL checks establish environment usability; they do not establish training
-convergence or model quality. If a check fails, diagnose its first concrete
-error and record any temporary package changes separately from image results.
+Save pod UID, node, main-container imageID, readiness and restart count before
+and after validation. Run the current build owner's GPU verifier against baked
+source before installing editable code, then repeat against the synced checkout.
+Use the verifier and NCCL probe from that verified build checkout; the former
+repository probes were removed. Test all allocated GPUs and cross-node
+communication for a multi-node request. Save version, import, GPU kernel,
+Ray-worker and NCCL results through `bbb` before cleanup. Source setup must not
+mask a broken baked image, and environment checks do not prove model quality.
 
 ## Network and file transfer
 

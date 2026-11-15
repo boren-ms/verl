@@ -280,6 +280,14 @@ python plugins/phimm/submit.py --submission-id <unique-id> \
   trainer.experiment_name=<unique-name>
 ```
 
+The submission ID is also the default experiment name; an explicit
+`trainer.experiment_name=` override takes precedence. Select a grouped preset
+with, for example, `--config-path config/v2611_dev/long --config-name
+remax_main_base3a_2611r2_sl_long5`. Config paths are relative to the recipe
+module. Sync and install editable packages on every GPU node before submitting
+(see installation above); the submitter sets source paths for driver and
+workers but does not install dependencies or verify cluster capacity.
+
 Initial validation can be checked separately with `trainer.val_only=true`
 and a separate experiment name. It does not replace the training run.
 After the final checkpoint is exported and verified, full evaluation uses:

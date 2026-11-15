@@ -119,21 +119,33 @@ Typical checks, adapted to the actual live environment:
 ```bash
 brix pools -a
 brix ssh -c prod-westus2-cw-6 -n boren <pool> -- \
-  'bash -l -c "python /root/code/verl/ray_job.py list; ray status"'
+  'bash -l -c "ray job list; ray status"'
 brix ssh -c prod-westus2-cw-6 -n boren <pod> -- \
   'nvidia-smi --query-gpu=index,utilization.gpu,memory.used,memory.total --format=csv,noheader,nounits'
 ```
 
 ## Submit and verify
 
-Sync the exact local revision to the selected pool. Prefer `quick_run.sh` for
-Hydra overrides because it prepares the Ray environment and forwards them:
+Sync the exact local revision to every participating GPU node with `bpush`,
+then register the source without replacing dependencies as described in
+`remote-development`. Use the Main ASR submitter from that checkout:
 
 ```bash
 bpush <pool>
 brix ssh -c prod-westus2-cw-6 -n boren <pool> -- \
-  'bash -l /root/code/verl/quick_run.sh <config.yaml> <hydra-overrides...>'
+  'bash -lc "cd /root/code/verl && python plugins/phimm/submit.py --submission-id <unique-id> <hydra-overrides...>"'
 ```
+
+The default is original Base3a without random segmentation. Select another
+preset with `--config-name`, adding `--config-path config/v2611_dev/<group>`
+for grouped presets. Paths are relative to the selected recipe module.
+Use `--evaluate` for full evaluation. The submission ID supplies the default
+experiment name; an explicit `trainer.experiment_name=` override wins.
+The submitter sets synced source paths for the driver and workers. It does not
+install packages or check capacity: compose the exact Hydra config and verify
+its topology against live Ray GPU nodes before submitting. Retain the resolved
+config and submission receipt with the task's state. Do not use the removed
+quick installer or legacy quick-run entrypoint for Main ASR.
 
 Capture the submission ID; verify its live entrypoint, config, experiment,
 resources, logs and GPU activity. Submission output alone is insufficient.
