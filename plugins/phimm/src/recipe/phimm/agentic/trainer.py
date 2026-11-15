@@ -85,6 +85,18 @@ class ASRTrainerMixin:
             raise ValueError("This ReMax ASR adapter does not use a critic")
         state = torch.load(copy_to_local(f"{checkpoint}/data.pt"), weights_only=False)
         self.train_dataloader.load_state_dict(state)
+        print(
+            "ASR_RESUME_STATE="
+            + json.dumps(
+                {
+                    "step": self.global_steps,
+                    "checkpoint": checkpoint,
+                    "dataloader_state_restored": True,
+                    "snapshot_step": state.get("_snapshot", {}).get("_snapshot_step"),
+                }
+            ),
+            flush=True,
+        )
         if self.trainer_mode != "sync" and _tq_supports_checkpoint():
             queue_path = f"{checkpoint}/transfer_queue"
             if bf.exists(queue_path):
