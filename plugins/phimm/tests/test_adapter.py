@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
+
 from recipe.phimm.agentic.scoring import aggregate_error_rates, score_response
 
 
@@ -180,9 +181,10 @@ def test_joint_segment_reward_uses_full_reference_and_joint_greedy_measures(conf
 
 def test_vllm_no_repeat_uses_configured_window(config):
     import torch
-    from recipe.phimm.agentic.sampling import sampling_params_for_row
     from vllm import SamplingParams
     from vllm.model_executor.models.deepseek_ocr import NGramPerReqLogitsProcessor
+
+    from recipe.phimm.agentic.sampling import sampling_params_for_row
 
     for validate in (False, True):
         params = sampling_params_for_row(
@@ -228,12 +230,10 @@ def test_reward_component_namespaces_and_optional_values():
     assert not any("detail" in key or "reward-core/d_" in key or "reward-core/v_" in key for key in metrics)
 
 
-@pytest.mark.parametrize("trainer_name", ["ASRTrainerSync", "ASRTrainerColocateAsync"])
-def test_training_reward_metrics_from_transfer_queue(monkeypatch, trainer_name):
+def test_training_reward_metrics_from_transfer_queue(monkeypatch):
     from types import SimpleNamespace
 
     from recipe.phimm.agentic import trainer
-
     from verl.utils import tensordict_utils as tu
 
     # Use the real TensorDict non-tensor representation returned by TransferQueue.
@@ -258,100 +258,13 @@ def test_training_reward_metrics_from_transfer_queue(monkeypatch, trainer_name):
         metrics["base_metric"] = 1.0
 
     monkeypatch.setattr(trainer.tq, "kv_batch_get", get_fields)
-    base = trainer.PPOTrainerSync if trainer_name == "ASRTrainerSync" else trainer.PPOTrainerColocateAsync
-    monkeypatch.setattr(base, "_compute_metrics", base_metrics)
+    monkeypatch.setattr(trainer.PPOTrainerSync, "_compute_metrics", base_metrics)
     metrics = {}
-    cls = getattr(trainer, trainer_name)
-    cls.__new__(cls)._compute_metrics(batch, metrics, {}, 1, 0)
+    trainer.ASRTrainerSync.__new__(trainer.ASRTrainerSync)._compute_metrics(batch, metrics, {}, 1, 0)
     assert metrics["base_metric"] == 1.0
     assert metrics["reward-core/wer/mean"] == pytest.approx(0.2)
     assert metrics["reward-delta/wer/mean"] == pytest.approx(-0.1)
     assert metrics["reward-vote/wer/mean"] == 0.5
-
-
-def test_asr_async_uses_async_lifecycle():
-    from recipe.phimm.agentic import trainer
-
-    cls = trainer.ASRTrainerColocateAsync
-    assert not issubclass(cls, trainer.PPOTrainerSync)
-    for hook in ("on_train_begin", "on_sample_end", "on_step_end", "get_llm_client"):
-        assert getattr(cls, hook) is getattr(trainer.PPOTrainerColocateAsync, hook)
-
-
-def test_async_checkpoint_publishes_queue_before_tracker(monkeypatch, tmp_path):
-    from types import SimpleNamespace
-
-    from recipe.phimm.agentic import trainer
-
-    published = []
-    config = OmegaConf.create({"trainer": {"default_hdfs_dir": "az://test/run"}})
-    callback = trainer.ASRCheckpointCallback(config)
-    monkeypatch.setattr(trainer, "_tq_supports_checkpoint", lambda: True)
-    monkeypatch.setattr(trainer, "upload_path", lambda local, remote: published.append((local, remote)))
-    callback.on_save(SimpleNamespace(trainer_mode="colocate_async"), 10, tmp_path)
-    assert [remote for _, remote in published] == [
-        "az://test/run/global_step_10/data.pt",
-        "az://test/run/global_step_10/transfer_queue",
-        "az://test/run/latest_checkpointed_iteration.txt",
-    ]
-
-    def fail_upload(local, remote):
-        if remote.endswith("/transfer_queue"):
-            raise RuntimeError("queue upload failed")
-        published.append((local, remote))
-
-    published.clear()
-    monkeypatch.setattr(trainer, "upload_path", fail_upload)
-    with pytest.raises(RuntimeError, match="queue upload failed"):
-        callback.on_save(SimpleNamespace(trainer_mode="colocate_async"), 10, tmp_path)
-    assert all(not remote.endswith("latest_checkpointed_iteration.txt") for _, remote in published)
-
-
-@pytest.mark.parametrize("trainer_name", ["ASRTrainerSync", "ASRTrainerColocateAsync"])
-@pytest.mark.parametrize("queue_exists", [False, True])
-def test_remote_resume_restores_async_queue(monkeypatch, tmp_path, trainer_name, queue_exists):
-    from unittest.mock import Mock
-
-    import torch
-    from recipe.phimm.agentic import trainer
-
-    cls = getattr(trainer, trainer_name)
-    instance = cls.__new__(cls)
-    instance.trainer_mode = "sync" if trainer_name == "ASRTrainerSync" else "colocate_async"
-    instance.config = OmegaConf.create(
-        {"trainer": {"default_hdfs_dir": "az://test/run", "default_local_dir": str(tmp_path), "resume_mode": "auto"}}
-    )
-    instance.actor_rollout_wg = Mock()
-    instance.train_dataloader = Mock()
-    instance.use_critic = False
-    state_path = tmp_path / "data.pt"
-    torch.save({"cursor": 128}, state_path)
-    marker = tmp_path / "latest_checkpointed_iteration.txt"
-    marker.write_text("10")
-    monkeypatch.setattr(trainer.bf, "BlobFile", lambda *a, **k: marker.open())
-    monkeypatch.setattr(trainer.bf, "exists", lambda path: queue_exists if path.endswith("/transfer_queue") else True)
-    monkeypatch.setattr(trainer, "_tq_supports_checkpoint", lambda: True)
-    queue_path = "az://test/run/global_step_10/transfer_queue"
-
-    def copy_checkpoint(path, **kwargs):
-        if path == queue_path:
-            assert kwargs == {"cache_dir": str(tmp_path / "remote_queue_cache")}
-            return str(tmp_path)
-        return str(state_path)
-
-    monkeypatch.setattr(trainer, "copy_to_local", copy_checkpoint)
-    load_queue = Mock()
-    monkeypatch.setattr(trainer.tq, "load_checkpoint", load_queue, raising=False)
-    instance._load_checkpoint()
-    assert instance.global_steps == 10
-    instance.actor_rollout_wg.load_checkpoint.assert_called_once_with(
-        local_path="az://test/run/global_step_10/actor", del_local_after_load=False
-    )
-    instance.train_dataloader.load_state_dict.assert_called_once_with({"cursor": 128})
-    if instance.trainer_mode != "sync" and queue_exists:
-        load_queue.assert_called_once_with(str(tmp_path))
-    else:
-        load_queue.assert_not_called()
 
 
 def test_source_on_policy_tis_loss_and_gradient(config):

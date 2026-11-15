@@ -6,6 +6,7 @@ from pathlib import Path
 
 import hydra
 from omegaconf import OmegaConf, open_dict
+
 from recipe.phimm.utils.env import EnvMgr
 
 OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {"__builtins__": {}}, {}), replace=True)
@@ -20,17 +21,6 @@ def main(config):
     import torch
 
     from verl.trainer.main_ppo import TaskRunnerV1, run_ppo
-
-    runner_options = {}
-    if config.asr.get("colocate_queue_on_driver", False):
-        import ray
-
-        # Node-local checkpoint files remain readable by all queue storage actors.
-        # GPU training and rollout still use the full configured two-node pool.
-        node_resource = f"node:{ray.util.get_node_ip_address()}"
-        with open_dict(config.transfer_queue.backend.SimpleStorage):
-            config.transfer_queue.backend.SimpleStorage.required_node_resource = node_resource
-        runner_options["resources"] = {node_resource: 0.001}
 
     runtime_env = config.ray_kwargs.ray_init.runtime_env
     with open_dict(runtime_env):
@@ -54,10 +44,7 @@ def main(config):
     # Custom OmegaConf resolvers are process-local and are not sent to Ray workers.
     OmegaConf.resolve(config)
     OmegaConf.save(config, destination / "effective_config.yaml", resolve=True)
-    if runner_options:
-        run_ppo(config, task_runner_class=TaskRunnerV1, task_runner_options=runner_options)
-    else:
-        run_ppo(config, task_runner_class=TaskRunnerV1)
+    run_ppo(config, task_runner_class=TaskRunnerV1)
 
 
 if __name__ == "__main__":
