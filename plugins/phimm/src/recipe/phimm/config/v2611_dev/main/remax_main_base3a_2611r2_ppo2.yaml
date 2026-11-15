@@ -1,0 +1,12 @@
+# @package _global_
+# Reuse each Base3a rollout batch for two actor PPO epochs.
+defaults:
+  - remax_main_base3a_2611r2
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    ppo_epochs: 2
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_ppo2

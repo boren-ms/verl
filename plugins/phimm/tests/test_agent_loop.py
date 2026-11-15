@@ -17,7 +17,6 @@ from omegaconf import OmegaConf
 @pytest.fixture
 def agent_loop(monkeypatch):
     import ray
-
     import recipe.phimm
 
     class Output(SimpleNamespace):
@@ -107,6 +106,34 @@ def test_generation_reuses_features_for_actor(agent_loop, validate):
     processor.assert_called_once_with(text=["task<audio>"], audios=[audio], return_tensors="pt")
     tokenizer.decode.assert_not_called()
     assert "audios" not in output.multi_modal_data
+
+
+@pytest.mark.parametrize("reference", ["", "are you running a business"])
+def test_validation_keeps_empty_hypotheses_and_their_scores(agent_loop, reference):
+    loop = agent_loop["ASRAgentLoop"]()
+    loop.config = SimpleNamespace(data=SimpleNamespace(version=2609))
+    output = SimpleNamespace(
+        response_ids=[9],
+        extra_fields={},
+        metrics=SimpleNamespace(generate_sequences=1.0),
+    )
+    texts = ["<src=English><tgt=English>\n<verbatim></verbatim>"]
+    loop.generate_segments = AsyncMock(return_value=([output], texts))
+    loop.tokenizer = SimpleNamespace(eos_token_id=9, encode=Mock(return_value=[]))
+    score = {"score": -1.0, "n_err": 5 if reference else 0, "n_ref": 5 if reference else 1}
+    scorer = Mock(return_value=score)
+    loop.run.__globals__["score_response"] = scorer
+    rows = [{"data_source": "test", "reward_model": {"ground_truth": reference}, "extra_info": {}}]
+
+    result = asyncio.run(loop.run({}, asr_validate=True, asr_segments=rows))
+
+    loop.tokenizer.encode.assert_called_once_with("", add_special_tokens=False)
+    assert scorer.call_args.args[2] is texts
+    assert result.response_ids == [9]
+    assert result.response_mask == [1]
+    assert result.reward_score == score["score"]
+    assert result.extra_fields["reward_extra_info"]["n_err"] == score["n_err"]
+    assert result.extra_fields["reward_extra_info"]["n_ref"] == score["n_ref"]
 
 
 def test_actor_inputs_without_multimodal_data(agent_loop):

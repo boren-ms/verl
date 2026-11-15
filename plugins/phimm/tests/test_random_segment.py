@@ -36,6 +36,21 @@ def test_parallel_preparation_preserves_every_partition_and_reference(tmp_path, 
     assert parallel.to_list() == sequential.to_list()
 
 
+@pytest.mark.parametrize("field", ["audio_chunk", "audio_file"])
+@pytest.mark.parametrize("mode", [{"segment_count": [2, 2]}, {"segment_len": [0.2, 0.3]}])
+def test_random_segments_accept_loader_audio_source_fields(tmp_path, field, mode):
+    path = tmp_path / "audio.wav"
+    waveform = np.linspace(-0.9, 0.9, 16000, dtype=np.float32)
+    sf.write(path, waveform, 16000, subtype="FLOAT")
+    ds = datasets.Dataset.from_list([{"audio_path": None, field: str(path), "text": "complete reference"}])
+    result = random_segment(ds, **mode)
+    row = result[0]
+    assert len(result) == 1 and row["text"] == "complete reference"
+    assert row[field] == str(path)
+    parts = [load_audio({"audio_path": source}, min_dur=0)[0] for source in row["audio_path"]]
+    np.testing.assert_array_equal(np.concatenate(parts), waveform)
+
+
 def test_random_segment_counts_and_boundaries_are_reproducible_complete_partitions():
     ds = datasets.Dataset.from_list([{"audio_path": f"{i}.wav"} for i in range(40)])
     first = random_segment(ds, segment_count=[1, 4], seed=7)
