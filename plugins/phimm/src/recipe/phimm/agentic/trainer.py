@@ -1,4 +1,4 @@
-"""ASR corpus metrics and durable artifacts on the synchronous V1 trainer."""
+"""ASR corpus metrics and durable artifacts on the V1 trainers."""
 
 import json
 from collections import defaultdict
@@ -11,6 +11,8 @@ import transfer_queue as tq
 from recipe.phimm.agentic.scoring import _compute_reward_metrics, aggregate_error_rates
 
 from verl.trainer.ppo.checkpoint_callback import CheckpointCallback
+from verl.trainer.ppo.v1.trainer_base import _tq_supports_checkpoint
+from verl.trainer.ppo.v1.trainer_colocate_async import PPOTrainerColocateAsync
 from verl.trainer.ppo.v1.trainer_sync import PPOTrainerSync
 from verl.utils.azure_io import upload_path
 from verl.utils.fs import copy_to_local
@@ -24,6 +26,9 @@ class ASRCheckpointCallback(CheckpointCallback):
         if not remote:
             return
         upload_path(Path(checkpoint_dir) / "data.pt", f"{remote}/global_step_{global_step}/data.pt")
+        queue_path = Path(checkpoint_dir) / "transfer_queue"
+        if trainer.trainer_mode != "sync" and _tq_supports_checkpoint():
+            upload_path(queue_path, f"{remote}/global_step_{global_step}/transfer_queue")
         # All worker uploads completed before this hook. Publish the tracker last.
         upload_path(
             Path(checkpoint_dir).parent / "latest_checkpointed_iteration.txt",
@@ -31,7 +36,9 @@ class ASRCheckpointCallback(CheckpointCallback):
         )
 
 
-class ASRTrainerSync(PPOTrainerSync):
+class ASRTrainerMixin:
+    """Share ASR metrics and artifact handling without overriding V1 scheduling."""
+
     def _compute_metrics(self, batch, metrics, timing_raw, global_steps, epoch):
         super()._compute_metrics(batch, metrics, timing_raw, global_steps, epoch)
         data = tq.kv_batch_get(keys=batch.keys, partition_id=batch.partition_id, select_fields=["extra_fields"])
@@ -76,6 +83,12 @@ class ASRTrainerSync(PPOTrainerSync):
             raise ValueError("This ReMax ASR adapter does not use a critic")
         state = torch.load(copy_to_local(f"{checkpoint}/data.pt"), weights_only=False)
         self.train_dataloader.load_state_dict(state)
+        if self.trainer_mode != "sync" and _tq_supports_checkpoint():
+            queue_path = f"{checkpoint}/transfer_queue"
+            if bf.exists(queue_path):
+                # TransferQueue storage actors must see the restored snapshot on every node.
+                cache_dir = str(Path(self.config.trainer.default_local_dir) / "remote_queue_cache")
+                tq.load_checkpoint(copy_to_local(queue_path, cache_dir=cache_dir))
 
     def _write_generations(self, inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, global_steps):
         super()._write_generations(inputs, outputs, gts, scores, reward_extra_infos_dict, dump_path, global_steps)
@@ -113,3 +126,11 @@ class ASRTrainerSync(PPOTrainerSync):
         if self.config.asr.validation_remote_dir:
             upload_path(destination, f"{self.config.asr.validation_remote_dir}/{destination.name}")
         return metrics
+
+
+class ASRTrainerSync(ASRTrainerMixin, PPOTrainerSync):
+    """ASR artifacts with synchronous V1 scheduling."""
+
+
+class ASRTrainerColocateAsync(ASRTrainerMixin, PPOTrainerColocateAsync):
+    """ASR artifacts with colocated async V1 scheduling and partial rollout."""

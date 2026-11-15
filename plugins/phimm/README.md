@@ -90,7 +90,38 @@ and 868 updates. Main's decoupled token importance correction has cap5 without
 batch normalization. Its on-policy loss and gradient are tested against the
 source objective; end-to-end quality still requires actual experiment results.
 
-Two Base3a variants can be selected with `--config-name`:
+The colocated async Base3a variant keeps the same two-node GPU pool, data,
+batch sizes and optimizer settings. It uses one warmup batch and partial
+rollout through V1's `colocate_async` scheduler, with the shared ASR metrics
+and artifact handling. Select it with:
+
+```bash
+python -m recipe.phimm.main_asr_remax \
+  --config-path config/v2611_dev/async \
+  --config-name remax_main_base3a_2611r2_async \
+  trainer.experiment_name=<unique-async-name>
+```
+
+The sync/async comparison presets are grouped under `config/v2611_dev/async/`:
+
+- `remax_main_base3a_2611r2_async`: original async settings.
+- `remax_main_base3a_2611r2_async_delay16`: two warmup batches and delay tolerance 16.
+- `remax_main_base3a_2611r2_sync_no_ngram`: synchronous control with n-gram blocking disabled.
+
+With TransferQueue checkpoint support (version 0.1.9 or newer), the ASR
+callback uploads the queue snapshot before publishing the latest-step marker.
+Remote resume restores it so completed trajectories survive and in-flight
+prompts can be reissued by V1. This preset places the CPU queue storage actors
+and trainer controller on the driver node (`asr.colocate_queue_on_driver=true`),
+so checkpoint snapshots work with node-local storage. GPU training and rollout
+still use both nodes. If disabling this placement to distribute queue storage,
+set `trainer.default_local_dir` to a shared filesystem mounted at the same path
+on every node. Restored snapshots are cached under that directory.
+Older TransferQueue versions retain V1's
+fallback behavior without queue recovery. GPU throughput and quality still
+need validation in an actual training run.
+
+Two segment variants can also be selected with `--config-name`:
 
 - `remax_main_base3a_2611r2_sc`: `segment_count: [1, 2]`.
 - `remax_main_base3a_2611r2_sl`: `segment_len: [5, 30]` seconds.
@@ -209,11 +240,16 @@ and its 512-token response limit.
 It also preserves the source LLM's seed0 on every replica and raw rollout
 log probabilities, rather than inheriting main's seed42 and processed scores.
 
+Use the curated [Docker image](../../docker/remax/README.md) and sync this checkout
+to both nodes with `bpush`. The submitter prepares editable packages on every
+GPU node, composes the config, checks topology and records a receipt before
+submitting. It uses `--name` as both submission ID and default experiment name.
+Use `--config <installed-name>` for another recipe or `--dry-run` to preview.
+
 For an already synced two-node Ray pool:
 
 ```bash
-python plugins/phimm/submit.py --submission-id <unique-id> \
-  trainer.experiment_name=<unique-name>
+python plugins/phimm/submit.py --name <unique-name>
 ```
 
 Initial validation can be checked separately with `trainer.val_only=true`
@@ -221,8 +257,7 @@ and a separate experiment name. It does not replace the training run.
 After the final checkpoint is exported and verified, full evaluation uses:
 
 ```bash
-python plugins/phimm/submit.py --evaluate --submission-id <unique-eval-id> \
-  trainer.experiment_name=<unique-eval-name> \
+python plugins/phimm/submit.py --evaluate --name <unique-eval-name> \
   actor_rollout_ref.model.path=<verified-merged-HF-path>
 ```
 
