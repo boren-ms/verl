@@ -1,0 +1,18 @@
+# @package _global_
+# SC1a async with batch size 64 for one epoch.
+# drop_last: floor(55,664 / 64) = 869 updates.
+# gen_batch_size and ppo_mini_batch_size inherit the training batch size.
+
+defaults:
+  - remax_main_base3a_2611r2_async_sc1a
+  - _self_
+
+data:
+  train_batch_size: 64
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_async_sc1a_bs64_e1
+  total_epochs: 1
+
+asr:
+  expected_training_steps: 869
