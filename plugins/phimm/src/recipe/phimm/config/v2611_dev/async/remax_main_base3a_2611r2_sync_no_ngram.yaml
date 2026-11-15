@@ -1,0 +1,21 @@
+# @package _global_
+# Base3a synchronous control with no n-gram repetition blocking in either mode.
+
+defaults:
+  - ../main/remax_main_base3a_2611r2@_global_
+  - _self_
+
+actor_rollout_ref:
+  rollout:
+    engine_kwargs:
+      vllm:
+        logits_processors: []
+    custom:
+      no_repeat_ngram_size: 0
+      validation_no_repeat_ngram_size: 0
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sync_no_ngram
+  v1:
+    trainer_class: recipe.phimm.agentic.trainer.ASRTrainerSync
+    trainer_mode: sync

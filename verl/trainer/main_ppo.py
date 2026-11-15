@@ -31,7 +31,7 @@ logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "INFO"))
 
 
 # Define a function to run the PPO-like training process
-def run_ppo(config, task_runner_class) -> None:
+def run_ppo(config, task_runner_class, task_runner_options=None) -> None:
     """Initialize Ray cluster and run distributed PPO training process.
 
     Args:
@@ -39,6 +39,7 @@ def run_ppo(config, task_runner_class) -> None:
                 for distributed PPO training including Ray initialization settings,
                 model paths, and training hyperparameters.
         task_runner_class: For recipe to change TaskRunner.
+        task_runner_options: Optional Ray actor options for the task runner.
     """
     # Propagate determinism env vars from config before ray.init() so
     # get_ppo_ray_runtime_env() forwards them to all Ray actors.
@@ -75,6 +76,7 @@ def run_ppo(config, task_runner_class) -> None:
 
     # Create a remote instance of the TaskRunner class, and
     # Execute the `run` method of the TaskRunner instance remotely and wait for it to complete
+    runner_options = dict(task_runner_options or {})
     if (
         is_cuda_available
         and config.global_profiler.tool == "nsys"
@@ -87,9 +89,8 @@ def run_ppo(config, task_runner_class) -> None:
         nsight_options = OmegaConf.to_container(
             config.global_profiler.global_tool_config.nsys.controller_nsight_options
         )
-        runner = task_runner_class.options(runtime_env={"nsight": nsight_options}).remote()
-    else:
-        runner = task_runner_class.remote()
+        runner_options["runtime_env"] = {**runner_options.get("runtime_env", {}), "nsight": nsight_options}
+    runner = task_runner_class.options(**runner_options).remote()
     ray.get(runner.run.remote(config))
 
     # [Optional] get the path of the timeline trace file from the configuration, default to None
