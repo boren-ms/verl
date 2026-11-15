@@ -1,0 +1,18 @@
+# @package _global_
+# Base3a with colocated asynchronous V1 training and partial rollout.
+# Keep queue storage with the driver for checkpoints on node-local filesystems.
+
+defaults:
+  - ../main/remax_main_base3a_2611r2@_global_
+  - _self_
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_async
+  v1:
+    trainer_class: recipe.phimm.agentic.trainer.ASRTrainerColocateAsync
+    trainer_mode: colocate_async
+    colocate_async:
+      num_warmup_batches: 1
+
+asr:
+  colocate_queue_on_driver: true

@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from hydra import compose, initialize_config_dir
 from hydra.errors import ConfigCompositionException
-from omegaconf import OmegaConf
+from omegaconf import OmegaConf, open_dict
 
 
 @pytest.fixture
@@ -45,6 +45,27 @@ def test_base3a_segment_variants_inherit_training_and_validation(compose_recipe,
     assert config.asr.expected_training_steps == base.asr.expected_training_steps == 868
     assert config.trainer.experiment_name == name
     assert config.trainer.default_hdfs_dir.endswith(f"/{name}")
+
+
+def test_base3a_async_inherits_base_except_trainer(compose_recipe):
+    base = compose_recipe()
+    name = "remax_main_base3a_2611r2_async"
+    config = compose_recipe(kind="async", name=name)
+    assert config.trainer.use_v1
+    assert config.trainer.v1.trainer_mode == "colocate_async"
+    assert config.trainer.v1.trainer_class == "recipe.phimm.agentic.trainer.ASRTrainerColocateAsync"
+    assert config.trainer.v1.colocate_async.num_warmup_batches == 1
+    assert config.asr.colocate_queue_on_driver
+    assert config.trainer.nnodes == base.trainer.nnodes == 2
+    assert config.trainer.experiment_name == name
+    assert config.trainer.default_hdfs_dir.endswith(f"/{name}")
+    assert config.trainer.default_local_dir.endswith(f"/{name}")
+    base.trainer.experiment_name = name
+    base.trainer.v1.trainer_mode = "colocate_async"
+    base.trainer.v1.trainer_class = "recipe.phimm.agentic.trainer.ASRTrainerColocateAsync"
+    with open_dict(base.asr):
+        base.asr.colocate_queue_on_driver = True
+    assert OmegaConf.to_container(config, resolve=True) == OmegaConf.to_container(base, resolve=True)
 
 
 def test_native_overrides_propagate_from_any_working_directory(compose_recipe, monkeypatch, tmp_path):
@@ -125,7 +146,6 @@ def test_evaluation_requires_explicit_model_and_experiment(compose_recipe):
 
 def test_raw_dataset_mixes_without_loading_audio_or_tokenizing(monkeypatch):
     import datasets
-
     from recipe.phimm.agentic import dataset
 
     sources = {
@@ -231,37 +251,52 @@ def test_incomplete_eval_fails_before_initializing_gpu_workers(compose_recipe):
 
 def test_removed_transform_is_rejected():
     import datasets
-
     from recipe.phimm.data.dataset import process_ds
 
     with pytest.raises(ValueError, match="Unsupported Base3a data transforms"):
         process_ds(datasets.Dataset.from_list([{"text": "hello"}]), svad_explode={"enabled": True})
 
 
-def test_entrypoint_sends_resolved_config_to_fresh_worker(compose_recipe, monkeypatch, tmp_path):
+@pytest.mark.parametrize("async_mode", [False, True])
+def test_entrypoint_sends_resolved_config_to_fresh_worker(compose_recipe, monkeypatch, tmp_path, async_mode):
     import pickle
     import subprocess
     import sys
     from types import ModuleType
 
+    import ray
     from recipe.phimm.main_asr_remax import main
 
     received = []
+    options = []
     runner_module = ModuleType("verl.trainer.main_ppo")
     runner_module.TaskRunnerV1 = object()
-    runner_module.run_ppo = lambda config, **kwargs: received.append(config)
+
+    def run_ppo(config, **kwargs):
+        received.append(config)
+        options.append(kwargs)
+
+    runner_module.run_ppo = run_ppo
     monkeypatch.setitem(sys.modules, "verl.trainer.main_ppo", runner_module)
     monkeypatch.setenv("VLLM_CUDART_SO_PATH", "/test/libcudart.so.13")
+    monkeypatch.setattr(ray.util, "get_node_ip_address", lambda: "10.0.0.1")
     config = compose_recipe(
+        kind="async" if async_mode else "main",
+        name="remax_main_base3a_2611r2_async" if async_mode else None,
         overrides=[
             "trainer.experiment_name=fresh-worker-test",
             f"trainer.default_local_dir={tmp_path}",
             "actor_rollout_ref.actor.ppo_micro_batch_size_per_gpu=3",
-        ]
+        ],
     )
     main.__wrapped__(config)
     assert len(received) == 1
     assert received[0].actor_rollout_ref.ref.log_prob_micro_batch_size_per_gpu == 6
+    if async_mode:
+        assert received[0].transfer_queue.backend.SimpleStorage.required_node_resource == "node:10.0.0.1"
+        assert options[0]["task_runner_options"] == {"resources": {"node:10.0.0.1": 0.001}}
+    else:
+        assert "task_runner_options" not in options[0]
     # A new interpreter models Ray's process-local resolver registry. It must
     # resolve the serialized config without importing the recipe entrypoint.
     subprocess.run(
@@ -320,7 +355,6 @@ def test_sampling_applies_configured_no_repeat_window(compose_recipe, validate, 
 
 def test_jsonl_loading_reads_updated_manifest_without_dataset_disk_cache(tmp_path, monkeypatch):
     import datasets
-
     from recipe.phimm.data.dataset import create_audio_dataset
 
     def forbidden(*args, **kwargs):
