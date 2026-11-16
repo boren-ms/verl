@@ -5,6 +5,7 @@ from pathlib import Path
 
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
+from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.data.dataset import create_audio_dataset
 
 
@@ -110,3 +111,24 @@ def test_all_effective_data_configs_load_and_preserve_parent_metadata(tmp_path):
                 if result["data_source"] == "earnings22_parent4":
                     assert result["extra_info"]["parent_audio_path"] == "parent.wav"
                     assert result["extra_info"]["n_segments"] == 184
+
+
+def test_foreign_validation_sources_combine_with_parent_metadata(tmp_path):
+    config = load_config("remax_foreign_quartr_fl")
+    for group in config.data.val_data:
+        for source in group:
+            name = source.post_process.add_field.fields.data_source
+            row = {"id": name, "audio_path": "audio.wav", "text": "Hello", "language": "en"}
+            if name == "earnings22_parent4":
+                row.update(parent_audio_path="parent.wav", seg_index=0, n_segments=1, seg_start=0.0, seg_end=1.0)
+            path = tmp_path / f"{name}.jsonl"
+            path.write_text(json.dumps(row) + "\n")
+            source.jsonl_paths = str(path)
+    ds = ASRDataset(config.data.val_files, None, config.data)
+    assert len(ds) == len(ds.ds) == 3
+    by_source = {row["data_source"]: row for row in ds.ds}
+    assert by_source["earnings22_parent4"]["extra_info"]["n_segments"] == 1
+    assert by_source["earnings22_parent4"]["extra_info"]["parent_audio_path"] == "parent.wav"
+    for name in ("enhint_en", "enhint_noen"):
+        assert by_source[name]["extra_info"]["n_segments"] is None
+        assert by_source[name]["extra_info"]["parent_audio_path"] is None
