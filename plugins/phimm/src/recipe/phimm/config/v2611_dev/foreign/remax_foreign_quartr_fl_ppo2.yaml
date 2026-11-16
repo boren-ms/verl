@@ -1,0 +1,12 @@
+# @package _global_
+# Reuse each Quartr FL rollout batch for two actor PPO epochs.
+defaults:
+  - remax_foreign_quartr_fl
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    ppo_epochs: 2
+
+trainer:
+  experiment_name: remax_foreign_quartr_fl_ppo2

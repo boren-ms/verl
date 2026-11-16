@@ -10,20 +10,17 @@ import blobfile as bf
 import pyarrow as pa
 import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
-
-from recipe.phimm.data.prompts import get_task_output, get_task_prefix, get_task_prompt, resolve_task_language
+from recipe.phimm.data.prompts import get_task_output, get_task_prompt, resolve_language
 from recipe.phimm.data.random_segment import random_segment
+from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import (
     all_rank_print,
     dist_state,
     get_value,
     rank_print,
 )
+
 from verl.audio_cache import submit_audio_cache_dataset
-
-
-def format_asr_prompt(prompt):
-    return prompt if "<audio>" in prompt else f"{prompt}<audio>"
 
 
 def jsonl_dataset(jsonl_paths, **kwargs):
@@ -246,15 +243,13 @@ def _extra_info_value(egs, key):
         value = "English"
     if key == "keywords" and value is None:
         value = [""]
-    if key == "prefix" and value is None:
-        value = ""
     return value
 
 
 def verl_format_ds(ds, **kwargs):
     """Format the dataset for verl training."""
     prompt_key = kwargs.get("prompt_key", "prompt")
-    default_extra_keys = ["id", "language", "keywords", "prefix"]
+    default_extra_keys = ["id", "language", "keywords"]
     configured_extra_keys = kwargs.get("extra_keys", []) or []
     extra_keys = list(dict.fromkeys(default_extra_keys + list(configured_extra_keys)))
 
@@ -321,45 +316,99 @@ def process_ds(ds, **kwargs):
     return ds
 
 
-def add_task_info(ds, **kwargs):
-    """Add a prompt to the dataset."""
-    task = kwargs.get("task", "asr")
-    version = kwargs.get("version")
-    rand = kwargs.get("rand", False)
-    language = kwargs.get("language", "English")
-    prompt_suffix = kwargs.get("prompt_suffix", "")
-    prefix_prob = float(kwargs.get("prefix_prob", 0.0))
-    lang_hint = kwargs.get("lang_hint", False)
+def mask_foreign_language(ds, *, task_info, **kwargs):
+    """Mask foreign speech for verbatim language-hint or target-only examples.
 
-    def add_task_info_fn(egs):
-        lang = resolve_task_language(task, lang=egs.get("language") or language)
-        prefix = get_task_prefix(task, lang=lang, prob=prefix_prob, version=version)
-        prompt = get_task_prompt(
-            task=task,
-            rand=rand,
-            version=version,
-            lang=lang if lang_hint else None,
-        )
-        prompt = f"{prompt}{prompt_suffix}"
-        gt_output = get_task_output(
-            task=task,
-            lang=lang,
-            text=egs.get("text", ""),
-            components=egs.get("components"),
-            version=version,
-        )
-        prefix_stem = prefix.rstrip("\n")
-        if prefix_stem and gt_output.startswith(prefix_stem):
-            gt_output = gt_output[len(prefix_stem) :].lstrip(". \n")
+    Mixed-language rows require ordered, language-labelled components covering
+    the original text; the block never guesses language boundaries.
+    """
+    if task_info.get("style", "verb") != "verb" or not (
+        task_info.get("lang_hint", False) or task_info.get("target_only", False)
+    ):
+        return ds
+    hint = task_info.get("language")
+    if not hint:
+        raise ValueError("mask_foreign_language requires an explicit hint language")
+    hint = resolve_language(hint)
+    if hint.casefold() not in LANGUAGES:
+        raise ValueError("mask_foreign_language requires one known hint language")
+    marker = kwargs.get("marker", "<foreign_language>")
+    if not isinstance(marker, str) or not marker:
+        raise ValueError("mask_foreign_language marker must be a nonempty string")
+
+    def single_language(value):
+        language = resolve_language(value)
+        if language.casefold() not in LANGUAGES:
+            raise ValueError("mask_foreign_language requires one known component language")
+        return language
+
+    def transform(egs):
+        source = egs.get("language")
+        if not source or not isinstance(egs.get("text"), str):
+            raise ValueError("mask_foreign_language requires source language and transcription")
+        components = egs.get("components")
+        if components:
+            if any(not c.get("language") or not isinstance(c.get("text"), str) for c in components):
+                raise ValueError("each language component must have a language and string text")
+            languages = [single_language(c["language"]) for c in components]
+            original = egs["text"]
+            pieces = []
+            offset = 0
+            for component, language in zip(components, languages, strict=True):
+                text = component["text"].strip()
+                if not text:
+                    continue
+                start = original.find(text, offset)
+                if start < 0 or original[offset:start].strip():
+                    raise ValueError("component text must cover the original transcription in order")
+                pieces.append(original[offset:start])
+                pieces.append(text if language.casefold() == hint.casefold() else marker)
+                offset = start + len(text)
+            if original[offset:].strip():
+                raise ValueError("component text must cover the original transcription in order")
+            pieces.append(original[offset:])
+            # A wholly foreign utterance has one target marker even when it has
+            # several components. Mixed utterances retain their source spacing.
+            if (
+                len({lang.casefold() for lang in languages}) == 1
+                and languages[0].casefold() != hint.casefold()
+                and original.strip()
+            ):
+                text = marker
+            else:
+                text = "".join(pieces)
+            return {"text": text, "language": hint, "components": None}
+        if len(resolve_language(source).split()) != 1:
+            raise ValueError("mixed source language requires language-labelled components")
+        language = single_language(source)
         return {
-            "prompt": format_asr_prompt(prompt),
-            "prefix": prefix,
-            "gt_output": gt_output,
+            "text": egs["text"] if not egs["text"].strip() or language.casefold() == hint.casefold() else marker,
+            "language": hint,
+        }
+
+    return ds.map(transform, **pop_map_kwargs(kwargs), desc="Masking foreign-language speech")
+
+
+def add_task_info(ds, *, style="verb", language=None, lang_hint=False, target_only=False, **kwargs):
+    """Add the prompt, formatted output, and resolved language without changing text."""
+    if target_only and not language:
+        raise ValueError("target_only requires one known language")
+
+    def add_info(row):
+        lang = resolve_language(language or row.get("language") or "English")
+        return {
+            "prompt": get_task_prompt(style=style, language=lang, target_only=target_only, lang_hint=lang_hint),
+            "gt_output": get_task_output(
+                style=style,
+                language=lang,
+                text=row.get("text", ""),
+                components=row.get("components"),
+                target_only=target_only,
+            ),
             "language": lang,
         }
 
-    ds = ds.map(add_task_info_fn, **pop_map_kwargs(kwargs))
-    return ds
+    return ds.map(add_info, **pop_map_kwargs(kwargs))
 
 
 def augment(ds, **kwargs):
@@ -367,8 +416,13 @@ def augment(ds, **kwargs):
     map_kwargs = pop_map_kwargs(kwargs)
     if pre_process_kwargs := kwargs.get("pre_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, pre_process_kwargs))
+    if "mask_foreign_language" in kwargs:
+        mask_kwargs = kwargs.get("mask_foreign_language") or {}
+        ds = mask_foreign_language(
+            ds, task_info=kwargs.get("add_task_info") or {}, **merge_kwargs(map_kwargs, mask_kwargs)
+        )
     if add_task_info_kwargs := kwargs.get("add_task_info", {}):
-        ds = add_task_info(ds, **merge_kwargs(map_kwargs, {"version": kwargs.get("version")}, add_task_info_kwargs))
+        ds = add_task_info(ds, **merge_kwargs(map_kwargs, add_task_info_kwargs))
     if post_process_kwargs := kwargs.get("post_process", {}):
         ds = process_ds(ds, **merge_kwargs(map_kwargs, post_process_kwargs))
     return ds

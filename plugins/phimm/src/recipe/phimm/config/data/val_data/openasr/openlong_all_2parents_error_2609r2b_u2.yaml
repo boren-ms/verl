@@ -7,7 +7,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings21.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -20,7 +20,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings22.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -33,7 +33,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/coraal.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -46,7 +46,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings22_cleaned_aa.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:

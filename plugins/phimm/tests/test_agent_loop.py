@@ -17,6 +17,7 @@ from omegaconf import OmegaConf
 @pytest.fixture
 def agent_loop(monkeypatch):
     import ray
+
     import recipe.phimm
 
     class Output(SimpleNamespace):
@@ -281,7 +282,7 @@ def multi_turn_loop(agent_loop):
     rows = [
         {
             "prompt": [{"role": "user", "content": "task<audio>"}],
-            "extra_info": {"prefix": "prefix:"},
+            "extra_info": {},
             "reward_model": {"ground_truth": f"reference-{i}"},
             "data_source": "test",
             "frames": frames,
@@ -316,9 +317,7 @@ def test_segments_have_independent_contexts_and_aligned_actor_inputs(multi_turn_
     assert len(requests) == len(outputs) == 2
     for index, (request, output) in enumerate(zip(requests, outputs, strict=True)):
         assert request["audio_data"] == [(rows[index]["frames"], 16000)]
-        expected_text = (
-            loop.processor.apply_chat_template(rows[index]["prompt"], add_generation_prompt=True) + "prefix:"
-        )
+        expected_text = loop.processor.apply_chat_template(rows[index]["prompt"], add_generation_prompt=True)
         assert request["prompt_ids"] == loop.tokenizer.encode(expected_text)
         assert 900 not in request["prompt_ids"] and 902 not in request["prompt_ids"]
         assert output.response_ids == generated[index]

@@ -114,7 +114,7 @@ def random_merge(
     buffer_size=100,
     seed=42,
     text_separator=" ",
-    group_by=("data_source", "language", "prompt", "prefix"),
+    group_by=("data_source", "language", "prompt"),
     enabled=True,
 ):
     """Pack whole utterances below a configurable duration without decoding.

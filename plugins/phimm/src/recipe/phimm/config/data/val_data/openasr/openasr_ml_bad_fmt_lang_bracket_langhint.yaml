@@ -16,8 +16,7 @@
     - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/bad_fmt_lang_bracket.jsonl
     - az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/bad_fmt_lang_bracket.jsonl
   add_task_info:
-    task: lang_asr_verb
-    prefix_prob: 0.0
+    style: verb
     lang_hint: true
   post_process:
     cache_audio: {}

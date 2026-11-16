@@ -20,7 +20,7 @@ from verl.utils.profiler import simple_timer
 @register("asr")
 class ASRAgentLoop(AgentLoopBase):
     async def generate_row(self, row, sampling_params, *, validate):
-        """Preserve the source recipe's chat template, prefix, and audio processor."""
+        """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
         text = chat.apply_chat_template(
@@ -29,7 +29,6 @@ class ASRAgentLoop(AgentLoopBase):
             tokenize=False,
             **dict(self.config.data.get("apply_chat_template_kwargs", {})),
         )
-        text += (row.get("extra_info") or {}).get("prefix", "") or ""
         inputs = await asyncio.to_thread(self.processor, text=[text], audios=[audio], return_tensors="pt")
         prompt_ids = inputs["input_ids"][0].tolist()
         if len(prompt_ids) > self.rollout_config.prompt_length:

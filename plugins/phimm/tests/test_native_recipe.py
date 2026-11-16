@@ -28,7 +28,7 @@ def compose_recipe():
 def test_base3a_segment_variants_inherit_training_and_validation(compose_recipe, tag, mode, bounds):
     base = compose_recipe()
     name = f"remax_main_base3a_2611r2_{tag}"
-    config = compose_recipe(name=name)
+    config = compose_recipe(kind="rand_segment", name=name)
     OmegaConf.resolve(config)
     other_mode = "segment_len" if mode == "segment_count" else "segment_count"
     assert list(config.data.random_segment[mode]) == bounds
@@ -221,7 +221,7 @@ def test_jsonl_pipeline_preserves_tags_keywords_prompt_and_ranked_limit(tmp_path
             "rename_fields": {"mappings": {"text": "display"}},
             "clean_tagged_text": {},
         },
-        add_task_info={"task": "lang_asr_verb", "language": "English", "prefix_prob": 0.0, "lang_hint": True},
+        add_task_info={"style": "verb", "language": "English", "lang_hint": True},
         post_process={
             "input_egs_limit": 1,
             "add_field": {"fields": {"data_source": "earn_fy27"}},
@@ -235,7 +235,7 @@ def test_jsonl_pipeline_preserves_tags_keywords_prompt_and_ranked_limit(tmp_path
     assert row["reward_model"]["ground_truth"] == "Hello Morgan Stanley."
     assert row["extra_info"]["keywords"] == ["Morgan Stanley"]
     assert row["extra_info"]["language"] == "English"
-    assert row["extra_info"]["prefix"] == ""
+    assert "prefix" not in row["extra_info"]
     assert row["prompt"][0]["role"] == "user"
     assert "<audio>" in row["prompt"][0]["content"]
 

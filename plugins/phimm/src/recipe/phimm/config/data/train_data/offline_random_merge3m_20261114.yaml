@@ -98,9 +98,8 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_1st23/data.jsonl
   add_task_info:
     lang_hint: true
-    task: lang_asr_verb
+    style: verb
     language: English
-    prefix_prob: 0
   post_process:
     add_field:
       fields:
@@ -209,9 +208,8 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_2nd48/data.jsonl
   add_task_info:
     lang_hint: true
-    task: lang_asr_verb
+    style: verb
     language: English
-    prefix_prob: 0
   post_process:
     add_field:
       fields:
@@ -326,9 +324,8 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_3rd38/data.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
-    prefix_prob: 0
     lang_hint: true
   post_process:
     add_field:
@@ -437,9 +434,8 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/aishell1_train_top10k/data.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Chinese
-    prefix_prob: 0
     lang_hint: true
   post_process:
     add_field:
@@ -551,9 +547,8 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/noisy_ls/data.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
-    prefix_prob: 0
     lang_hint: true
   post_process:
     verl_format:
@@ -662,9 +657,8 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch1/data.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
-    prefix_prob: 0
     lang_hint: true
   post_process:
     verl_format:
@@ -773,9 +767,8 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch2/data.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
-    prefix_prob: 0
     lang_hint: true
   post_process:
     add_field:

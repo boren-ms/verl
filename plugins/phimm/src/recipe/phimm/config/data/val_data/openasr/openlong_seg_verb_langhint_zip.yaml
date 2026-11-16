@@ -11,7 +11,7 @@
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings21/test-*/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -26,7 +26,7 @@
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/earnings22/test-*/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -41,7 +41,7 @@
   val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/*/test-*/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:

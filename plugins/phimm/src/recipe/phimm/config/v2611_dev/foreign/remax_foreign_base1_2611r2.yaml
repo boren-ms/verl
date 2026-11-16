@@ -1,0 +1,29 @@
+# @package _global_
+# Main-native port of the noearnings-foreign-language worktree's Base1.
+# Original + mixed data, target-language-only verbatim, without a GT rollout.
+# 12,800 samples/epoch x 2 epochs / batch128 = 200 optimizer updates.
+# All three validation sources use target_only=true.
+defaults:
+  - base@_global_
+  - /data/train_data/foreign/english_hint_1k_lang_only_verb@_foreign_train_1k
+  - /data/train_data/foreign/english_hint_mixed_1k_lang_only_verb@_foreign_train_mixed
+  - _self_
+
+data:
+  train_data:
+    - ${_foreign_train_1k}
+    - ${_foreign_train_mixed}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: foreign_1k, sample: 6700, shuffle: true}
+        - {name: foreign_mixed_10k, sample: 6100, shuffle: true}
+
+trainer:
+  experiment_name: remax_foreign_base1_2611r2
+  total_epochs: 2
+  total_training_steps: 200
+
+asr:
+  expected_training_rows: 12800
+  expected_training_steps: 200

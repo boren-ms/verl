@@ -1,0 +1,15 @@
+# @package _global_
+# Quartr FL with exactly two random audio segments per training example.
+defaults:
+  - remax_foreign_quartr_fl
+  - _self_
+
+data:
+  random_segment:
+    segment_count: [2, 2]
+    segment_len: null
+    seed: 42
+  max_audio_dur: null
+
+trainer:
+  experiment_name: remax_foreign_quartr_fl_sc2

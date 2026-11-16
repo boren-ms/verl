@@ -4,7 +4,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/de/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: German
     lang_hint: true
   post_process:
@@ -17,7 +17,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/fr/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: French
     lang_hint: true
   post_process:
@@ -30,7 +30,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/it/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Italian
     lang_hint: true
   post_process:
@@ -43,7 +43,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/es/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Spanish
     lang_hint: true
   post_process:
@@ -56,7 +56,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/pt/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Portuguese
     lang_hint: true
   post_process:
@@ -69,7 +69,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/de/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: German
     lang_hint: true
   post_process:
@@ -82,7 +82,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/fr/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: French
     lang_hint: true
   post_process:
@@ -95,7 +95,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/it/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Italian
     lang_hint: true
   post_process:
@@ -108,7 +108,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/es/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Spanish
     lang_hint: true
   post_process:
@@ -121,7 +121,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/fr/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: French
     lang_hint: true
   post_process:
@@ -134,7 +134,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/it/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Italian
     lang_hint: true
   post_process:
@@ -147,7 +147,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/es/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Spanish
     lang_hint: true
   post_process:
@@ -160,7 +160,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/pt/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Portuguese
     lang_hint: true
   post_process:
@@ -173,7 +173,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/fleurs/nl/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Dutch
     lang_hint: true
   post_process:
@@ -186,7 +186,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mcv/nl/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Dutch
     lang_hint: true
   post_process:
@@ -199,7 +199,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/mls/nl/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Dutch
     lang_hint: true
   post_process:
@@ -213,7 +213,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_jsonl/monsoon/hi_in/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Hindi
     lang_hint: true
   post_process:
@@ -228,7 +228,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_zh/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Chinese
     lang_hint: true
   post_process:
@@ -248,7 +248,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/aishell1_zh/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Chinese
     lang_hint: true
   post_process:
@@ -268,7 +268,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/fleurs_vi/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Vietnamese
     lang_hint: true
   post_process:
@@ -288,7 +288,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_ml_expansion/18143a6e/mcv_vi/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Vietnamese
     lang_hint: true
   post_process:

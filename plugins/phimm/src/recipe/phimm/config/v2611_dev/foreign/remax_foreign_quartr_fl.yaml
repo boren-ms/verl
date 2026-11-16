@@ -1,0 +1,28 @@
+# @package _global_
+# Quartr FL segments only, with English target-only verbatim prompts.
+# 2,732 rows / batch32 = 85 full batches per epoch; two epochs = 170 updates.
+defaults:
+  - base@_global_
+  - /data/train_data/foreign/quartr_fl_segments@_quartr_fl_train
+  - _self_
+
+data:
+  train_batch_size: 32
+  train_data:
+    - ${_quartr_fl_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: quartr_fl_segments, sample: 2732, shuffle: true}
+
+reward_map:
+  quartr_fl_segments: train_librispeech
+
+trainer:
+  experiment_name: remax_foreign_quartr_fl
+  total_epochs: 2
+  total_training_steps: 170
+
+asr:
+  expected_training_rows: 2732
+  expected_training_steps: 170

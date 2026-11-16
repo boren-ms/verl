@@ -3,9 +3,8 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_zh_hard_2611r2_20261110/aishell1_test_top500_2611r2.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Chinese
-    prefix_prob: 0.0
     lang_hint: true
   post_process:
     add_field:
@@ -17,9 +16,8 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_zh_hard_2611r2_20261110/fleurs_zh_test_top500_2611r2.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: Chinese
-    prefix_prob: 0.0
     lang_hint: true
   post_process:
     add_field:

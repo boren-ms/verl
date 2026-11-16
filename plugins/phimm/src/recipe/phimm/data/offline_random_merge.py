@@ -22,7 +22,7 @@ from recipe.phimm.utils.audio import get_audio_duration
 DURATION_FIELDS = ("audio_length", "audio_duration_seconds", "duration")
 AUDIO_FIELDS = ("audio_path", "audio_file", "audio_chunk")
 TEXT_FIELDS = ("text", "display", "display_ne_tagged", "lexical", "ref", "hyp")
-GROUP_FIELDS = ("data_source", "language", "prompt", "prefix")
+GROUP_FIELDS = ("data_source", "language", "prompt")
 
 
 def audio_source(row):

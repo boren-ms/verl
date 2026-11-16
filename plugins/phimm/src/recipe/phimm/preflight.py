@@ -67,7 +67,6 @@ def main(config):
             audio = load_audio(row, config.data.max_audio_dur)
             chat = model.processor if getattr(model.processor, "chat_template", None) else model.tokenizer
             text = chat.apply_chat_template(row[config.data.prompt_key], add_generation_prompt=True, tokenize=False)
-            text += (row.get("extra_info") or {}).get("prefix", "") or ""
             features = model.processor(text=[text], audios=[audio], return_tensors="pt")
             raw_ids = model.tokenizer.encode(text, add_special_tokens=False)
             processed = inference_processor.apply(

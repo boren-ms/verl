@@ -7,7 +7,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-clean/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -20,7 +20,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ls-other/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -33,7 +33,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/spgispeech/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -46,7 +46,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/ami/data_min1s_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -59,7 +59,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/gigaspeech/data_min1s_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -78,7 +78,7 @@
         audio_path: url
         text: transcript
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -98,7 +98,7 @@
         audio_path: url
         text: transcript
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -112,7 +112,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/monsoon-en-in/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
@@ -125,7 +125,7 @@
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024/data_zip.jsonl
   add_task_info:
-    task: lang_asr_verb
+    style: verb
     language: English
     lang_hint: true
   post_process:
