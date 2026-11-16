@@ -1,0 +1,13 @@
+# @package _global_
+# Earnings-only short-form SC2: exactly three segments with random cuts.
+
+defaults:
+  - remax_earnings_short_sc
+  - _self_
+
+data:
+  random_segment:
+    segment_count: [3, 3]
+
+trainer:
+  experiment_name: remax_earnings_short_sc2

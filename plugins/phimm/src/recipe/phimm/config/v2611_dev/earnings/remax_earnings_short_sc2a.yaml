@@ -1,0 +1,13 @@
+# @package _global_
+# Earnings-only short-form SC2a: random segment counts in [1, 3].
+
+defaults:
+  - remax_earnings_short_sc
+  - _self_
+
+data:
+  random_segment:
+    segment_count: [1, 3]
+
+trainer:
+  experiment_name: remax_earnings_short_sc2a
