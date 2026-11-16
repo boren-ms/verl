@@ -1,0 +1,6 @@
+# @package _global_
+# Full canonical OpenLong with target_only=false and the English language hint.
+defaults:
+  - ../eval/eval_openlong_target_only_zip@_global_
+  - /data/val_data/foreign/openlong_full_no_target_only@_openlong
+  - _self_
