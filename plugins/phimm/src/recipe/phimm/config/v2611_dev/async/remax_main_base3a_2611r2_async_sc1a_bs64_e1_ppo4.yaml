@@ -1,0 +1,13 @@
+# @package _global_
+# Reuse each batch-64 async SC1a rollout batch for four actor PPO epochs.
+
+defaults:
+  - remax_main_base3a_2611r2_async_sc1a_bs64_e1
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    ppo_epochs: 4
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_async_sc1a_bs64_e1_ppo4
