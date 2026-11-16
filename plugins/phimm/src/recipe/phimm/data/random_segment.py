@@ -33,7 +33,7 @@ def _segment_fractions(rng, count, minimum):
     return [minimum + (1 - count * minimum) * weight / total for weight in weights]
 
 
-def _length_fractions(rng, duration, lower, upper):
+def _length_fractions(rng, duration, lower, upper, min_segments):
     fractions = []
     remaining = duration
     while remaining > upper:
@@ -41,6 +41,11 @@ def _length_fractions(rng, duration, lower, upper):
         fractions.append(length / duration)
         remaining -= length
     fractions.append(remaining / duration)
+    while len(fractions) < min_segments:
+        index = max(range(len(fractions)), key=fractions.__getitem__)
+        length = fractions[index] * duration
+        cut = rng.uniform(lower, length - lower) if length >= 2 * lower else length / 2
+        fractions[index : index + 1] = [cut / duration, (length - cut) / duration]
     return fractions
 
 
@@ -49,6 +54,7 @@ def random_segment(
     *,
     segment_count=None,
     segment_len=None,
+    min_segments=1,
     even_split=False,
     min_segment_fraction=None,
     seed=42,
@@ -64,6 +70,11 @@ def random_segment(
     ``segment_count`` for counts, or ``segment_len`` for seconds. Only duration mode inspects
     ``audio_length`` or falls back to header IO. Its final remainder may be
     shorter than the lower duration bound, preserving the complete recording.
+    In duration mode, ``min_segments`` can require additional cuts (2 means
+    at least one cut). These split the longest segment, keeping the lower
+    duration bound when possible and halving it otherwise. Short recordings
+    can therefore produce segments below that bound. The default 1 preserves
+    the existing duration partitions.
     ``even_split=True`` divides the sampled count into equal-duration segments
     and is supported only in count mode. ``min_segment_fraction`` defaults to
     0.1 for random cuts and 0 for even splits; it is not applied in duration
@@ -74,11 +85,15 @@ def random_segment(
         return ds
     if not isinstance(even_split, bool):
         raise ValueError("random_segment even_split must be a boolean")
+    if isinstance(min_segments, bool) or not isinstance(min_segments, int) or min_segments < 1:
+        raise ValueError("random_segment min_segments must be a positive integer")
     if segment_count is None and segment_len is None:
         segment_count = (1, 2)
     elif segment_count is not None and segment_len is not None:
         raise ValueError("random_segment requires exactly one non-null range: segment_count or segment_len")
     if segment_count is not None:
+        if min_segments != 1:
+            raise ValueError("random_segment min_segments applies only to segment_len mode")
         lower, upper = _validate_range(segment_count, "segment_count", integers=True)
         if min_segment_fraction is None:
             min_segment_fraction = 0 if even_split else 0.1
@@ -117,7 +132,7 @@ def random_segment(
                 or duration <= 0
             ):
                 raise ValueError("random_segment audio_length must be a positive finite duration in seconds")
-            fractions = _length_fractions(rng, duration, lower, upper)
+            fractions = _length_fractions(rng, duration, lower, upper, min_segments)
         bounds = [0.0]
         for fraction in fractions[:-1]:
             bounds.append(bounds[-1] + fraction * 100)

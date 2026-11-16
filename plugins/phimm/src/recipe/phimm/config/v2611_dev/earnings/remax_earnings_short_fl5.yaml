@@ -1,0 +1,15 @@
+# @package _global_
+# Earnings-only short-form FL5: [2, 30] seconds, with at least one cut.
+# Recordings shorter than 4 seconds are split into two shorter halves.
+
+defaults:
+  - base_short
+  - _self_
+
+data:
+  random_segment:
+    segment_len: [2, 30]
+    min_segments: 2
+
+trainer:
+  experiment_name: remax_earnings_short_fl5

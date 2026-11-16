@@ -305,6 +305,41 @@ def test_segment_modes_are_mutually_exclusive():
         random_segment(ds, segment_count=[1, 2], segment_len=[10, 20])
 
 
+@pytest.mark.parametrize("duration", [0.5, 2, 3.9, 4, 10, 30, 30.1, 100])
+def test_length_mode_minimum_segments_guarantees_a_cut_and_complete_coverage(duration):
+    ds = datasets.Dataset.from_list([{"audio_path": "missing.wav", "audio_length": duration, "text": "full reference"}])
+    result = random_segment(ds, segment_len=[2, 30], min_segments=2, seed=7)
+    assert result.to_list() == random_segment(ds, segment_len=[2, 30], min_segments=2, seed=7).to_list()
+    row = result[0]
+    ranges = [tuple(float(value[:-1]) for value in path.rsplit("#", 1)[1].split(":")) for path in row["audio_path"]]
+    lengths = [(end - start) * duration / 100 for start, end in ranges]
+    assert len(lengths) >= 2
+    assert ranges[0][0] == 0 and ranges[-1][1] == 100
+    assert all(left[1] == right[0] for left, right in zip(ranges, ranges[1:], strict=False))
+    assert all(0 < length <= 30 + 1e-8 for length in lengths)
+    assert sum(lengths) == pytest.approx(duration)
+    assert row["text"] == "full reference"
+    if duration < 4:
+        assert lengths == pytest.approx([duration / 2, duration / 2])
+    elif duration <= 30:
+        assert all(length >= 2 - 1e-8 for length in lengths)
+    if duration > 30:
+        assert result.to_list() == random_segment(ds, segment_len=[2, 30], seed=7).to_list()
+
+
+@pytest.mark.parametrize("minimum", [0, -1, True, 2.5, "2"])
+def test_length_mode_rejects_invalid_minimum_segments(minimum):
+    ds = datasets.Dataset.from_list([{"audio_path": "missing.wav", "audio_length": 10}])
+    with pytest.raises(ValueError, match="min_segments"):
+        random_segment(ds, segment_len=[2, 30], min_segments=minimum)
+
+
+def test_minimum_segments_requires_length_mode():
+    ds = datasets.Dataset.from_list([{"audio_path": "missing.wav"}])
+    with pytest.raises(ValueError, match="segment_len mode"):
+        random_segment(ds, segment_count=[2, 3], min_segments=2)
+
+
 @pytest.mark.parametrize("options", [{}, {"segment_len": None}, {"segment_count": None, "segment_len": None}])
 def test_null_duration_defaults_to_count_mode_without_duration_io(monkeypatch, options):
     import importlib
