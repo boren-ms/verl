@@ -40,7 +40,9 @@ def _merge_rows(rows, indices, durations, text_separator):
     return result
 
 
-def _iter_random_merge(ds, *, max_audio_length, buffer_size, seed, text_separator, group_by):
+def _iter_random_merge(
+    ds, *, max_audio_length, buffer_size, seed, text_separator, group_by, merge_fn=_merge_rows, merge_count=None
+):
     """Consume each row once, retaining at most buffer_size candidate rows.
 
     Pick a random seed utterance, then the longest compatible candidate that
@@ -88,9 +90,10 @@ def _iter_random_merge(ds, *, max_audio_length, buffer_size, seed, text_separato
     while buffer:
         first = buffer.pop(rng.randrange(len(buffer)))
         selected = [first]
+        target_count = rng.randint(*merge_count) if merge_count is not None else None
         key = tuple(first[1].get(field) for field in group_by)
         refill()
-        while True:
+        while target_count is None or len(selected) < target_count:
             candidates = [
                 i
                 for i, (_, row, duration) in enumerate(buffer)
@@ -104,7 +107,29 @@ def _iter_random_merge(ds, *, max_audio_length, buffer_size, seed, text_separato
             selected.append(buffer.pop(index))
             refill()
         indices, rows, durations = zip(*selected, strict=True)
-        yield _merge_rows(rows, list(indices), durations, text_separator)
+        yield merge_fn(rows, list(indices), durations, text_separator)
+
+
+def _validate_options(max_audio_length, buffer_size, seed, text_separator, group_by):
+    if (
+        isinstance(max_audio_length, bool)
+        or not isinstance(max_audio_length, Real)
+        or not math.isfinite(max_audio_length)
+        or max_audio_length <= 0
+    ):
+        raise ValueError("random_merge max_audio_length must be positive finite seconds")
+    if isinstance(buffer_size, bool) or not isinstance(buffer_size, int) or buffer_size <= 0:
+        raise ValueError("random_merge buffer_size must be a positive integer")
+    if isinstance(seed, bool) or not isinstance(seed, int):
+        raise ValueError("random_merge seed must be an integer")
+    if not isinstance(text_separator, str):
+        raise ValueError("random_merge text_separator must be a string")
+    if (
+        isinstance(group_by, str)
+        or not isinstance(group_by, SequenceABC)
+        or any(not isinstance(k, str) for k in group_by)
+    ):
+        raise ValueError("random_merge group_by must be a list of field names")
 
 
 def random_merge(
@@ -130,25 +155,7 @@ def random_merge(
     """
     if not enabled:
         return ds
-    if (
-        isinstance(max_audio_length, bool)
-        or not isinstance(max_audio_length, Real)
-        or not math.isfinite(max_audio_length)
-        or max_audio_length <= 0
-    ):
-        raise ValueError("random_merge max_audio_length must be positive finite seconds")
-    if isinstance(buffer_size, bool) or not isinstance(buffer_size, int) or buffer_size <= 0:
-        raise ValueError("random_merge buffer_size must be a positive integer")
-    if isinstance(seed, bool) or not isinstance(seed, int):
-        raise ValueError("random_merge seed must be an integer")
-    if not isinstance(text_separator, str):
-        raise ValueError("random_merge text_separator must be a string")
-    if (
-        isinstance(group_by, str)
-        or not isinstance(group_by, SequenceABC)
-        or any(not isinstance(k, str) for k in group_by)
-    ):
-        raise ValueError("random_merge group_by must be a list of field names")
+    _validate_options(max_audio_length, buffer_size, seed, text_separator, group_by)
     features = ds.features.copy()
     features.pop("gt_output", None)
     features.update(

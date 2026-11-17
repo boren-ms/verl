@@ -6,10 +6,9 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
 import datasets
-from torch.utils.data import Dataset
-
 from recipe.phimm.data.dataset import create_audio_dataset
 from recipe.phimm.utils.audio import set_chunk_load_mode
+from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +35,18 @@ def _prepare_data_confs(config, *, is_train):
             post_process = dict(conf.get("post_process") or {})
             post_process.setdefault("random_segment", dict(config.random_segment))
             conf["post_process"] = post_process
+    if is_train and config.get("random_merge") is not None:
+        for conf in data_confs:
+            pre_process = dict(conf.get("pre_process") or {})
+            pre_process.setdefault("random_merge", dict(config.random_merge))
+            conf["pre_process"] = pre_process
+    for conf in data_confs:
+        pre = conf.get("pre_process") or {}
+        post = conf.get("post_process") or {}
+        merge = pre.get("random_merge")
+        segment = post.get("random_segment")
+        if merge is not None and merge.get("enabled", True) and segment is not None and segment.get("enabled", True):
+            raise ValueError("Random Merge audio lists preserve utterance boundaries; disable random_segment")
     return data_confs
 
 

@@ -1,0 +1,12 @@
+# @package _global_
+# Same materialized rows, segment boundaries and budget as the context run.
+defaults:
+  - remax_earnings_short_random_merge23_context
+  - _self_
+
+asr:
+  # One shared policy for sampled training, ReMax greedy baseline and validation.
+  context_aware: false
+
+trainer:
+  experiment_name: remax_earnings_short_random_merge23_no_context

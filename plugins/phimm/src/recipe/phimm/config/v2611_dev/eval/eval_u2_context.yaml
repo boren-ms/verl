@@ -1,0 +1,33 @@
+# @package _global_
+# The U2 clips decoded in parent order, scored against original full-parent references.
+# Set asr.context_aware=false for a matched independent-decoding control.
+defaults:
+  - eval_base
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2_context@_u2_context
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: ???
+    lora_rank: 0
+
+data:
+  max_audio_dur: null
+  max_prompt_length: 2048
+  val_data:
+    - ${_u2_context}
+
+asr:
+  context_aware: true
+
+reward_map:
+  earnings21_u2_context: val_openasr_en
+  earnings22_u2_context: val_openasr_en
+  coraal_u2_context: val_openasr_en
+  earnings22_cleaned_aa_u2_context: val_openasr_en
+
+trainer:
+  experiment_name: ???
+  nnodes: 2
+  n_gpus_per_node: 8
+  resume_mode: disable

@@ -6,7 +6,7 @@ defaults:
   - /data/val_data/earnings22_verb_langhint@_earning_val
   - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
   - /data/val_data/urgent2024_delta@_urgent_delta
-  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_openlong
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2_full@_openlong
   - /data/val_data/aishell/openasr_zh_hard_top500_2611r2_verb_langhint_zip@_zh_hard_val
   - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
   - /data/train_data/earn_fy27@_earning_train

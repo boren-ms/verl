@@ -10,6 +10,7 @@ import concurrent.futures
 import hashlib
 import json
 import math
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -17,6 +18,7 @@ import yaml
 from datasets import Dataset
 from recipe.phimm.data.dataset import jsonl_dataset, process_ds
 from recipe.phimm.data.random_merge import _iter_random_merge
+from recipe.phimm.data.random_merge_list import random_merge as random_merge_list
 from recipe.phimm.utils.audio import get_audio_duration
 
 DURATION_FIELDS = ("audio_length", "audio_duration_seconds", "duration")
@@ -144,6 +146,7 @@ def run(args):
     root.mkdir(parents=True, exist_ok=True)
     specs = json.loads(Path(args.sources).read_text())
     summaries = {}
+    list_mode = getattr(args, "audio_format", "semicolon") == "list"
     for spec in specs:
         name, conf = spec["name"], spec["config"]
         target = root / name
@@ -159,6 +162,8 @@ def run(args):
         pre.pop("random_merge", None)
         if set(pre) - {"path_map", "rename_fields", "clean_tagged_text"}:
             raise ValueError(f"Unsupported offline input transforms: {list(pre)}")
+        if list_mode and "clean_tagged_text" in pre:
+            pre["clean_tagged_text"] = {**(pre["clean_tagged_text"] or {}), "preserve_existing_keywords": True}
         rows = process_ds(ds, **pre).to_list()
         duration_cache = target / "durations.json"
         cached = json.loads(duration_cache.read_text()) if duration_cache.exists() else {}
@@ -184,7 +189,26 @@ def run(args):
                         print(f"[{name}] durations {i + 1}/{len(rows)}", flush=True)
         finally:
             duration_cache.write_text(json.dumps(cached))
-        output = list(prepare_rows(rows, originals, cap=args.cap, buffer_size=args.buffer_size, seed=args.seed))
+        if list_mode:
+            # Raw normalization and merging precede add_task_info. The generated
+            # datasource formats prompts/references when the trainer loads it.
+            output = random_merge_list(
+                Dataset.from_list(rows),
+                max_audio_length=args.cap,
+                buffer_size=args.buffer_size,
+                seed=args.seed,
+                merge_count=getattr(args, "merge_count", None),
+                default_language=conf.get("add_task_info", {}).get("language"),
+            ).to_list()
+            for row in output:
+                members = [rows[i] for i in row["random_merge_source_indices"]]
+                assert row["audio_path"] == [audio_source(member) for member in members]
+                assert row["text"] == " ".join(member["text"] for member in members)
+                assert row["keywords"] == list(
+                    dict.fromkeys(k for member in members for k in (member.get("keywords") or []))
+                )
+        else:
+            output = list(prepare_rows(rows, originals, cap=args.cap, buffer_size=args.buffer_size, seed=args.seed))
         indices = [i for row in output for i in row["random_merge_source_indices"]]
         if sorted(indices) != list(range(len(rows))):
             raise AssertionError("Source rows lost or duplicated")
@@ -207,6 +231,12 @@ def run(args):
             "cap_seconds_exclusive": args.cap,
             "buffer_size": args.buffer_size,
             "seed": args.seed,
+            "audio_format": "list" if list_mode else "semicolon",
+            "merge_count": getattr(args, "merge_count", None) if list_mode else None,
+            "merge_count_distribution": dict(sorted(Counter(row["random_merge_count"] for row in output).items())),
+            "source_rows_sha256": hashlib.sha256(
+                json.dumps(originals, sort_keys=True, ensure_ascii=False, allow_nan=False).encode()
+            ).hexdigest(),
             "source_manifest": conf["jsonl_paths"],
             "manifest_sha256": hashlib.sha256(manifest.read_bytes()).hexdigest(),
             "audit": {
@@ -256,9 +286,15 @@ def main():
     parser.add_argument("--buffer-size", type=int, default=100)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--workers", type=int, default=16)
+    parser.add_argument("--audio-format", choices=["semicolon", "list"], default="semicolon")
+    parser.add_argument("--merge-count", type=int, nargs=2, metavar=("MIN", "MAX"))
     args = parser.parse_args()
     if not math.isfinite(args.cap) or args.cap <= 0 or args.buffer_size <= 0 or args.workers <= 0:
         parser.error("cap, buffer-size and workers must be positive")
+    if args.merge_count is not None and (
+        args.audio_format != "list" or not 1 <= args.merge_count[0] <= args.merge_count[1]
+    ):
+        parser.error("merge-count requires list format and 1 <= MIN <= MAX")
     run(args)
 
 

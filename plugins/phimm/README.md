@@ -47,6 +47,22 @@ The ASR scorer computes the delta/absolute vote reward. The
 trainer passes the baseline score to the standard ReMax advantage estimator.
 Validation groups and sorts segments before scoring full parent references;
 corpus error rates use summed error/reference counts.
+The default U2 cohort uses
+`openlong_all_2parents_error_2609r2b_u2_full.yaml`: 1,085 unchanged audio clips
+from eight parent recordings, with the original full reference repeated on
+that parent's rows. Grouping metadata is retained, so WER aligns joined new
+outputs against the full reference once per parent. The compatibility U2 and
+context U2 manifests use the same full-reference data. `asr.context_aware`
+controls decoding separately and is not changed by the scoring default.
+Historical independently scored U2 WER is a different metric convention.
+
+The immutable manifests and `manifest_verified.json` can be reproduced without
+loading a model using `python -m recipe.phimm.data.u2_full_reference` on an
+existing node with Blob access (`--dry-run` validates without publication).
+The original inferred text is retained as `legacy_segment_text` for audit.
+Cleaned AA retains its original U2 clips; its two endings precede the canonical
+chunk manifest by 0.692s and 10.956s. Running jobs retain their launch snapshots.
+
 Training and validation pass the same ordered list of raw segment responses
 to the scorer. They share response parsing and text extraction, preserving
 independent boundaries for language/format checks when those measures are
@@ -230,8 +246,109 @@ Without the opt-in config, a listed segment exceeding `max_audio_dur` fails
 instead of silently cropping audio against a full reference. Validation is
 not augmented by the global training option.
 
-Prepare merged parents offline before training. Dataset preprocessing supports
-loading prepared manifests and random segmentation. Use the preparation command:
+### Random Merge: ordered audio lists
+
+Enable the new block with `+asr_training=random_merge`. It adds
+`data.random_merge` to each training source's `pre_process`, after path/text
+normalization and tag cleaning, before task prompts and references are built.
+It enables `asr.context_aware=true`, disables `random_segment`, reserves a
+2048-token prompt budget, and disables audio cropping. Validation is unchanged.
+A source's own `pre_process.random_merge` overrides the global block, including
+`enabled: false`.
+
+```yaml
+# Global settings supplied by +asr_training=random_merge:
+data:
+  random_merge:
+    max_audio_length: 180  # Strict upper bound in seconds per merged parent.
+    buffer_size: 100
+    seed: 42
+    merge_count: [2, 3]  # Uniformly sampled target count; at most 3 whole utterances.
+    text_separator: " "
+    group_by: [data_source, prompt]
+```
+
+A random starting utterance and compatible utterances that fit the cap form
+one parent, up to a uniformly sampled target count in `merge_count` (inclusive).
+Omit `merge_count` for duration-only packing. Packing uses bounded lookahead and chooses the longest fitting
+candidate, with random ties. Every input appears once; a leftover remains a
+singleton list when the buffer or duration cap prevents a pair. The minimum
+count is a target, never a reason to drop a source. Duration uses `audio_length` or audio header metadata; no
+waveform is decoded or rewritten. Inputs must be individual path strings;
+already concatenated or segmented lists are rejected. An input at or above
+the cap raises rather than truncating its reference.
+
+For example, merging two rows produces the following structure (order is the
+sampled audio order):
+
+```json
+{
+  "audio_path": ["A.wav", "B.wav"],
+  "text": "hello bonjour",
+  "keywords": ["Alice", "Paris"],
+  "language": "English French",
+  "components": [
+    {"language": "English", "target_language": "English", "text": "hello"},
+    {"language": "French", "target_language": "French", "text": "bonjour"}
+  ]
+}
+```
+
+The ASR dataset expands this list into two segments, preserving the original
+utterance boundaries. B is decoded with A's generated response as an assistant
+prefix. The full joined text is scored once per trajectory; the prefix is not
+scored twice. Sampled and greedy trajectories retain their own histories.
+Do not combine this block with enabled random segmentation.
+
+Text variants follow the same order, keywords are unioned without duplicates,
+and language names/codes are normalized and unioned. Existing components are
+flattened in order. Missing languages use the source's configured hint, or
+English when no hint is given. Merged language unions survive task formatting;
+`target_only` tasks still select their configured target. To keep packs
+monolingual, include `language` in `group_by`.
+`source_audio_lengths`, `source_languages`, and `random_merge_source_indices`
+align with the audio list. Other producer fields become ordered lists of
+JSON-encoded values; `source_metadata_json` retains complete original rows.
+Stale producer `gt_output` is regenerated from the merged text/components.
+Use `verl_format.extra_keys` for provenance fields needed in rollout details.
+
+Packing changes the number of dataset rows. Mix budgets now count merged
+parents; choose an appropriate budget (for example `epoch: 1` per datasource)
+and training step target for a new experiment. The block clears the inherited
+fixed row/step assertions, without changing existing jobs or their targets.
+
+For a reproducible materialized training set, use the same raw preprocessing
+before task formatting, then load the resulting manifests without merging again:
+
+```bash
+python -m recipe.phimm.data.offline_random_merge \
+  --sources sources.json --output-dir merged_data \
+  --audio-format list --merge-count 2 3 --cap 180 --seed 42
+```
+
+`sources.json` is a list of `{name, config}` source blocks. The command records
+source/manifest hashes, exact-once coverage, duration conservation, count
+distributions and JSONL loader roundtrips. Generated YAML runs `add_task_info`
+on the merged raw metadata. Enabled merging in `post_process` is rejected.
+The `remax_earnings_short_random_merge23_context` Earnings preset uses the
+materialized list dataset, 394 optimizer updates and U2 full-parent references
+with history decoding. This matches the SC1 context run's update budget; audio
+exposure per update differs because a parent contains multiple utterances.
+
+For a matched context-off experiment, use
+`remax_earnings_short_random_merge23_no_context`. It reads the exact same
+materialized manifests and sets `asr.context_aware: false` for sampled training,
+the ReMax greedy baseline AND validation. All three decode with empty assistant
+prefixes. U2 grouping and full-parent references are retained for WER scoring.
+The old preset name `remax_earnings_short_random_merge23_no_train_context` is
+an alias with the same shared policy. There is no separate training override.
+Use only `asr.context_aware` in configurations and CLI overrides.
+
+### Offline packing with concatenated audio
+
+The existing offline preparation command retains its semicolon-based format
+for recipes that concatenate and then resegment audio. Use:
+
 
 ```bash
 python -m recipe.phimm.data.offline_random_merge \

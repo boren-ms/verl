@@ -431,6 +431,27 @@ def test_greedy_baseline_uses_its_own_segment_context(multi_turn_loop, context_e
     assert result["word"] == 0.8
 
 
+@pytest.mark.parametrize("trajectory", ["sampled", "greedy", "validation"])
+@pytest.mark.parametrize("context_enabled", [False, True])
+def test_training_and_validation_share_history_flag(multi_turn_loop, trajectory, context_enabled):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": context_enabled}
+    loop.rollout_config.prompt_length = 512
+    if trajectory == "greedy":
+        loop.run.__globals__["score_response"] = Mock(return_value={"score": 0.5})
+        asyncio.run(loop.greedy_baseline({**rows[0], "asr_segments": rows}))
+    else:
+        validate = trajectory == "validation"
+        outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": not validate}, validate=validate))
+        assert [o.extra_fields["asr_context_prefix"] for o in outputs] == [
+            "",
+            "transcript-900" if context_enabled else "",
+        ]
+    expected_prefix = "transcript-900" if context_enabled else ""
+    second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == rows[1]["frames"])
+    assert second_text.endswith("<|im_start|>assistant\n" + expected_prefix)
+
+
 def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
     loop, rows, _ = multi_turn_loop
     loop.config.asr = {"context_aware": True}
@@ -476,3 +497,89 @@ def test_segments_reject_empty_samples(multi_turn_loop):
     with pytest.raises(ValueError, match="at least one segment"):
         asyncio.run(loop.generate_segments([], {}, validate=False))
     loop.server_manager.generate.assert_not_called()
+
+
+def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent_loop):
+    import json
+
+    from recipe.phimm.agentic.scoring import score_response
+
+    loop = agent_loop["ASRAgentLoop"]()
+    loop.config = OmegaConf.create(
+        {
+            "asr": {"context_aware": True},
+            "data": {"version": 2609},
+            "rewards": {
+                "test": {
+                    "path": "recipe.phimm.reward.asr_eval",
+                    "name": "openasr_en_eval",
+                    "reward_kwargs": {"version": 2609},
+                }
+            },
+        }
+    )
+    outputs = [
+        SimpleNamespace(response_ids=[i], extra_fields={}, metrics=SimpleNamespace(generate_sequences=1.0))
+        for i in range(2)
+    ]
+    calls = []
+
+    async def generate(row, params, *, validate, assistant_prefix=""):
+        calls.append(assistant_prefix)
+        output = outputs[len(calls) - 1]
+        output.extra_fields["asr_context_prefix"] = assistant_prefix
+        return output
+
+    loop.generate_row = generate
+    loop.tokenizer = SimpleNamespace(
+        decode=lambda ids, **kwargs: ["hello", "world"][ids[0]], encode=lambda text, **kwargs: [30]
+    )
+    loop.run.__globals__["score_response"] = score_response
+    rows = [
+        {"data_source": "test", "reward_model": {"ground_truth": "hello world"}, "extra_info": {}} for _ in range(2)
+    ]
+    output = asyncio.run(loop.run({}, asr_validate=True, asr_segments=rows))
+    assert calls == ["", "hello"]
+    info = output.extra_fields["reward_extra_info"]
+    assert info["n_err"] == 0 and info["n_ref"] == 2
+    detail = json.loads(info["asr_detail"])
+    assert detail["context_prefixes"] == ["", "hello"]
+    assert detail["segment_outputs"] == ["hello", "world"]
+
+
+@pytest.mark.parametrize("validate", [False, True])
+def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop, validate):
+    import datasets
+    from recipe.phimm.agentic.dataset import ASRDataset
+    from recipe.phimm.data.dataset import augment
+
+    loop, _, _ = multi_turn_loop
+    raw = datasets.Dataset.from_list(
+        [
+            {"audio_path": path, "text": text, "prompt": "task<audio>", "audio_length": 1.0}
+            for path, text in [("a.wav", "reference a"), ("b.wav", "reference b")]
+        ]
+    )
+    prepared = augment(
+        raw,
+        pre_process={"random_merge": {"max_audio_length": 3}},
+        post_process={"verl_format": {"prompt_key": "prompt"}},
+    )
+    dataset = ASRDataset.__new__(ASRDataset)
+    dataset.ds, dataset.groups, dataset.prompt_key = prepared, None, "prompt"
+    sample = dataset[0]
+    loop.config.asr = {"context_aware": True}
+    loop.rollout_config.prompt_length = 512
+    frames = {"a.wav": 16, "b.wav": 8}
+    loop.generate_segments.__globals__["load_audio"] = lambda row, duration: (frames[row["audio_path"]], 16000)
+    outputs, texts = asyncio.run(loop.generate_segments(sample["asr_segments"], {}, validate=validate))
+    assert len(outputs) == 2
+    assert [out.extra_fields["asr_context_prefix"] for out in outputs] == ["", texts[0]]
+    requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
+    assert [request["audio_data"][0][0] for request in requests] == [frames[path] for path in sample["audio_path"]]
+    assert requests[1]["prompt_ids"] == loop.tokenizer.encode(
+        loop.processor.apply_chat_template(sample["prompt"], add_generation_prompt=True) + texts[0]
+    )
+    assert sample["reward_model"]["ground_truth"] == " ".join(
+        "reference a" if path == "a.wav" else "reference b" for path in sample["audio_path"]
+    )

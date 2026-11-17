@@ -1,0 +1,11 @@
+# @package _global_
+# Same data and controls; shared switch disables history in train and decoding.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_context
+  - _self_
+
+asr:
+  context_aware: false
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_no_context

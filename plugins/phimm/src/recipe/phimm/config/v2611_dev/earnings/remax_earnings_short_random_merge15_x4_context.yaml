@@ -1,0 +1,16 @@
+# @package _global_
+# Same 800-update controls as the x4 pair/triple run; random 1-5 whole utterances.
+defaults:
+  - remax_earnings_short_random_merge23_x4_context
+  - /data/train_data/earnings_short_random_merge15_x4_context@_random_merge15_x4_train
+  - _self_
+
+data:
+  train_data:
+    - ${_random_merge15_x4_train}
+
+trainer:
+  experiment_name: remax_earnings_short_random_merge15_x4_context
+
+asr:
+  context_aware: true

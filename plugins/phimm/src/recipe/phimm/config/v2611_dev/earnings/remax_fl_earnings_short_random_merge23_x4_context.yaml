@@ -1,0 +1,26 @@
+# @package _global_
+# FL + Earnings Short, offline 2-3 utterance merges, fourfold parent count.
+defaults:
+  - remax_earnings_short_random_merge23_x4_context
+  - /data/train_data/foreign/fl_earnings_short_random_merge23_x4_no_target_only@_fl_earnings_merge23_x4_train
+  - _self_
+
+data:
+  train_data:
+    - ${_fl_earnings_merge23_x4_train}
+  # Include the combined FL partition once; retain its empty English targets.
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, epoch: 1, shuffle: true}
+        - {name: quartr_1st23, epoch: 1, shuffle: true}
+        - {name: quartr_2nd48, epoch: 1, shuffle: true}
+        - {name: quartr_3rd38, epoch: 1, shuffle: true}
+        - {name: quartr_fl_segments, epoch: 1, shuffle: true}
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_context
+
+asr:
+  context_aware: true
+  expected_training_rows: 111888

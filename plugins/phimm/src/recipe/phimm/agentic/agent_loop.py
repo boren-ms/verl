@@ -95,6 +95,8 @@ class ASRAgentLoop(AgentLoopBase):
         rows = row.get("asr_segments") or [row]
         # A greedy trajectory conditions on its own earlier outputs, matching
         # the sampled trajectory's context policy without sharing its history.
+        # validate=True selects greedy decoding limits. History uses the same
+        # asr.context_aware flag in sampled training, greedy training and validation.
         _, texts = await self.generate_segments(rows, params, validate=True)
         text = "\n".join(texts)
         info = copy.deepcopy(row.get("extra_info") or {})

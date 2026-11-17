@@ -11,6 +11,7 @@ import pyarrow as pa
 import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
 from recipe.phimm.data.prompts import get_task_output, get_task_prompt, resolve_language
+from recipe.phimm.data.random_merge_list import random_merge
 from recipe.phimm.data.random_segment import random_segment
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import (
@@ -150,7 +151,9 @@ def clean_tagged_text(ds, **kwargs):
 
     def clean_text(egs):
         text = get_value(egs, src_field, "") or ""
-        keywords = []
+        keywords = (
+            list(dict.fromkeys(egs.get(tgt_field) or [])) if kwargs.get("preserve_existing_keywords", False) else []
+        )
         tagged_values = [
             (match.start(), match.group(2) or match.group(4)) for match in paired_tag_pattern.finditer(text)
         ]
@@ -285,6 +288,7 @@ def process_ds(ds, **kwargs):
     map_kwargs = pop_map_kwargs(kwargs)
     unsupported = set(kwargs) - {
         "random_segment",
+        "random_merge",
         "input_egs_limit",
         "path_map",
         "rename_fields",
@@ -295,6 +299,10 @@ def process_ds(ds, **kwargs):
     }
     if unsupported:
         raise ValueError(f"Unsupported Base3a data transforms: {sorted(unsupported)}")
+    merge = kwargs.get("random_merge")
+    segment = kwargs.get("random_segment")
+    if merge is not None and merge.get("enabled", True) and segment is not None and segment.get("enabled", True):
+        raise ValueError("Random Merge audio lists preserve utterance boundaries; disable random_segment")
     if input_egs_limit := kwargs.get("input_egs_limit", None):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
     if path_map_kwargs := kwargs.get("path_map", {}):
@@ -302,8 +310,12 @@ def process_ds(ds, **kwargs):
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
     if "clean_tagged_text" in kwargs:
-        clean_tagged_text_kwargs = kwargs.get("clean_tagged_text") or {}
+        clean_tagged_text_kwargs = dict(kwargs.get("clean_tagged_text") or {})
+        if merge is not None and merge.get("enabled", True):
+            clean_tagged_text_kwargs.setdefault("preserve_existing_keywords", True)
         ds = clean_tagged_text(ds, **merge_kwargs(map_kwargs, clean_tagged_text_kwargs))
+    if "random_merge" in kwargs:
+        ds = random_merge(ds, **dict(kwargs["random_merge"] or {}))
     if "cache_audio" in kwargs:
         cache_audio_kwargs = kwargs.get("cache_audio") or {}
         ds = cache_audio(ds, **merge_kwargs(map_kwargs, cache_audio_kwargs))
@@ -395,7 +407,12 @@ def add_task_info(ds, *, style="verb", language=None, lang_hint=False, target_on
         raise ValueError("target_only requires one known language")
 
     def add_info(row):
-        lang = resolve_language(language or row.get("language") or "English")
+        # A merged list can contain multiple spoken languages. The configured
+        # source hint filled missing languages before merging; retain the union
+        # here, except when the task explicitly selects one target language.
+        merged_list = row.get("random_merge_count") is not None and isinstance(row.get("audio_path"), list)
+        hint = row.get("language") if merged_list and not target_only else language
+        lang = resolve_language(hint or row.get("language") or "English")
         return {
             "prompt": get_task_prompt(style=style, language=lang, target_only=target_only, lang_hint=lang_hint),
             "gt_output": get_task_output(
@@ -413,8 +430,16 @@ def add_task_info(ds, *, style="verb", language=None, lang_hint=False, target_on
 
 def augment(ds, **kwargs):
     """Augment the dataset with additional information."""
+    post_merge = (kwargs.get("post_process") or {}).get("random_merge")
+    if post_merge is not None and post_merge.get("enabled", True):
+        raise ValueError("Random Merge must run in pre_process before add_task_info, not post_process")
     map_kwargs = pop_map_kwargs(kwargs)
     if pre_process_kwargs := kwargs.get("pre_process", {}):
+        pre_process_kwargs = dict(pre_process_kwargs)
+        if "random_merge" in pre_process_kwargs:
+            options = dict(pre_process_kwargs["random_merge"] or {})
+            options.setdefault("default_language", (kwargs.get("add_task_info") or {}).get("language"))
+            pre_process_kwargs["random_merge"] = options
         ds = process_ds(ds, **merge_kwargs(map_kwargs, pre_process_kwargs))
     if "mask_foreign_language" in kwargs:
         mask_kwargs = kwargs.get("mask_foreign_language") or {}

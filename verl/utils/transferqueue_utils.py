@@ -34,6 +34,10 @@ from tensordict import TensorDict
 
 try:
     import transfer_queue as tq
+
+    from verl.utils.transferqueue_namespace import configure_transfer_queue_namespace
+
+    configure_transfer_queue_namespace()
     from transfer_queue import (
         BatchMeta,
         KVBatchMeta,

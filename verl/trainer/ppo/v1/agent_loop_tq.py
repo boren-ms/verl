@@ -52,6 +52,9 @@ async def _settle_session_tasks(tasks: list[asyncio.Task[Any]]) -> list[BaseExce
 class AgentLoopWorkerTQBase(AgentLoopWorker):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        from verl.utils.transferqueue_namespace import configure_transfer_queue_namespace
+
+        configure_transfer_queue_namespace()
         tq.init()
         self.background_tasks = set()
 
