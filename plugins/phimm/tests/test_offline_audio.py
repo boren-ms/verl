@@ -10,7 +10,6 @@ from recipe.phimm.data.dataset import augment, jsonl_dataset
 from recipe.phimm.tools.offline_audio import materialize
 from recipe.phimm.tools.random_merge_list import random_merge
 from recipe.phimm.tools.random_segment import random_segment
-from recipe.phimm.utils.offline_data import require_prepared_audio
 
 
 @pytest.mark.parametrize("mode", ["random_segment", "random_merge"])
@@ -44,12 +43,9 @@ def test_offline_snapshot_reloads_and_preserves_task_order(tmp_path, mode):
         }
     )
     before = OmegaConf.to_container(config, resolve=True)
-    with pytest.raises(ValueError, match="requires offline audio preparation"):
-        require_prepared_audio(config)
     out = tmp_path / "prepared"
     snapshot = materialize(config, out)
     assert OmegaConf.to_container(config, resolve=True) == before
-    require_prepared_audio(snapshot)
     assert "offline_data" not in snapshot
     with initialize_config_dir(config_dir=str(out), version_base=None):
         loaded = compose(config_name="training")
@@ -127,8 +123,3 @@ def test_generation_is_not_available_as_a_training_transform(mode, stage):
 
     with pytest.raises(ValueError, match="Unsupported Base3a data transforms"):
         augment(Dataset.from_list([{"audio_path": "a.wav"}]), **{stage: {mode: {}}})
-
-
-def test_validation_only_does_not_require_training_materialization():
-    config = OmegaConf.create({"trainer": {"val_only": True}, "offline_data": {"random_segment": {}}})
-    require_prepared_audio(config)

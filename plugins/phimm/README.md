@@ -198,9 +198,9 @@ settings, counts and hashes. The tool applies raw path/text normalization,
 generates the audio lists, then saves rows **before** task information,
 foreign-language masking and prompt/reference formatting. Those steps still
 run when training loads the prepared rows. Validation inputs, optimizer
-budgets, and `asr.context_aware` are preserved. Direct training with an active
-offline generation plan raises an actionable error; validation-only runs can
-still use those presets.
+budgets, and `asr.context_aware` are preserved. Prepare new datasets with this
+tool before training, then launch the generated snapshot or update the preset
+to read the prepared manifests directly.
 
 Use a directory accessible on all training nodes. `--blob-root az://...`
 sets emitted manifest URIs; upload the generated JSONL files separately before
