@@ -1,0 +1,19 @@
+# @package _global_
+# SC baseline segmentation with colocated async, batch size 64 and four PPO epochs.
+# Keep two training epochs: floor(55,664 / 64) * 2 = 1,738 trainer steps.
+
+defaults:
+- remax_main_base3a_2611r2_async@_global_
+- /data/train_data/offline_audio/main_base3a_2611r2_sc@_offline_train_68325e50c4
+- _self_
+actor_rollout_ref:
+  actor:
+    ppo_epochs: 4
+data:
+  train_batch_size: 64
+  max_audio_dur: null
+  train_data: ${_offline_train_68325e50c4}
+trainer:
+  experiment_name: remax_main_base3a_2611r2_async_sc_bs64_ppo4
+asr:
+  expected_training_steps: 1738

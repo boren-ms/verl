@@ -1,0 +1,47 @@
+# @package _global_
+# Standard Quartr FL plus the full Earnings Short mix; all data uses English language hints.
+# Quartr FL is sampled 5x: 2,732 x 5 = 13,660 samples per epoch.
+# 38,900 rows / batch128 = 303 full batches; one epoch = 303 updates.
+defaults:
+  - remax_foreign_quartr_fl@_global_
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/train_data/quartr_3rd38@_quartr_third38_train
+  - /data/val_data/foreign/openlong_u2@_openlong_u2_val
+  - _self_
+
+data:
+  train_batch_size: 128
+  val_data:
+    - ${_openlong_foreign_val}
+    - ${_openlong_u2_val}
+  train_data:
+    - ${_quartr_fl_train}
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: quartr_fl_segments, sample: 13660, shuffle: true}
+        - {name: earn_fy27, sample: 9568, shuffle: true}
+        - {name: quartr_1st23, sample: 3125, shuffle: true}
+        - {name: quartr_2nd48, sample: 6392, shuffle: true}
+        - {name: quartr_3rd38, sample: 6155, shuffle: true}
+
+reward_map:
+  earn_fy27: train_librispeech
+  quartr_1st23: train_librispeech
+  quartr_2nd48: train_librispeech
+  quartr_3rd38: train_librispeech
+
+trainer:
+  experiment_name: remax_foreign_quartr_fl_earnings
+  total_epochs: 1
+  total_training_steps: 303
+
+asr:
+  expected_training_rows: 38900
+  expected_training_steps: 303

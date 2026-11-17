@@ -4,7 +4,6 @@
   jsonl_paths: az://orngwus2cresco/data/speech/users/boren/foreign_language_mixed_10k_5bf59b28a713b14b/mixed_noen_en_10k.jsonl
   add_task_info:
     style: verb
-    target_only: true
     language: English
     lang_hint: true
   post_process:

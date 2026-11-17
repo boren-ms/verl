@@ -1,0 +1,18 @@
+# @package _global_
+# Earnings-only short-form SC2: exactly three segments with random cuts.
+
+defaults:
+- base_earning
+- /data/train_data/offline_audio/earnings_short_sc2@_offline_train_3ba3264891
+- _self_
+data:
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, sample: 9568, shuffle: true}
+        - {name: quartr_1st23, sample: 3125, shuffle: true}
+        - {name: quartr_2nd48, sample: 6392, shuffle: true}
+        - {name: quartr_3rd38, sample: 6155, shuffle: true}
+  train_data: ${_offline_train_3ba3264891}
+trainer:
+  experiment_name: remax_earnings_short_sc2

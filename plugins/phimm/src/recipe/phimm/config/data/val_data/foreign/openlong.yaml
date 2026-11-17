@@ -1,4 +1,4 @@
-# Base1 validation: all three sources use target_only=true.
+# Base1 validation: English language hints for all three sources.
 # This data config is self-contained and does not depend on recipe-level aliases.
 
 # All 184 segments of one Earnings22 parent, scored with its full-parent reference.
@@ -7,7 +7,6 @@
   val_batch_size: -1
   add_task_info: &target_language_task
     style: verb
-    target_only: true
     language: English
     lang_hint: true
   post_process:

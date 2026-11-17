@@ -1,0 +1,12 @@
+# @package _global_
+# SC baseline with synchronous training and exactly two randomly cut segments.
+
+defaults:
+- ../main/remax_main_base3a_2611r2
+- /data/train_data/offline_audio/main_base3a_2611r2_sc1a@_offline_train_320d12db27
+- _self_
+data:
+  train_data: ${_offline_train_320d12db27}
+  max_audio_dur: null
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sc1a

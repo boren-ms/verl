@@ -149,7 +149,7 @@ Select them with `--config-path config/v2611_dev/rand_segment` and `--config-nam
 - `remax_main_base3a_2611r2_sl4`: `segment_len: [2, 10]` seconds.
 
 These presets inherit `main/remax_main_base3a_2611r2.yaml`, disable duration
-cropping, and load prepared offline manifests directly. All 35 concrete segment
+cropping, and load prepared offline manifests directly. All 40 concrete segment
 presets, including Earnings/FL, async, long-form, merge-then-segment and
 continuation variants, use the datasource groups in
 `config/data/train_data/offline_audio/`. Identical datasets share a group;
@@ -163,6 +163,12 @@ available under:
 ```text
 az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/<task>/source_000.jsonl.gz
 ```
+
+The SC2, SC2a, FL5, synchronous SC1a and async SC/batch64/PPO4 recipes
+also use prepared data. Shared variants reuse existing manifests; additional
+partitions are published under
+`az://orngwus2cresco/data/boren/data/Training/offline_audio_main_merge_20261117_v1/`.
+FL5 retains its minimum of two segments, including for short recordings.
 
 Every generated training row was compared with the former online processing
 order. Uploaded manifests were downloaded and checked against both compressed
@@ -355,9 +361,8 @@ Do not combine this block with enabled random segmentation.
 Text variants follow the same order, keywords are unioned without duplicates,
 and language names/codes are normalized and unioned. Existing components are
 flattened in order. Missing languages use the source's configured hint, or
-English when no hint is given. Merged language unions survive task formatting;
-`target_only` tasks still select their configured target. To keep packs
-monolingual, include `language` in `group_by`.
+English when no hint is given. Merged language unions survive task formatting.
+To keep packs monolingual, include `language` in `group_by`.
 `source_audio_lengths`, `source_languages`, and `random_merge_source_indices`
 align with the audio list. Other producer fields become ordered lists of
 JSON-encoded values; `source_metadata_json` retains complete original rows.

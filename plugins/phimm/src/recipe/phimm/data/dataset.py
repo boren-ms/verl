@@ -315,14 +315,12 @@ def process_ds(ds, **kwargs):
 
 
 def mask_foreign_language(ds, *, task_info, **kwargs):
-    """Mask foreign speech for verbatim language-hint or target-only examples.
+    """Mask foreign speech for verbatim language-hint examples.
 
     Mixed-language rows require ordered, language-labelled components covering
     the original text; the block never guesses language boundaries.
     """
-    if task_info.get("style", "verb") != "verb" or not (
-        task_info.get("lang_hint", False) or task_info.get("target_only", False)
-    ):
+    if task_info.get("style", "verb") != "verb" or not task_info.get("lang_hint", False):
         return ds
     hint = task_info.get("language")
     if not hint:
@@ -387,26 +385,23 @@ def mask_foreign_language(ds, *, task_info, **kwargs):
     return ds.map(transform, **pop_map_kwargs(kwargs), desc="Masking foreign-language speech")
 
 
-def add_task_info(ds, *, style="verb", language=None, lang_hint=False, target_only=False, **kwargs):
+def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs):
     """Add the prompt, formatted output, and resolved language without changing text."""
-    if target_only and not language:
-        raise ValueError("target_only requires one known language")
 
     def add_info(row):
         # A merged list can contain multiple spoken languages. The configured
         # source hint filled missing languages before merging; retain the union
-        # here, except when the task explicitly selects one target language.
+        # here when constructing the language hint and formatted reference.
         merged_list = row.get("random_merge_count") is not None and isinstance(row.get("audio_path"), list)
-        hint = row.get("language") if merged_list and not target_only else language
+        hint = row.get("language") if merged_list else language
         lang = resolve_language(hint or row.get("language") or "English")
         return {
-            "prompt": get_task_prompt(style=style, language=lang, target_only=target_only, lang_hint=lang_hint),
+            "prompt": get_task_prompt(style=style, language=lang, lang_hint=lang_hint),
             "gt_output": get_task_output(
                 style=style,
                 language=lang,
                 text=row.get("text", ""),
                 components=row.get("components"),
-                target_only=target_only,
             ),
             "language": lang,
         }

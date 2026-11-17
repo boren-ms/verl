@@ -3,8 +3,10 @@
 import json
 from pathlib import Path
 
+import pytest
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
+from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.data.dataset import create_audio_dataset
 
 
@@ -17,12 +19,11 @@ def load_config(name="remax_foreign_base1_2611r2"):
     return config
 
 
-def test_quartr_fl_recipe_uses_target_only_data_and_foreign_validation():
+def test_quartr_fl_recipe_uses_language_hints_and_foreign_validation():
     config = load_config("remax_foreign_quartr_fl")
     assert len(config.data.train_data) == 1
     source = config.data.train_data[0][0]
     assert source.jsonl_paths.endswith("/quartr_fl_segments.jsonl")
-    assert source.add_task_info.target_only is True
     assert source.add_task_info.language == "English"
     assert source.pre_process.clean_tagged_text == {}
     assert source.post_process.add_field.fields.data_source == "quartr_fl_segments"
@@ -67,7 +68,6 @@ def test_base1_preserves_mix_and_validation_routing():
         for source in group:
             name = source.post_process.add_field.fields.data_source
             assert source.add_task_info.style == "verb"
-            assert source.add_task_info.target_only is True
             if name != "enhint_noen":
                 assert config.reward_map[name] == "val_openasr_en"
     assert len(config.data.train_data) == 2
@@ -78,8 +78,17 @@ def test_base1_preserves_mix_and_validation_routing():
     ]
 
 
-def test_all_effective_data_configs_load_and_preserve_parent_metadata(tmp_path):
-    config = load_config()
+@pytest.mark.parametrize(
+    "name",
+    [
+        "remax_foreign_base1_2611r2",
+        "remax_foreign_quartr_fl",
+        "remax_foreign_quartr_fl_earnings",
+        "remax_foreign_quartr_fl_earnings_ppo2",
+    ],
+)
+def test_all_effective_data_configs_load_and_preserve_parent_metadata(tmp_path, name):
+    config = load_config(name)
     for split in ("train_data", "val_data"):
         for group in config.data[split]:
             for source in group:
@@ -89,6 +98,8 @@ def test_all_effective_data_configs_load_and_preserve_parent_metadata(tmp_path):
                     "id": "example",
                     "audio_path": "audio.wav",
                     "text": "Bonjour" if masked else "Hello",
+                    "display": "Hello",
+                    "display_ne_tagged": "Hello",
                     "language": "fr" if masked else "en_fr",
                     "data_source": "foreign_1k",
                     "source_language": "fr",
@@ -106,7 +117,29 @@ def test_all_effective_data_configs_load_and_preserve_parent_metadata(tmp_path):
                 kwargs["jsonl_paths"] = str(path)
                 result = create_audio_dataset(**kwargs)[0]
                 assert result["extra_info"]["language"] == "English"
+                assert "Only include speech" not in result["prompt"][0]["content"]
                 assert result["reward_model"]["ground_truth"] == ("<foreign_language>" if masked else "Hello")
                 if result["data_source"] == "earnings22_parent4":
                     assert result["extra_info"]["parent_audio_path"] == "parent.wav"
                     assert result["extra_info"]["n_segments"] == 184
+
+
+def test_foreign_validation_sources_combine_with_parent_metadata(tmp_path):
+    config = load_config("remax_foreign_quartr_fl")
+    for group in config.data.val_data:
+        for source in group:
+            name = source.post_process.add_field.fields.data_source
+            row = {"id": name, "audio_path": "audio.wav", "text": "Hello", "language": "en"}
+            if name == "earnings22_parent4":
+                row.update(parent_audio_path="parent.wav", seg_index=0, n_segments=1, seg_start=0.0, seg_end=1.0)
+            path = tmp_path / f"{name}.jsonl"
+            path.write_text(json.dumps(row) + "\n")
+            source.jsonl_paths = str(path)
+    ds = ASRDataset(config.data.val_files, None, config.data)
+    assert len(ds) == len(ds.ds) == 3
+    by_source = {row["data_source"]: row for row in ds.ds}
+    assert by_source["earnings22_parent4"]["extra_info"]["n_segments"] == 1
+    assert by_source["earnings22_parent4"]["extra_info"]["parent_audio_path"] == "parent.wav"
+    for name in ("enhint_en", "enhint_noen"):
+        assert by_source[name]["extra_info"]["n_segments"] is None
+        assert by_source[name]["extra_info"]["parent_audio_path"] is None

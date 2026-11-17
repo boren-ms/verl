@@ -415,3 +415,46 @@ def test_jsonl_loading_reads_updated_manifest_without_dataset_disk_cache(tmp_pat
     assert create_audio_dataset(dataset_name="jsonl", jsonl_paths=str(path))[0]["text"] == "first revision"
     path.write_text(json.dumps({"text": "second revision"}) + "\n")
     assert create_audio_dataset(dataset_name="jsonl", jsonl_paths=str(path))[0]["text"] == "second revision"
+
+
+@pytest.mark.parametrize(
+    "kind, name, mode, bounds",
+    [
+        ("earnings", "remax_earnings_short_sc2", "segment_count", [3, 3]),
+        ("earnings", "remax_earnings_short_sc2a", "segment_count", [1, 3]),
+        ("earnings", "remax_earnings_short_fl5", "segment_len", [2, 30]),
+        ("rand_segment", "remax_main_base3a_2611r2_sc1a", "segment_count", [2, 2]),
+        ("async", "remax_main_base3a_2611r2_async_sc_bs64_ppo4", "segment_count", [1, 2]),
+    ],
+)
+def test_merged_segment_recipes_load_their_prepared_partitions(compose_recipe, kind, name, mode, bounds):
+    import recipe.phimm
+    from recipe.phimm.agentic.dataset import _flatten_data_confs, _prepare_data_confs
+
+    config = compose_recipe(kind=kind, name=name)
+    base = (
+        compose_recipe(kind="earnings", name="remax_earnings_short_baseline")
+        if kind == "earnings"
+        else compose_recipe()
+    )
+    OmegaConf.resolve(config)
+    registry_path = Path(recipe.phimm.__file__).parent / "config/data/train_data/offline_audio/preparation.json"
+    registry = json.loads(registry_path.read_text())
+    preparation = next(entry for entry in registry["configs"] if entry["name"] == name)
+    assert preparation["options"][mode] == bounds
+    assert not preparation["options"]["even_split"]
+    if name.endswith("fl5"):
+        assert preparation["options"]["min_segments"] == 2
+    assert "offline_data" not in config
+    assert config.data.get("random_segment") is None
+    assert config.data.get("random_merge") is None
+    sources = _prepare_data_confs(config.data, is_train=True)
+    assert [source["jsonl_paths"] for source in sources] == [
+        registry["tasks"][task]["uri"] for task in preparation["tasks"]
+    ]
+    assert all(not source.get("pre_process") for source in sources)
+    assert all(registry["tasks"][task]["remote_readback_verified"] for task in preparation["tasks"])
+    assert config.data.mix == base.data.mix
+    assert config.data.val_data == base.data.val_data
+    assert len(sources) == len(list(_flatten_data_confs(base.data.train_data)))
+    assert config.data.max_audio_dur is None
