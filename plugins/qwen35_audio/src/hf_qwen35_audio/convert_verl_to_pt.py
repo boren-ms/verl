@@ -97,8 +97,9 @@ def _resolve_actor_dir(input_dir: str) -> str:
     actor = input_dir.rstrip("/") + "/actor"
     if _is_remote(input_dir):
         import blobfile as bf
-        # peek at one expected file
-        if bf.exists(actor + "/model_world_size_8_rank_0.pt") or any(
+        # Native SFT stores shards directly at the step root. BlobFile raises
+        # when listing an absent actor directory, unlike a local Path probe.
+        if bf.isdir(actor) and any(
             SHARD_RE.search(p) for p in bf.listdir(actor)
         ):
             return actor
@@ -176,7 +177,10 @@ def _merge_by_placement(tensors: list[torch.Tensor], placement) -> torch.Tensor:
     raise NotImplementedError(f"Unsupported placement: {placement}")
 
 
-def _load_and_merge(shard_paths: list[str], workers: int = 8) -> "OrderedDict[str, torch.Tensor]":
+def _load_and_merge(
+    shard_paths: list[str], workers: int = 8, *, preserve_lora_precision: bool = False
+) -> "OrderedDict[str, torch.Tensor]":
+    """Reconstruct shards, optionally retaining source adapter precision until merge."""
     total = len(shard_paths)
     shard_state_dicts: list = [None] * total
 
@@ -209,10 +213,13 @@ def _load_and_merge(shard_paths: list[str], workers: int = 8) -> "OrderedDict[st
     for key in tqdm(keys, desc="Merging tensors"):
         tensors: list[torch.Tensor] = []
         placements = None
+        adapter = _LORA_RE.match(key)
+        preserve_source = preserve_lora_precision and adapter is not None and adapter.group("tail") == "weight"
         for r in range(total):
             t = shard_state_dicts[r].pop(key)
             if isinstance(t, DTensor):
-                tensors.append(t._local_tensor.to(torch.bfloat16))
+                local = t._local_tensor
+                tensors.append(local if preserve_source else local.to(torch.bfloat16))
                 ps = tuple(t.placements)
                 if mesh_dim_names[0] in ("dp", "ddp"):
                     ps = ps[1:]
@@ -221,7 +228,7 @@ def _load_and_merge(shard_paths: list[str], workers: int = 8) -> "OrderedDict[st
                 elif placements != ps:
                     raise RuntimeError(f"Placement mismatch for {key}")
             else:
-                tensors.append(t.to(torch.bfloat16))
+                tensors.append(t if preserve_source else t.to(torch.bfloat16))
 
         if placements is not None:
             if len(placements) != 1:
@@ -397,6 +404,9 @@ def main():
                     help="Produce a 'lora_merged' style checkpoint: merge LoRA adapters "
                          "into base weights, wrap LoRA-target linears with .base_layer.weight, "
                          "and save the state_dict at the top level (no 'module' wrapper).")
+    ap.add_argument("--preserve-lora-precision", action="store_true",
+                    help="Keep source LoRA A/B precision until the FP32 merge; base/output remain BF16. "
+                         "Requires --match-lora-merged. Default retains historical pre-merge BF16 conversion.")
     ap.add_argument("--lora-scaling", type=float, default=None,
                     help="LoRA scaling factor = alpha/rank. If unset, derived from "
                          "--lora-alpha/--lora-rank, else defaults to 1.0.")
@@ -405,6 +415,8 @@ def main():
     ap.add_argument("--lora-rank", type=int, default=None,
                     help="LoRA rank (used to compute scaling if --lora-scaling unset).")
     args = ap.parse_args()
+    if args.preserve_lora_precision and not args.match_lora_merged:
+        ap.error("--preserve-lora-precision requires --match-lora-merged")
 
     actor_dir = _resolve_actor_dir(args.input)
     print(f"[1/4] Actor checkpoint dir: {actor_dir}")
@@ -431,7 +443,9 @@ def main():
 
     shard_paths = [p for _, _, p in shards]
     print("[3/4] Merging FSDP shards")
-    state_dict = _load_and_merge(shard_paths, workers=args.workers)
+    state_dict = _load_and_merge(
+        shard_paths, workers=args.workers, preserve_lora_precision=args.preserve_lora_precision
+    )
 
     if not args.no_remap:
         before = len(state_dict)
