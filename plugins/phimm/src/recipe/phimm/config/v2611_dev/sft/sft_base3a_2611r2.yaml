@@ -1,0 +1,63 @@
+# @package _global_
+# Teacher-forced Qwen3.5-Audio SFT with the exact Base3a data mix.
+
+defaults:
+  - /sft_trainer_engine
+  - /data/base3a@_global_
+  - _self_
+
+model:
+  path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+  external_lib: hf_qwen35_audio
+  enable_gradient_checkpointing: false
+  # Keep separate sequence masks through the audio wrapper's forward call.
+  use_remove_padding: false
+  lora_rank: 320
+  lora_alpha: 640
+  target_modules: model.layers.*(gate_proj|up_proj|down_proj|q_proj|k_proj|v_proj|o_proj|in_proj_qkv|out_proj).*
+  exclude_modules: model.embed_tokens_extend.*
+
+engine:
+  strategy: fsdp2
+  param_offload: true
+  optimizer_offload: true
+  use_orig_params: true
+  use_torch_compile: false
+
+optim:
+  lr: 6.0e-07
+  lr_warmup_steps: 0
+  lr_scheduler_type: constant
+
+data:
+  train_files: __asr_train__
+  val_files: __asr_val__
+  custom_cls:
+    path: pkg://recipe.phimm.sft.dataset
+    name: ASRSFTDataset
+  version: 2609
+  prompt_key: prompt
+  train_batch_size: 128
+  micro_batch_size_per_gpu: 4
+  max_token_len_per_gpu: 8192
+  max_length: 8192
+  pad_mode: no_padding
+  truncation: error
+  max_audio_dur: 40
+  # Validation keeps full reference audio, including multi-part audio paths.
+  val_max_audio_dur: null
+  chunk_load_mode: indexed
+  random_segment: null
+  num_workers: 1
+
+trainer:
+  project_name: v2611
+  experiment_name: sft_base3a_2611r2
+  total_epochs: 2
+  nnodes: 2
+  n_gpus_per_node: 8
+  save_freq: 10
+  test_freq: 20
+  max_ckpt_to_keep: 2
+  # The ASR SFT handler publishes every rank and commits the tracker last.
+  default_hdfs_dir: az://orngwus2cresco/data/boren/outputs/${trainer.project_name}/${trainer.experiment_name}
