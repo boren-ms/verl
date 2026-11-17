@@ -1,0 +1,15 @@
+# Shared First23 partition of the complete Earnings Short contiguous dataset.
+# 3,125 original utterances -> 3,125 samples from 23 recordings.
+# Provenance: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_20261117_v1/source_002/preparation.json
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_20261117_v1/source_002/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23
+    verl_format:
+      prompt_key: prompt

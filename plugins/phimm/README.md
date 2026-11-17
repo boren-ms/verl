@@ -396,6 +396,74 @@ The old preset name `remax_earnings_short_random_merge23_no_train_context` is
 an alias with the same shared policy. There is no separate training override.
 Use only `asr.context_aware` in configurations and CLI overrides.
 
+### Offline consecutive utterance windows
+
+`offline_contiguous_merge` builds deterministic overlapping windows of two or
+three utterances from the same original recording. It groups by
+`original_audio_url` and orders clips by `start_seconds + part_start_seconds`.
+For FY27 Earnings batches without timestamps, `--order-by auto` groups by the
+recording name in `id` and sorts numeric `_segN`/`_partN` suffixes. It uses
+timestamps whenever those fields are supplied. Missing segment numbers remain
+gaps in the source; no missing utterances or timestamps are invented.
+Each recording contributes exactly as many merged samples as original rows;
+neighboring utterances are reused, but complete windows are unique. Groups
+with fewer than three rows are rejected because they cannot satisfy both
+the sample budget and unique-window constraint.
+
+```bash
+PYTHONPATH=plugins/phimm/src:plugins/qwen35_audio/src:. \
+uv run --no-project python -m recipe.phimm.tools.offline_contiguous_merge \
+  --source-config plugins/phimm/src/recipe/phimm/config/data/train_data/quartr_1st23.yaml \
+  --output-dir /tmp/quartr_first23_contiguous23
+```
+
+Raw path/text normalization runs before merging and task information is added
+when training loads the result. `audio_path` is a list; references and language
+components follow that list, keywords are a stable union, and source IDs,
+timestamps and original records remain available for auditing. Consecutive
+means neighboring transcribed clips; silence gaps in the original recording
+are not inserted between files. No audio bytes are rewritten.
+
+The full prepared datasource is
+`data/train_data/offline_audio/earnings_short_contiguous23.yaml`. It contains
+both FY27 Earnings batches and Quartr First23, Second48 and Final38: 25,240
+original utterances from 180 recordings produce exactly 25,240 merged samples.
+Each source and each recording retains its original sample count. The
+standalone `quartr_1st23_contiguous23.yaml` shares the First23 partition of this
+bundle. The paired training presets select all five prepared manifests,
+retaining the original mix, full-reference U2 validation, batch128 and
+394-step budget.
+
+All Earnings presets inherit from `base_earning.yaml`, directly or through
+another Earnings preset. This shared base inherits from `../base.yaml` and
+defines the Earnings checkpoint, rewards and U2 validation without importing
+or selecting training data. Each experiment selects its own training sources
+and sampling mix. The long-form presets also define their own training budget.
+
+The paired multi-segment ReMax presets are
+`remax_earnings_short_contiguous23_context` and
+`remax_earnings_short_contiguous23_no_context` under `config/v2611_dev/earnings/`.
+They share all five prepared sources and the same ReMax recipe (`n=8`), and set
+`asr.context_aware` to true/false across sampled rollout, greedy baseline and
+validation. Both retain ordered 2/3-utterance lists and full-parent U2 scoring;
+the context-off preset decodes each segment with an empty assistant prefix.
+
+Set `data.max_audio_dur: null` when using
+these complete lists; `asr.context_aware` controls history for both training and
+validation. The sample count is unchanged, while total audio exposure grows
+because each output contains two or three utterances.
+
+The tool writes `data.jsonl`, `data.jsonl.gz`, `train_data.yaml` and
+`preparation.json`. Multiple `--source-config` paths, or a file containing
+multiple datasource blocks, produce `source_000/` and subsequent partitions
+plus a combined datasource and preparation record. `--input-jsonl` accepts a
+single local source; `--input-map` accepts a JSON map of source URIs to local
+manifest files. FY27 Earnings requires `--duration-cache` with normalized
+audio-path keys, since the raw manifests omit durations. `--blob-root` selects
+the URI written into the datasource. Uploads are a separate operation. The
+published bundle and audit are under
+`az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_20261117_v1/`.
+
 ### Offline packing with concatenated audio
 
 The existing offline preparation command retains its semicolon-based format

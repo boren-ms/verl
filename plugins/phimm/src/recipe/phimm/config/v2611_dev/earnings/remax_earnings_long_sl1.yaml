@@ -2,12 +2,32 @@
 # Earnings-only long-form SL1: random segments in [1, 10] seconds.
 
 defaults:
-  - base_long
+  - base_earning
   - /data/train_data/offline_audio/earnings_long_sl1@_offline_train_571a8af5bf
   - _self_
 
+reward_map:
+  earn_fy26_batch1: train_librispeech
+  earn_fy26_batch2: train_librispeech
+  quartr_1st23_long: train_librispeech
+  quartr_2nd48_long: train_librispeech
+  quartr_3rd38_long: train_librispeech
+
 trainer:
+  total_training_steps: 10
   experiment_name: remax_earnings_long_2611r2_sl1
 
 data:
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy26_batch1, sample: 80, shuffle: true}
+        - {name: earn_fy26_batch2, sample: 104, shuffle: true}
+        - {name: quartr_1st23_long, sample: 98, shuffle: true}
+        - {name: quartr_2nd48_long, sample: 235, shuffle: true}
+        - {name: quartr_3rd38_long, sample: 222, shuffle: true}
   train_data: ${_offline_train_571a8af5bf}
+
+asr:
+  expected_training_rows: 739
+  expected_training_steps: 10

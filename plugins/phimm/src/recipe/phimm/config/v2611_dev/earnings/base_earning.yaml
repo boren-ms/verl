@@ -1,0 +1,35 @@
+# @package _global_
+# Shared Earnings/Quartr model, validation and training settings.
+# Each experiment selects its training sources and sampling mix.
+
+defaults:
+  - ../base@_global_
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_openlong
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+
+data:
+  train_batch_size: 128
+  max_audio_dur: null
+  val_data:
+    - ${_openlong}
+
+reward_map:
+  earn_fy27: train_librispeech
+  quartr_1st23: train_librispeech
+  quartr_2nd48: train_librispeech
+  quartr_3rd38: train_librispeech
+
+trainer:
+  total_epochs: 2
+  total_training_steps: 394
+  val_only: false
+  resume_mode: auto
+  resume_from_path: null
+
+asr:
+  expected_training_rows: 25240
+  expected_training_steps: 394

@@ -1,8 +1,26 @@
 # @package _global_
 # Matched earnings-short control: retain full clips without SC or SL augmentation.
 defaults:
-  - base_short
+  - base_earning
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/train_data/quartr_3rd38@_quartr_third38_train
   - _self_
+
+data:
+  train_data:
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, sample: 9568, shuffle: true}
+        - {name: quartr_1st23, sample: 3125, shuffle: true}
+        - {name: quartr_2nd48, sample: 6392, shuffle: true}
+        - {name: quartr_3rd38, sample: 6155, shuffle: true}
 
 trainer:
   experiment_name: remax_earnings_short_baseline
