@@ -63,7 +63,8 @@ def test_same_size_unique_neighbor_windows_cover_every_input(size):
     assert len(used) > len(rows)
 
 
-def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_path):
+@pytest.mark.parametrize("merge_mode", ["contiguous23", "full_recording"])
+def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_path, merge_mode):
     rows = rows_for("a", 5)
     for index, row in enumerate(rows):
         row["display_ne_tagged"] = f"hello <NE>Name{index}</NE>"
@@ -81,9 +82,11 @@ def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_p
     }
     before = copy.deepcopy(source)
     root = tmp_path / "output"
-    stats = prepare(source, root)
+    stats = prepare(source, root, merge_mode=merge_mode)
     assert source == before
-    assert stats["input_rows"] == stats["output_rows"] == 5
+    assert stats["input_rows"] == 5
+    expected_count = 1 if merge_mode == "full_recording" else 5
+    assert stats["output_rows"] == expected_count
     output = [json.loads(line) for line in (root / "data.jsonl").read_text().splitlines()]
     with gzip.open(root / "data.jsonl.gz", "rt") as stream:
         assert [json.loads(line) for line in stream] == output
@@ -91,7 +94,7 @@ def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_p
     assert "pre_process" not in block
     config = OmegaConf.create({"train_files": "train", "version": 2609, "train_data": [block]})
     training = ASRDataset("train", None, config)
-    assert len(training) == len(rows)
+    assert len(training) == expected_count
     for merged, sample in zip(output, training, strict=True):
         members = [rows[i] for i in merged["source_indices"]]
         assert merged["text"] == " ".join(f"hello Name{i}" for i in merged["source_indices"])
@@ -99,6 +102,36 @@ def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_p
         assert len(sample["asr_segments"]) == merged["merge_count"]
         assert sample["reward_model"]["ground_truth"] == merged["text"]
         assert all(f"Name{i}" in sample["extra_info"]["keywords"] for i in merged["source_indices"])
+        assert [json.loads(value) for value in merged["source_metadata_json"]] == members
+
+
+@pytest.mark.parametrize("order_by", ["timestamp", "segment_id"])
+def test_full_recordings_use_every_utterance_once_in_order(order_by):
+    rows = rows_for("a", 1) + rows_for("b", 2) + rows_for("c", 7)
+    if order_by == "segment_id":
+        for row in rows:
+            parent, index = row["id"].split(":")
+            row["id"] = f"{parent}_seg{index}"
+    rows.reverse()
+    before = copy.deepcopy(rows)
+    output = contiguous_merge(rows, order_by=order_by, merge_mode="full_recording")
+    assert rows == before
+    assert output == contiguous_merge(rows, order_by=order_by, merge_mode="full_recording")
+    assert len(output) == len({row["merge_parent_audio_path"] for row in output}) == 3
+    assert sorted(index for row in output for index in row["source_indices"]) == list(range(len(rows)))
+    for merged in output:
+        members = [rows[index] for index in merged["source_indices"]]
+        assert len({row["original_audio_url"] for row in members}) == 1
+        assert [row["part_start_seconds"] for row in members] == list(range(0, 2 * len(members), 2))
+        assert merged["audio_path"] == [row["audio_path"] for row in members]
+        assert merged["text"] == " ".join(row["text"] for row in members)
+        assert merged["keywords"] == ["shared", *map(str, range(len(members)))]
+        assert merged["language"] == "English"
+        assert [part["text"] for part in merged["components"]] == [row["text"] for row in members]
+        assert merged["audio_length"] == 2 * len(members)
+        assert merged["merge_count"] == len(members)
+        assert merged["merge_method"] == "full_recording"
+        assert merged["source_ids"] == [row["id"] for row in members]
         assert [json.loads(value) for value in merged["source_metadata_json"]] == members
 
 
@@ -186,7 +219,8 @@ def test_invalid_segment_id_fails_instead_of_guessing_order():
         contiguous_merge(rows_for("a", 3), order_by="segment_id")
 
 
-def test_multi_source_cli_preserves_each_source_budget_and_infers_order(tmp_path, monkeypatch):
+@pytest.mark.parametrize("merge_mode", ["contiguous23", "full_recording"])
+def test_multi_source_cli_preserves_each_source_budget_and_infers_order(tmp_path, monkeypatch, merge_mode):
     inputs, sources, durations = {}, [], {}
     for index, rows in enumerate(
         [rows_for("timestamp", 3), [{"id": f"call_seg{i}", "audio_path": f"{i}.wav", "text": str(i)} for i in range(4)]]
@@ -219,14 +253,19 @@ def test_multi_source_cli_preserves_each_source_budget_and_infers_order(tmp_path
             str(cache),
             "--order-by",
             "auto",
+            "--merge-mode",
+            merge_mode,
             "--blob-root",
             "az://prepared/test",
         ],
     )
     main()
     stats = json.loads((root / "preparation.json").read_text())
-    assert stats["input_rows"] == stats["output_rows"] == 7
-    assert [record["output_rows"] for record in stats["sources"]] == [3, 4]
+    assert stats["input_rows"] == 7
+    assert stats["output_rows"] == (2 if merge_mode == "full_recording" else 7)
+    assert [record["output_rows"] for record in stats["sources"]] == (
+        [1, 1] if merge_mode == "full_recording" else [3, 4]
+    )
     assert [record["order_by"] for record in stats["sources"]] == ["timestamp", "segment_id"]
     blocks = yaml.safe_load((root / "train_data.yaml").read_text())
     assert [block["jsonl_paths"] for block in blocks] == [

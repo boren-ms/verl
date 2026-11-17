@@ -1,9 +1,11 @@
-"""Build same-size ASR data from overlapping, consecutive utterance windows.
+"""Build ordered audio-list ASR data from utterances of each recording.
 
-Each recording contributes as many output samples as input utterances. Windows
+By default, each recording contributes as many samples as input utterances. Windows
 alternate between two and three neighbors, and an additional unused window
 preserves the sample count at recording boundaries. No rows are randomized,
 no windows cross recordings, and audio remains an ordered list of paths.
+Use --merge-mode full_recording for one sample containing all available
+utterances per recording, each used exactly once. No audio files are created.
 """
 
 import argparse
@@ -46,10 +48,18 @@ def _segment_identity(row):
 
 
 def contiguous_merge(
-    rows, *, originals=None, group_key="original_audio_url", default_language=None, order_by="timestamp"
+    rows,
+    *,
+    originals=None,
+    group_key="original_audio_url",
+    default_language=None,
+    order_by="timestamp",
+    merge_mode="contiguous23",
 ):
-    """Return exactly N distinct adjacent windows from N rows, grouped by recording.
+    """Return ordered windows or one full sample per recording.
 
+    In full_recording mode, return one sample per recording, including singletons.
+    The default contiguous23 mode returns N distinct windows from N input rows.
     Groups must contain at least three utterances: two utterances cannot form
     two distinct windows of length two or three. Recordings retain first-seen
     order; utterances are sorted by their absolute start including part offset,
@@ -63,6 +73,8 @@ def contiguous_merge(
         raise ValueError("Contiguous merge requires nonempty input")
     if order_by not in ("timestamp", "segment_id"):
         raise ValueError("order_by must be timestamp or segment_id")
+    if merge_mode not in ("contiguous23", "full_recording"):
+        raise ValueError("merge_mode must be contiguous23 or full_recording")
     groups = defaultdict(list)
     positions = {}
     for index, row in enumerate(rows):
@@ -87,14 +99,17 @@ def contiguous_merge(
         if len({positions[i] for i in indices}) != len(indices):
             raise ValueError(f"Recording {parent!r} has ambiguous duplicate utterance positions")
         size = len(indices)
-        if size < 3:
+        if merge_mode == "contiguous23" and size < 3:
             raise ValueError(f"Recording {parent!r} has {size} utterances; at least three are required")
-        windows = [(start, min(2 + start % 2, size - start)) for start in range(size - 1)]
-        # Add the other length near the tail, instead of duplicating a window
-        # or wrapping the last utterance back to the recording's beginning.
-        start = size - 3
-        chosen = windows[start][1]
-        windows.append((start, 5 - chosen))
+        if merge_mode == "full_recording":
+            windows = [(0, size)]
+        else:
+            windows = [(start, min(2 + start % 2, size - start)) for start in range(size - 1)]
+            # Add the other length near the tail, instead of duplicating a window
+            # or wrapping the last utterance back to the recording's beginning.
+            start = size - 3
+            chosen = windows[start][1]
+            windows.append((start, 5 - chosen))
         for start, count in sorted(windows):
             members = indices[start : start + count]
             source_rows = [rows[i] for i in members]
@@ -114,10 +129,10 @@ def contiguous_merge(
                 merged["source_segment_indices"] = [positions[i][0] for i in members]
                 merged["source_part_indices"] = [positions[i][1] for i in members]
             merged["source_order_by"] = order_by
-            merged["merge_method"] = "contiguous23"
+            merged["merge_method"] = merge_mode
             # Index-based identity remains unique even if producer IDs repeat.
             identity = hashlib.sha256(json.dumps([parent, members]).encode()).hexdigest()[:16]
-            merged["id"] = f"contiguous23:{identity}"
+            merged["id"] = f"{merge_mode}:{identity}"
             result.append(merged)
     return result
 
@@ -131,6 +146,7 @@ def prepare(
     group_key="original_audio_url",
     order_by="timestamp",
     duration_cache=None,
+    merge_mode="contiguous23",
 ):
     """Normalize raw rows, merge before task formatting, and write a datasource."""
     source = deepcopy(source)
@@ -160,8 +176,13 @@ def prepare(
         group_key=group_key,
         default_language=(source.get("add_task_info") or {}).get("language"),
         order_by=order_by,
+        merge_mode=merge_mode,
     )
-    assert len(output) == len(rows)
+    if merge_mode == "contiguous23":
+        assert len(output) == len(rows)
+    else:
+        assert len(output) == len({row["merge_parent_audio_path"] for row in output})
+        assert sorted(i for row in output for i in row["source_indices"]) == list(range(len(rows)))
     assert {i for row in output for i in row["source_indices"]} == set(range(len(rows)))
     assert len({tuple(row["source_indices"]) for row in output}) == len(output)
     root = Path(output_dir).resolve()
@@ -183,7 +204,7 @@ def prepare(
     }
     (root / "train_data.yaml").write_text(yaml.safe_dump([block], sort_keys=False, allow_unicode=True))
     stats = {
-        "method": "contiguous23",
+        "method": merge_mode,
         "group_key": group_key if order_by == "timestamp" else "audio_directory + recording_name_from_id",
         "order_by": order_by,
         "source": source,
@@ -199,10 +220,11 @@ def prepare(
             json.dumps(rows, sort_keys=True, ensure_ascii=False).encode()
         ).hexdigest(),
         "audit": {
-            "same_sample_count": True,
+            "same_sample_count": len(output) == len(rows),
             "all_inputs_covered": True,
             "unique_windows": True,
             "jsonl_roundtrip": True,
+            "each_input_once": merge_mode == "full_recording",
         },
     }
     (root / "preparation.json").write_text(json.dumps(stats, indent=2, ensure_ascii=False) + "\n")
@@ -218,6 +240,12 @@ def main():
     parser.add_argument("--blob-root", help="Remote manifest location; upload the generated files separately")
     parser.add_argument("--group-key", default="original_audio_url")
     parser.add_argument("--order-by", choices=("timestamp", "segment_id", "auto"), default="timestamp")
+    parser.add_argument(
+        "--merge-mode",
+        choices=("contiguous23", "full_recording"),
+        default="contiguous23",
+        help="Overlapping 2/3-utterance windows, or one ordered audio-path list per complete source recording",
+    )
     parser.add_argument(
         "--duration-cache", type=Path, help="JSON mapping normalized audio paths to durations in seconds"
     )
@@ -247,12 +275,13 @@ def main():
             group_key=args.group_key,
             order_by=args.order_by,
             duration_cache=cache,
+            merge_mode=args.merge_mode,
         )
         records.append(stats)
         prepared.extend(yaml.safe_load((output / "train_data.yaml").read_text()))
     if len(sources) > 1:
         stats = {
-            "method": "contiguous23",
+            "method": args.merge_mode,
             "input_rows": sum(record["input_rows"] for record in records),
             "output_rows": sum(record["output_rows"] for record in records),
             "recordings": sum(record["recordings"] for record in records),
