@@ -1,0 +1,14 @@
+# @package _global_
+# Previous segment's generated output is the next segment's assistant prefix.
+# Context resets for each parent; only the new continuation is scored.
+
+defaults:
+  - eval_openlong_zip
+  - _self_
+
+asr:
+  context_aware: true
+
+data:
+  # Reserve room for the previous segment in addition to the audio prompt.
+  max_prompt_length: 2048

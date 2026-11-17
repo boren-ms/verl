@@ -17,8 +17,8 @@ from omegaconf import OmegaConf
 @pytest.fixture
 def agent_loop(monkeypatch):
     import ray
-
     import recipe.phimm
+    import recipe.phimm.utils.audio  # Import TransferQueue before replacing ray.remote below.
 
     class Output(SimpleNamespace):
         def __init__(self, **kwargs):
@@ -331,8 +331,62 @@ def test_segments_have_independent_contexts_and_aligned_actor_inputs(multi_turn_
     assert len(loop.processor.calls) == 2
 
 
-def test_training_scores_combined_responses_once_and_shares_reward(multi_turn_loop):
+@pytest.mark.parametrize("validate", [False, True])
+def test_context_prefills_open_assistant_and_scores_only_new_tokens(multi_turn_loop, validate):
     loop, rows, generated = multi_turn_loop
+    loop.config.asr = {"context_aware": True}
+    loop.rollout_config.prompt_length = 512
+    outputs, texts = asyncio.run(loop.generate_segments(rows, {"logprobs": not validate}, validate=validate))
+    requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
+    for i, request in enumerate(requests):
+        prefix = "" if i == 0 else "transcript-900"
+        text = loop.processor.apply_chat_template(rows[i]["prompt"], add_generation_prompt=True) + prefix
+        assert request["prompt_ids"] == loop.tokenizer.encode(text)
+        assert loop.processor.calls[i][0] == [text]
+        expected_actor_ids = [
+            token
+            for value in loop.tokenizer.encode(text)
+            for token in ([248076] * (rows[i]["frames"] // 8) if value == 99 else [value])
+        ]
+        assert outputs[i].prompt_ids == expected_actor_ids
+        assert outputs[i].multi_modal_data["multi_modal_inputs"]["audio_frames"].tolist() == [rows[i]["frames"]]
+        assert outputs[i].response_ids == generated[i]
+        assert outputs[i].response_mask == [1] * len(generated[i])
+        assert outputs[i].response_logprobs == [-float(token) / 1000 for token in generated[i]]
+        assert outputs[i].extra_fields["asr_context_prefix"] == prefix
+    assert texts == ["transcript-900", "transcript-902"]
+
+
+def test_context_resets_between_parents_and_uses_only_previous_segment(multi_turn_loop):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": True}
+    loop.rollout_config.prompt_length = 512
+
+    async def evaluate():
+        # Concurrent parents exercise the shared agent without sharing state.
+        return await asyncio.gather(*(loop.generate_segments(rows + rows[:1], {}, validate=True) for _ in range(2)))
+
+    results = asyncio.run(evaluate())
+    for outputs, texts in results:
+        assert [o.extra_fields["asr_context_prefix"] for o in outputs] == ["", "transcript-900", "transcript-902"]
+        assert texts == ["transcript-900", "transcript-902", "transcript-900"]
+
+
+def test_context_counts_towards_prompt_limit(multi_turn_loop):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": True}
+    text = loop.processor.apply_chat_template(rows[0]["prompt"], add_generation_prompt=True)
+    loop.rollout_config.prompt_length = len(loop.tokenizer.encode(text)) + rows[0]["frames"] // 8 - 1
+    with pytest.raises(ValueError, match="Audio prompt has"):
+        asyncio.run(loop.generate_segments(rows, {}, validate=True))
+    assert loop.server_manager.generate.await_count == 1
+
+
+@pytest.mark.parametrize("context_enabled", [False, True])
+def test_training_scores_combined_responses_once_and_shares_reward(multi_turn_loop, context_enabled):
+    loop, rows, generated = multi_turn_loop
+    loop.config.asr = {"context_aware": context_enabled}
+    loop.rollout_config.prompt_length = 512
     score = Mock(return_value={"score": 0.5})
     loop.run.__globals__["score_response"] = score
     reference = {"ground_truth": "reference-0\nreference-1"}
@@ -353,8 +407,11 @@ def test_training_scores_combined_responses_once_and_shares_reward(multi_turn_lo
         assert output.extra_fields["reward_extra_info"]["score"] == 0.5
 
 
-def test_greedy_baseline_uses_all_independent_segments(multi_turn_loop):
+@pytest.mark.parametrize("context_enabled", [False, True])
+def test_greedy_baseline_uses_its_own_segment_context(multi_turn_loop, context_enabled):
     loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": context_enabled}
+    loop.rollout_config.prompt_length = 512
     sample = {**rows[0], "asr_segments": rows, "reward_model": {"ground_truth": "combined reference"}}
     score = Mock(return_value={"score": 0, "word": 0.8})
     loop.run.__globals__["score_response"] = score
@@ -364,11 +421,47 @@ def test_greedy_baseline_uses_all_independent_segments(multi_turn_loop):
         assert call.kwargs["sampling_params"]["temperature"] == 0
         assert call.kwargs["sampling_params"]["logprobs"] is False
         assert len(call.kwargs["audio_data"]) == 1
+    assert loop.processor.calls[0][0][0].endswith("<|im_start|>assistant\n")
+    suffix = "<|im_start|>assistant\n" + ("transcript-900" if context_enabled else "")
+    assert loop.processor.calls[1][0][0].endswith(suffix)
     score.assert_called_once()
     assert score.call_args.args[1]["reward_model"]["ground_truth"] == "combined reference"
     assert score.call_args.args[2] == ["transcript-900", "transcript-902"]
     assert text == "transcript-900\ntranscript-902"
     assert result["word"] == 0.8
+
+
+def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": True}
+    loop.rollout_config.prompt_length = 512
+    loop.run.__globals__["score_response"] = Mock(return_value={"score": 0.5})
+
+    async def generate(**kwargs):
+        sampled = kwargs["sampling_params"]["logprobs"]
+        first = kwargs["audio_data"][0][0] == 16
+        token = (910 if sampled else 920) + (0 if first else 1)
+        return SimpleNamespace(token_ids=[token], log_probs=[-0.1] if sampled else None, extra_fields={})
+
+    loop.server_manager.generate.side_effect = generate
+    sample = {**rows[0], "asr_segments": rows}
+
+    async def trajectories():
+        return await asyncio.gather(
+            loop.generate_segments(rows, {"logprobs": True}, validate=False), loop.greedy_baseline(sample)
+        )
+
+    (outputs, texts), (greedy, _) = asyncio.run(trajectories())
+    assert texts == ["transcript-910", "transcript-911"]
+    assert greedy == "transcript-920\ntranscript-921"
+    assert [o.extra_fields["asr_context_prefix"] for o in outputs] == ["", "transcript-910"]
+    for call in loop.server_manager.generate.call_args_list:
+        request = call.kwargs
+        if request["audio_data"][0][0] == 8:
+            prefix = "transcript-910" if request["sampling_params"]["logprobs"] else "transcript-920"
+            text = loop.processor.apply_chat_template(rows[1]["prompt"], add_generation_prompt=True) + prefix
+            assert request["prompt_ids"] == loop.tokenizer.encode(text)
+    assert all(o.response_mask == [1] and o.response_logprobs == [-0.1] for o in outputs)
 
 
 def test_segments_reject_missing_sampled_logprobs(multi_turn_loop):

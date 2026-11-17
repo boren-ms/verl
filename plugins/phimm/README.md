@@ -136,7 +136,10 @@ Select them with `--config-path config/v2611_dev/rand_segment` and `--config-nam
 These presets inherit `main/remax_main_base3a_2611r2.yaml`, disable duration cropping,
 and use separate experiment names. For other training configs,
 multi-segment training can be enabled with `+asr_training=multi_segment` and
-an explicit `trainer.experiment_name=<unique-name>`. Each original recording
+an explicit `trainer.experiment_name=<unique-name>`. Use
+`+asr_training=context_aware` to also feed each preceding segment's generated
+output as the next segment's assistant prefix, in training and validation.
+Each original recording
 remains one dataset sample with its full reference. The `random_segment`
 dataset block replaces its `audio_path` with an ordered list of selectors:
 
@@ -326,6 +329,48 @@ The evaluation manifest retains the reference run's 35 datasets, including
 `eslo_telephony_fr` and `accueil_ubs_fr` from its producer revision
 `965a025ac220c91305aa762bdb176697b55e0fb5`. The current development branch's
 generic manifest omits these two reference datasets.
+
+For context-aware OpenLong evaluation, select `eval_openlong_context_zip`:
+
+```bash
+python plugins/phimm/submit.py --evaluate --submission-id <unique-context-eval-id> \
+  --config-name eval_openlong_context_zip \
+  actor_rollout_ref.model.path=<verified-HF-path>
+```
+
+This evaluates the complete Earnings21, Earnings22 and CORAAL parent groups.
+Segments run in timestamp order within each recording. The immediately
+preceding segment's decoded output (including its ASR formatting, excluding
+chat special tokens) is appended directly to the next prompt's open assistant
+turn, after `<|im_start|>assistant\n`. The first segment has an empty prefix;
+prefixes reset between recordings, and recordings can run concurrently.
+Only newly generated tokens are scored and carried to the following segment;
+history is not accumulated. Saved `asr_detail.context_prefixes` aligns with
+`segment_outputs` for auditing. The preset reserves 2048 prompt tokens for
+audio and prefix together and raises an error on overflow.
+
+The shared option `asr.context_aware=true` enables this behavior in both
+training and validation. For training, use `+asr_training=context_aware` on
+the normal training config and set a unique `trainer.experiment_name`. This
+composes the multi-segment training preset (one or two random segments per
+sample) and reserves 2048 prompt tokens. Context stays within each sample's
+ordered `asr_segments`; it never crosses unrelated or shuffled training
+examples. Set `data.random_segment.segment_count` to choose another supported
+segment count, or enable the flag directly on an existing multi-segment config.
+Single-segment samples have no preceding context.
+
+For Earnings Short SC1, select
+`--config-path config/v2611_dev/earnings --config-name remax_earnings_short_context_aware`.
+This inherits the Earnings Short baseline data and training budget, enables
+segmentation explicitly, and uses exactly two segments with a random cut per
+full clip. Context is enabled for both training and validation.
+
+Sampled rollouts and ReMax greedy baselines each build their own context from
+their own generated outputs. The prefix belongs to the prompt for both the
+rollout server and actor: only new response tokens retain response masks and
+rollout logprobs and contribute to the policy loss. All segments share the
+single parent-level outcome reward. The default remains independent decoding
+(`asr.context_aware=false`).
 
 The recipe selects the installed NVIDIA CUDA runtime matching PyTorch's CUDA
 major version. The source branch's explicit-runtime helper is reused in the

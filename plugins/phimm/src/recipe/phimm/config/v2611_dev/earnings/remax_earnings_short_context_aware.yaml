@@ -1,0 +1,16 @@
+# @package _global_
+# Earnings Short SC1 with previous-output context in training and decoding.
+defaults:
+  - remax_earnings_short_baseline
+  - /asr_training/context_aware@_global_
+  - _self_
+
+data:
+  random_segment:
+    # Override the baseline's disabled segmentation so training can use context.
+    enabled: true
+    # Match SC1: exactly two segments with a random cut, retaining the full clip.
+    segment_count: [2, 2]
+
+trainer:
+  experiment_name: remax_earnings_short_context_aware
