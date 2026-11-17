@@ -178,7 +178,15 @@ duration provenance and preparation scripts are archived under the same root's
 `provenance/` directory. Existing offline Random Merge presets continue using
 their prepared datasets.
 
-Random Segment and Random Merge run only in offline tools, never in the
+Smart VAD can also prepare an ordered `audio_path` list for each long recording,
+keeping the original full reference and writing no audio files. Use
+`python -m recipe.phimm.tools.svad_segment --src input.jsonl --dst segmented.jsonl`
+with the PHIMM environment, or select `offline_data.svad_segment` in the existing
+preparation workflow. See [offline SVAD segmentation](src/recipe/phimm/utils/svad/README.md)
+for dependencies, boundary behavior, and configuration. It uses the supported
+`file#start:end` selector syntax.
+
+Random Segment, Smart VAD, and Random Merge run only in offline tools, never in the
 training loader's `pre_process` or `post_process` blocks. For a **new** dataset
 or segmentation range, start from the raw base with a preparation plan:
 

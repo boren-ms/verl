@@ -9,6 +9,9 @@ description = "Selected Qwen audio ReMax recipe for verl's agent loop trainer"
 requires-python = ">=3.12"
 dependencies = ["opencc-python-reimplemented==0.1.7", "wetext==0.2.1"]
 
+[project.optional-dependencies]
+svad = ["numpy>=1.24", "onnxruntime>=1.17", "soundfile>=0.12", "scipy>=1.10"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["recipe*", "hydra_plugins*"]
@@ -16,3 +19,4 @@ namespaces = true
 
 [tool.setuptools.package-data]
 "*" = ["*.yaml"]
+"recipe.phimm.utils.svad" = ["resource/*.onnx", "README.md", "requirements.txt"]

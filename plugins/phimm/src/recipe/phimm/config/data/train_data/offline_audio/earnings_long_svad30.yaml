@@ -1,0 +1,96 @@
+# Offline SVAD max 30 s; one full reference and ordered audio_path list per long parent.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_long_svad30_20261117_v1/earn_fy26_batch1.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy26_batch1
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+      - svad_source
+      - svad_parent_duration
+      - svad_method
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_long_svad30_20261117_v1/earn_fy26_batch2.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy26_batch2
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+      - svad_source
+      - svad_parent_duration
+      - svad_method
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_long_svad30_20261117_v1/quartr_1st23_long.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+      - svad_source
+      - svad_parent_duration
+      - svad_method
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_long_svad30_20261117_v1/quartr_2nd48_long.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+      - svad_source
+      - svad_parent_duration
+      - svad_method
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_long_svad30_20261117_v1/quartr_3rd38_long.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+      - svad_source
+      - svad_parent_duration
+      - svad_method

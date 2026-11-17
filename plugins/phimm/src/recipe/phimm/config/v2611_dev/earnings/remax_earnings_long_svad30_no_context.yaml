@@ -1,0 +1,41 @@
+# @package _global_
+# Compare against the COMPLETED earnings-short-rm23-no-context-20261117 @394.
+# No history for sampled training, ReMax greedy baseline, or validation.
+# Batch 4 for two epochs; batch size, update budget and exposure differ from RM2-3.
+defaults:
+  - base_earning
+  - /data/train_data/offline_audio/earnings_long_svad30@_svad30_long_train
+  - _self_
+
+data:
+  train_data: ${_svad30_long_train}
+  train_batch_size: 4
+  max_audio_dur: null
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy26_batch1, sample: 80, shuffle: true}
+        - {name: earn_fy26_batch2, sample: 104, shuffle: true}
+        - {name: quartr_1st23_long, sample: 98, shuffle: true}
+        - {name: quartr_2nd48_long, sample: 235, shuffle: true}
+        - {name: quartr_3rd38_long, sample: 222, shuffle: true}
+
+reward_map:
+  earn_fy26_batch1: train_librispeech
+  earn_fy26_batch2: train_librispeech
+  quartr_1st23_long: train_librispeech
+  quartr_2nd48_long: train_librispeech
+  quartr_3rd38_long: train_librispeech
+
+trainer:
+  experiment_name: remax_earnings_long_svad30_no_context
+  # 739 parents / batch4 = 184 full batches per epoch, 368 updates total.
+  total_training_steps: null
+  total_epochs: 2
+  resume_mode: disable
+  resume_from_path: null
+
+asr:
+  context_aware: false
+  expected_training_rows: 739
+  expected_training_steps: 368

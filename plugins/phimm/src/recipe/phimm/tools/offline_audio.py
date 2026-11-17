@@ -1,4 +1,4 @@
-"""Materialize random segments or ordered merges before task/prompt processing.
+"""Materialize random/SVAD segments or ordered merges before task/prompt processing.
 
 Compose an experiment preset, apply its offline_data plan to raw normalized
 training rows and write JSONL, a datasource YAML and a ready-to-run training
@@ -17,6 +17,7 @@ from omegaconf import OmegaConf, open_dict
 from recipe.phimm.data.dataset import _extra_info_value, jsonl_dataset, limit_ds, process_ds
 from recipe.phimm.tools.random_merge_list import random_merge
 from recipe.phimm.tools.random_segment import random_segment
+from recipe.phimm.tools.svad_segment import svad_segment
 from recipe.phimm.utils.offline_data import active_audio_transforms
 
 
@@ -32,7 +33,9 @@ def materialize(config, output_dir, *, blob_root=None, input_paths=None, duratio
     """Return a training snapshot which reads only the emitted, fixed manifests."""
     transforms = active_audio_transforms(config)
     if len(transforms) != 1:
-        raise ValueError("Select exactly one enabled offline_data.random_segment or offline_data.random_merge")
+        raise ValueError(
+            "Select exactly one enabled offline_data transform: random_segment, random_merge, svad_segment"
+        )
     mode, options = next(iter(transforms.items()))
     options = OmegaConf.to_container(OmegaConf.create(options), resolve=True)
     sources = list(_sources(OmegaConf.to_container(config.data.train_data, resolve=True)))
@@ -50,7 +53,7 @@ def materialize(config, output_dir, *, blob_root=None, input_paths=None, duratio
         input_count = len(ds)
         post = source.get("post_process") or {}
         limit = post.pop("input_egs_limit", None)
-        if mode == "random_segment" and limit:
+        if mode in ("random_segment", "svad_segment") and limit:
             ds = limit_ds(ds, egs_limit=limit)
         pre = source.pop("pre_process", {}) or {}
         if set(pre) - {"path_map", "rename_fields", "clean_tagged_text", "input_egs_limit"}:
@@ -76,7 +79,10 @@ def materialize(config, output_dir, *, blob_root=None, input_paths=None, duratio
             # were derived from the scalar source. Freeze that fallback before
             # replacing the scalar path with its segment list.
             ds = ds.map(lambda row: {"id": _extra_info_value(row, "id")})
-            ds = random_segment(ds, duration_cache=duration_cache, **kwargs)
+            if mode == "svad_segment":
+                ds = svad_segment(ds, **kwargs)
+            else:
+                ds = random_segment(ds, duration_cache=duration_cache, **kwargs)
         target = root / f"source_{index:03d}.jsonl"
         with target.open("w", encoding="utf-8") as handle:
             for row in ds:

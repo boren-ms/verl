@@ -31,8 +31,10 @@ def _prepare_data_confs(config, *, is_train):
     """Flatten materialized sources; audio-list generation is an offline operation."""
     sources = config.train_data if is_train else config.val_data
     data_confs = [dict(conf) for conf in _flatten_data_confs(sources)]
-    if any(config.get(key) is not None for key in ("random_segment", "random_merge")):
-        raise ValueError("Materialize random segment/merge with recipe.phimm.tools.offline_audio before training")
+    if any(config.get(key) is not None for key in ("random_segment", "random_merge", "svad_segment")):
+        raise ValueError(
+            "Materialize random segment/merge or SVAD with recipe.phimm.tools.offline_audio before training"
+        )
     return data_confs
 
 
