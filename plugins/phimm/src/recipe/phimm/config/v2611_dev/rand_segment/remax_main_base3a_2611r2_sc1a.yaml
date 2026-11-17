@@ -1,0 +1,13 @@
+# @package _global_
+# SC baseline with synchronous training and exactly two randomly cut segments.
+
+defaults:
+  - remax_main_base3a_2611r2_sc
+  - _self_
+
+data:
+  random_segment:
+    segment_count: [2, 2]
+
+trainer:
+  experiment_name: remax_main_base3a_2611r2_sc1a
