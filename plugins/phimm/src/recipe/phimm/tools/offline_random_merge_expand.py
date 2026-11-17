@@ -15,8 +15,8 @@ from copy import deepcopy
 from pathlib import Path
 
 import yaml
-from recipe.phimm.data.random_merge_expand import plan_expansion, plan_random_expansion
-from recipe.phimm.data.random_merge_list import _merge_rows
+from recipe.phimm.tools.random_merge_expand import plan_expansion, plan_random_expansion
+from recipe.phimm.tools.random_merge_list import _merge_rows
 
 
 def sha256(path):

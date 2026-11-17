@@ -9,10 +9,6 @@ data:
   train_data:
     - ${_random_merge23_train}
   # Already materialized in raw preprocessing, before task formatting.
-  random_merge:
-    enabled: false
-  random_segment:
-    enabled: false
   mix:
     - shuffle: true
       datasource:

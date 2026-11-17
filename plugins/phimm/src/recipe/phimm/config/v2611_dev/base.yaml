@@ -111,7 +111,6 @@ data:
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   max_audio_dur: 40
   chunk_load_mode: indexed
-  random_segment: null
 
 algorithm:
   # Source on-policy token importance correction, capped without batch normalization.

@@ -3,7 +3,7 @@
 # Set asr.context_aware=false for a matched independent-decoding control.
 defaults:
   - eval_base
-  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2_context@_u2_context
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_u2
   - _self_
 
 actor_rollout_ref:
@@ -15,16 +15,16 @@ data:
   max_audio_dur: null
   max_prompt_length: 2048
   val_data:
-    - ${_u2_context}
+    - ${_u2}
 
 asr:
   context_aware: true
 
 reward_map:
-  earnings21_u2_context: val_openasr_en
-  earnings22_u2_context: val_openasr_en
-  coraal_u2_context: val_openasr_en
-  earnings22_cleaned_aa_u2_context: val_openasr_en
+  earnings21_u2: val_openasr_en
+  earnings22_u2: val_openasr_en
+  coraal_u2: val_openasr_en
+  earnings22_cleaned_aa_u2: val_openasr_en
 
 trainer:
   experiment_name: ???

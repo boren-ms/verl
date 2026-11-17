@@ -3,11 +3,11 @@
 
 defaults:
   - remax_main_base3a_2611r2_sl1
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl3@_offline_train_71d21d66c3
   - _self_
-
-data:
-  random_segment:
-    segment_len: [10, 20]
 
 trainer:
   experiment_name: remax_main_base3a_2611r2_sl3
+
+data:
+  train_data: ${_offline_train_71d21d66c3}

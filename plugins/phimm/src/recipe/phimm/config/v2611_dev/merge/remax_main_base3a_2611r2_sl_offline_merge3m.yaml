@@ -3,11 +3,11 @@
 # No online random merge and no resampling to the old short-utterance budgets.
 defaults:
   - ../rand_segment/remax_main_base3a_2611r2_sl
-  - /data/train_data/offline_random_merge3m_20261114@_offline_merge3m_train
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl5to30_bs16@_offline_train_083d8c6663
   - _self_
 
 data:
-  train_data: ${_offline_merge3m_train}
+  train_data: ${_offline_train_083d8c6663}
   mix:
     - shuffle: true
       datasource:

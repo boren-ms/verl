@@ -48,11 +48,10 @@ trainer passes the baseline score to the standard ReMax advantage estimator.
 Validation groups and sorts segments before scoring full parent references;
 corpus error rates use summed error/reference counts.
 The default U2 cohort uses
-`openlong_all_2parents_error_2609r2b_u2_full.yaml`: 1,085 unchanged audio clips
+`openlong_all_2parents_error_2609r2b_u2.yaml`: 1,085 unchanged audio clips
 from eight parent recordings, with the original full reference repeated on
 that parent's rows. Grouping metadata is retained, so WER aligns joined new
-outputs against the full reference once per parent. The compatibility U2 and
-context U2 manifests use the same full-reference data. `asr.context_aware`
+outputs against the full reference once per parent. All U2 callers use this canonical configuration. `asr.context_aware`
 controls decoding separately and is not changed by the scoring default.
 Historical independently scored U2 WER is a different metric convention.
 
@@ -149,22 +148,81 @@ Select them with `--config-path config/v2611_dev/rand_segment` and `--config-nam
 - `remax_main_base3a_2611r2_sl3`: `segment_len: [10, 20]` seconds.
 - `remax_main_base3a_2611r2_sl4`: `segment_len: [2, 10]` seconds.
 
-These presets inherit `main/remax_main_base3a_2611r2.yaml`, disable duration cropping,
-and use separate experiment names. For other training configs,
-multi-segment training can be enabled with `+asr_training=multi_segment` and
-an explicit `trainer.experiment_name=<unique-name>`. Use
-`+asr_training=context_aware` to also feed each preceding segment's generated
-output as the next segment's assistant prefix, in training and validation.
-Each original recording
-remains one dataset sample with its full reference. The `random_segment`
-dataset block replaces its `audio_path` with an ordered list of selectors:
+These presets inherit `main/remax_main_base3a_2611r2.yaml`, disable duration
+cropping, and load prepared offline manifests directly. All 35 concrete segment
+presets, including Earnings/FL, async, long-form, merge-then-segment and
+continuation variants, use the datasource groups in
+`config/data/train_data/offline_audio/`. Identical datasets share a group;
+`preparation.json` records each preset's original generation options, ordered
+sources, row counts, parity hashes and remote publication checksums. Their
+training YAMLs select these manifests directly and contain no `offline_data`
+section. Context is controlled by `asr.context_aware`. Preparation plans are
+used only when explicitly invoking the offline tool. The manifests are
+available under:
+
+```text
+az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/<task>/source_000.jsonl.gz
+```
+
+Every generated training row was compared with the former online processing
+order. Uploaded manifests were downloaded and checked against both compressed
+and original JSONL SHA256 hashes. Gzip changes only storage; `audio_path`
+remains an ordered list. Raw input manifests, original effective configs,
+duration provenance and preparation scripts are archived under the same root's
+`provenance/` directory. Existing offline Random Merge presets continue using
+their prepared datasets.
+
+Random Segment and Random Merge run only in offline tools, never in the
+training loader's `pre_process` or `post_process` blocks. For a **new** dataset
+or segmentation range, start from the raw base with a preparation plan:
+
+```bash
+PYTHONPATH=plugins/phimm/src:plugins/qwen35_audio/src:. \
+uv run --no-project python -m recipe.phimm.tools.offline_audio \
+  --config-dir plugins/phimm/src/recipe/phimm/config/v2611_dev/main \
+  --config-name remax_main_base3a_2611r2 \
+  --output-dir /shared/prepared/base3a_sc1 \
+  +asr_training=context_aware offline_data.random_segment.segment_count=[2,2]
+```
+
+Launch training using the generated snapshot:
+
+```bash
+python -m recipe.phimm.main_asr_remax \
+  --config-path /shared/prepared/base3a_sc1 --config-name training
+```
+
+The output directory must be new. It contains fixed `source_NNN.jsonl`
+manifests, `train_data.yaml`, `training.yaml`, and `preparation.json` with
+settings, counts and hashes. The tool applies raw path/text normalization,
+generates the audio lists, then saves rows **before** task information,
+foreign-language masking and prompt/reference formatting. Those steps still
+run when training loads the prepared rows. Validation inputs, optimizer
+budgets, and `asr.context_aware` are preserved. Direct training with an active
+offline generation plan raises an actionable error; validation-only runs can
+still use those presets.
+
+Use a directory accessible on all training nodes. `--blob-root az://...`
+sets emitted manifest URIs; upload the generated JSONL files separately before
+launching. For new mixes, review merged-parent budgets and expected row counts.
+To reproduce an existing preset's data, use its original effective config from
+`provenance/original_configs/`; the ready-to-train preset has no active
+generation plan. Changing segmentation settings requires regenerating the
+manifests, rather than overriding a prepared preset's runtime settings.
+For more control, pass Hydra overrides after the CLI options, for example
+`offline_data.random_segment.even_split=true`. `+asr_training=multi_segment`,
+`+asr_training=context_aware` and `+asr_training=random_merge` select offline
+preparation plans. Already-materialized merge presets need no extra preparation.
+
+Each original recording remains one sample with its full reference. An offline
+segment plan replaces `audio_path` with an ordered list of selectors:
 
 ```yaml
-# Inside a dataset's post_process block:
-random_segment:
-  segment_count: [1, 2]  # Inclusive segment count range.
-  segment_len: null
-  seed: 42
+offline_data:
+  random_segment:
+    segment_count: [1, 2]
+    segment_len: null
+    seed: 42
 ```
 
 For exactly two segments, set `segment_count: [2, 2]`. Cut points are random;
@@ -213,7 +271,7 @@ The count is still sampled uniformly when its bounds differ. Even splitting
 uses the full recording, preserves the original reference, and needs no duration
 lookup. It is supported only in count mode; combining it with `segment_len`
 raises an error. For the earnings-short SC preset, enable it with
-`data.random_segment.even_split=true`.
+`offline_data.random_segment.even_split=true`.
 
 `min_segment_fraction` is an optional
 count-mode-only floor relative to the full recording,
@@ -238,34 +296,28 @@ supplying `audio_length` avoids that IO as well. Existing time selectors are
 accounted for when reading duration metadata. `audio_length`, when supplied,
 must describe the selected source's duration.
 
-`data.random_segment` applies the block to every training source; a source's
-own `post_process.random_segment` takes precedence, including `enabled: false`.
-The opt-in config above sets this global default and disables duration
-cropping. The standard per-segment prompt/response token limits still apply.
-Without the opt-in config, a listed segment exceeding `max_audio_dur` fails
-instead of silently cropping audio against a full reference. Validation is
-not augmented by the global training option.
+The training loader consumes the saved list unchanged. All sampled rollouts,
+greedy baselines and epochs reuse the same saved boundaries; validation is
+never randomly augmented. The normal per-segment token limits still apply.
 
 ### Random Merge: ordered audio lists
 
-Enable the new block with `+asr_training=random_merge`. It adds
-`data.random_merge` to each training source's `pre_process`, after path/text
-normalization and tag cleaning, before task prompts and references are built.
-It enables `asr.context_aware=true`, disables `random_segment`, reserves a
-2048-token prompt budget, and disables audio cropping. Validation is unchanged.
-A source's own `pre_process.random_merge` overrides the global block, including
-`enabled: false`.
+Use `+asr_training=random_merge` with `recipe.phimm.tools.offline_audio`.
+This selects ordered-list merging before task information is added, enables
+`asr.context_aware=true`, reserves a 2048-token prompt budget and disables
+random cuts. The offline plan is:
 
 ```yaml
-# Global settings supplied by +asr_training=random_merge:
-data:
+offline_data:
   random_merge:
-    max_audio_length: 180  # Strict upper bound in seconds per merged parent.
+    max_audio_length: 180
     buffer_size: 100
     seed: 42
-    merge_count: [2, 3]  # Uniformly sampled target count; at most 3 whole utterances.
+    merge_count: [2, 3]
     text_separator: " "
     group_by: [data_source, prompt]
+  random_segment:
+    enabled: false
 ```
 
 A random starting utterance and compatible utterances that fit the cap form
@@ -314,14 +366,14 @@ Use `verl_format.extra_keys` for provenance fields needed in rollout details.
 
 Packing changes the number of dataset rows. Mix budgets now count merged
 parents; choose an appropriate budget (for example `epoch: 1` per datasource)
-and training step target for a new experiment. The block clears the inherited
-fixed row/step assertions, without changing existing jobs or their targets.
+and training step target for a new experiment. The merge plan clears inherited fixed row/step assertions. Existing jobs and
+their targets are unchanged.
 
-For a reproducible materialized training set, use the same raw preprocessing
+For source-spec-based offline packing, use the same raw preprocessing
 before task formatting, then load the resulting manifests without merging again:
 
 ```bash
-python -m recipe.phimm.data.offline_random_merge \
+python -m recipe.phimm.tools.offline_random_merge \
   --sources sources.json --output-dir merged_data \
   --audio-format list --merge-count 2 3 --cap 180 --seed 42
 ```
@@ -351,7 +403,7 @@ for recipes that concatenate and then resegment audio. Use:
 
 
 ```bash
-python -m recipe.phimm.data.offline_random_merge \
+python -m recipe.phimm.tools.offline_random_merge \
   --sources sources.json --output-dir /path/to/output \
   --blob-root az://orngwus2cresco/data/boren/data/verl/my_offline_dataset \
   --cap 180 --buffer-size 100 --seed 42 --workers 32
@@ -469,10 +521,10 @@ audio and prefix together and raises an error on overflow.
 The shared option `asr.context_aware=true` enables this behavior in both
 training and validation. For training, use `+asr_training=context_aware` on
 the normal training config and set a unique `trainer.experiment_name`. This
-composes the multi-segment training preset (one or two random segments per
-sample) and reserves 2048 prompt tokens. Context stays within each sample's
+selects the offline multi-segment plan (one or two random segments per sample)
+and reserves 2048 prompt tokens. Materialize it before launching training. Context stays within each sample's
 ordered `asr_segments`; it never crosses unrelated or shuffled training
-examples. Set `data.random_segment.segment_count` to choose another supported
+examples. Set `offline_data.random_segment.segment_count` to choose another supported
 segment count, or enable the flag directly on an existing multi-segment config.
 Single-segment samples have no preceding context.
 

@@ -8,7 +8,7 @@ import pytest
 import soundfile as sf
 import yaml
 from recipe.phimm.data.dataset import augment, jsonl_dataset, process_ds
-from recipe.phimm.data.offline_random_merge import merge_metadata, prepare_rows, run
+from recipe.phimm.tools.offline_random_merge import merge_metadata, prepare_rows, run
 from recipe.phimm.utils.audio import load_audio
 
 
@@ -139,9 +139,8 @@ def test_generated_yaml_loads_without_online_merge_transform(tmp_path, audio_for
         assert row["audio_length"] == 2.0
 
 
-def test_dataset_merge_block_emits_list_without_changing_offline_output(tmp_path):
+def test_dataset_merge_block_is_not_a_runtime_transform(tmp_path):
     path = tmp_path / "data.jsonl"
     path.write_text(json.dumps(dict(audio_path="a.wav", text="a", audio_length=1.0)) + "\n")
-    result = process_ds(jsonl_dataset(str(path)), random_merge={"max_audio_length": 180})
-    assert result[0]["audio_path"] == ["a.wav"]
-    assert result[0]["text"] == "a"
+    with pytest.raises(ValueError, match="Unsupported Base3a data transforms"):
+        process_ds(jsonl_dataset(str(path)), random_merge={"max_audio_length": 180})

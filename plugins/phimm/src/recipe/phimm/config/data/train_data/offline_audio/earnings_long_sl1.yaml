@@ -1,0 +1,81 @@
+# Prepared offline; original transform settings and hashes are in preparation.json.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e5f23b6ea2abcd6c/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy26_batch1
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/285cab43885a83f4/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy26_batch2
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/b2c68fdb282e2d55/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e1460f909ec704bb/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/6fdff97d30bafaf9/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - chunk_index
+      - audio_length

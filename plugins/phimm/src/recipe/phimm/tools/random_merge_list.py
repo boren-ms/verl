@@ -7,7 +7,7 @@ from functools import partial
 
 from datasets import Dataset, Features, Sequence, Value
 from recipe.phimm.data.prompts import resolve_language
-from recipe.phimm.data.random_merge import _iter_random_merge, _validate_options
+from recipe.phimm.tools.random_merge import _iter_random_merge, _validate_options
 
 AUDIO_FIELDS = ("audio_path", "audio_file", "audio_chunk")
 TEXT_FIELDS = ("text", "display", "display_ne_tagged", "lexical", "ref", "hyp")
@@ -156,7 +156,7 @@ def random_merge(
             raise ValueError("random_merge merge_count must be [min_count, max_count] with positive ordered integers")
         merge_count = tuple(merge_count)
     if "reward_model" in ds.column_names:
-        raise ValueError("Random Merge must run in pre_process before add_task_info and verl_format")
+        raise ValueError("Offline Random Merge requires raw rows before add_task_info and verl_format")
     features = _features(ds)
     if not len(ds):
         return Dataset.from_dict({key: [] for key in features}, features=features)

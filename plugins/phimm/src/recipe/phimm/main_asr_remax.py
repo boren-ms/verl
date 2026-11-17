@@ -7,12 +7,14 @@ from pathlib import Path
 import hydra
 from omegaconf import OmegaConf, open_dict
 from recipe.phimm.utils.env import EnvMgr
+from recipe.phimm.utils.offline_data import require_prepared_audio
 
 OmegaConf.register_new_resolver("eval", lambda expr: eval(expr, {"__builtins__": {}}, {}), replace=True)
 
 
 @hydra.main(config_path="config/v2611_dev/main", config_name="remax_main_base3a_2611r2", version_base=None)
 def main(config):
+    require_prepared_audio(config)
     if not config.actor_rollout_ref.model.path:
         raise ValueError("Set actor_rollout_ref.model.path to a verified HF checkpoint")
     if not config.trainer.experiment_name or config.trainer.experiment_name == "remax_main_base3a_2611r2":

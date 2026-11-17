@@ -3,6 +3,7 @@
 
 defaults:
   - remax_main_base3a_2611r2_async_sc1a_bs64_e1
+  - /data/train_data/offline_audio/main_base3a_2611r2_async_sc1a@_offline_train_0464f12263
   - _self_
 
 actor_rollout_ref:
@@ -11,3 +12,6 @@ actor_rollout_ref:
 
 trainer:
   experiment_name: remax_main_base3a_2611r2_async_sc1a_bs64_e1_ppo4
+
+data:
+  train_data: ${_offline_train_0464f12263}

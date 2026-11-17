@@ -4,11 +4,11 @@
 # Two epochs, drop_last=true: floor(3548 / 16) * 2 = 442 updates.
 defaults:
   - remax_main_base3a_2611r2_sl_merge3m_sl1to10
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl5to30_bs16@_offline_train_92147b1aed
   - _self_
-
-data:
-  random_segment:
-    segment_len: [5, 30]
 
 trainer:
   experiment_name: remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs16
+
+data:
+  train_data: ${_offline_train_92147b1aed}

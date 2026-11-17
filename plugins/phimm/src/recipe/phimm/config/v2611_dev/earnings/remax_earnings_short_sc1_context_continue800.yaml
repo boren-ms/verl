@@ -2,6 +2,7 @@
 # Continue the completed context-aware SC1 lineage; restore all training state.
 defaults:
   - remax_earnings_short_context_aware_u2_context
+  - /data/train_data/offline_audio/earnings_short_sc1@_offline_train_7654de9cd4
   - _self_
 
 trainer:
@@ -15,3 +16,6 @@ trainer:
 asr:
   context_aware: true
   expected_training_steps: 800
+
+data:
+  train_data: ${_offline_train_7654de9cd4}

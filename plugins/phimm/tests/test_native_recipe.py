@@ -44,8 +44,8 @@ def test_context_training_preserves_recipe_and_enables_ordered_segments(compose_
     config = compose_recipe(overrides=["+asr_training=context_aware", "trainer.experiment_name=context-train"])
     OmegaConf.resolve(config)
     assert config.asr.context_aware and not base.asr.context_aware
-    assert list(config.data.random_segment.segment_count) == [1, 2]
-    assert config.data.random_segment.segment_len is None
+    assert list(config.offline_data.random_segment.segment_count) == [1, 2]
+    assert config.offline_data.random_segment.segment_len is None
     assert config.data.max_audio_dur is None
     assert config.actor_rollout_ref.rollout.prompt_length == 2048
     assert config.data.max_model_length == 2816
@@ -60,16 +60,30 @@ def test_context_training_preserves_recipe_and_enables_ordered_segments(compose_
 
 @pytest.mark.parametrize("tag, mode, bounds", [("sc", "segment_count", [1, 2]), ("sl", "segment_len", [5, 30])])
 def test_base3a_segment_variants_inherit_training_and_validation(compose_recipe, tag, mode, bounds):
+    import recipe.phimm
+    from recipe.phimm.agentic.dataset import _flatten_data_confs
+    from recipe.phimm.utils.offline_data import active_audio_transforms
+
     base = compose_recipe()
     name = f"remax_main_base3a_2611r2_{tag}"
     config = compose_recipe(kind="rand_segment", name=name)
     OmegaConf.resolve(config)
+    registry_path = Path(recipe.phimm.__file__).parent / "config/data/train_data/offline_audio/preparation.json"
+    registry = json.loads(registry_path.read_text())
+    preparation = next(entry for entry in registry["configs"] if entry["name"] == name)
     other_mode = "segment_len" if mode == "segment_count" else "segment_count"
-    assert list(config.data.random_segment[mode]) == bounds
-    assert config.data.random_segment[other_mode] is None
-    assert config.data.random_segment.seed == 42
+    assert preparation["options"][mode] == bounds
+    assert preparation["options"][other_mode] is None
+    assert preparation["options"]["seed"] == 42
+    assert not active_audio_transforms(config)
+    assert "offline_data" not in config
+    sources = list(_flatten_data_confs(config.data.train_data))
+    assert [source.jsonl_paths for source in sources] == [
+        registry["tasks"][task]["uri"] for task in preparation["tasks"]
+    ]
+    assert all(not source.get("pre_process") for source in sources)
     assert config.data.max_audio_dur is None
-    for field in ("train_data", "val_data", "mix", "train_batch_size"):
+    for field in ("val_data", "mix", "train_batch_size"):
         assert config.data[field] == base.data[field]
     assert config.rewards == base.rewards
     assert config.reward_map == base.reward_map

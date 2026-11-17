@@ -5,9 +5,11 @@
 # Fresh experiment from the identical base model; auto resume is for recovery only.
 defaults:
   - remax_main_base3a_2611r2_sl_long5
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_long5@_offline_train_eb3be32f99
   - _self_
 
 data:
+  train_data: ${_offline_train_eb3be32f99}
   train_batch_size: 64
 
 trainer:

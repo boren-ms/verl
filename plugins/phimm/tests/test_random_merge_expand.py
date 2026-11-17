@@ -7,8 +7,8 @@ import datasets
 import pytest
 import yaml
 from recipe.phimm.data.dataset import augment
-from recipe.phimm.data.offline_random_merge_expand import materialize
-from recipe.phimm.data.random_merge_expand import plan_expansion
+from recipe.phimm.tools.offline_random_merge_expand import materialize
+from recipe.phimm.tools.random_merge_expand import plan_expansion
 
 
 def originals(count=101):
@@ -130,8 +130,7 @@ def test_x4_training_pair_shares_all_controls_except_context_and_output_identity
         assert cfg["asr"]["expected_training_rows"] == 100960
         assert cfg["trainer"]["total_training_steps"] == 800
         assert cfg["trainer"]["total_epochs"] * (100960 // cfg["data"]["train_batch_size"]) >= 800
-        assert not cfg["data"]["random_merge"]["enabled"]
-        assert not cfg["data"]["random_segment"]["enabled"]
+        assert "offline_data" not in cfg
         assert "shadow/38000/qwen_hf" in cfg["actor_rollout_ref"]["model"]["path"]
         # Normalize only the run name; remaining effective differences must be the single flag.
         name = cfg["trainer"]["experiment_name"]

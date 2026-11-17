@@ -5,7 +5,12 @@ defaults:
   - context_aware
   - _self_
 
-data:
+asr:
+  # Dataset size changes from short utterances to merged parent samples.
+  expected_training_rows: null
+  expected_training_steps: null
+
+offline_data:
   random_merge:
     enabled: true
     max_audio_length: 180
@@ -14,11 +19,5 @@ data:
     merge_count: [2, 3]
     text_separator: " "
     group_by: [data_source, prompt]
-  # Merge already defines segment boundaries. Do not cut the resulting list.
   random_segment:
     enabled: false
-
-asr:
-  # Dataset size changes from short utterances to merged parent samples.
-  expected_training_rows: null
-  expected_training_steps: null

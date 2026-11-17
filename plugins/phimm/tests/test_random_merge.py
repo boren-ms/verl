@@ -4,8 +4,8 @@ import datasets
 import numpy as np
 import pytest
 import soundfile as sf
-from recipe.phimm.data.random_merge import _iter_random_merge, random_merge
-from recipe.phimm.data.random_segment import random_segment
+from recipe.phimm.tools.random_merge import _iter_random_merge, random_merge
+from recipe.phimm.tools.random_segment import random_segment
 from recipe.phimm.utils.audio import load_audio
 
 
@@ -116,7 +116,7 @@ def test_precomputed_duration_avoids_audio_io(monkeypatch):
     def fail(source):
         raise AssertionError("must use audio_length")
 
-    monkeypatch.setattr("recipe.phimm.data.random_merge.get_audio_duration", fail)
+    monkeypatch.setattr("recipe.phimm.tools.random_merge.get_audio_duration", fail)
     result = random_merge(datasets.Dataset.from_list(rows(7)), seed=19)
     assert result[0]["audio_length"] == 140
 

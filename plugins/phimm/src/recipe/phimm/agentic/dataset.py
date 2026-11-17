@@ -27,26 +27,11 @@ def _flatten_data_confs(data_confs):
 
 
 def _prepare_data_confs(config, *, is_train):
-    """Flatten source configs and apply training defaults below source overrides."""
+    """Flatten materialized sources; audio-list generation is an offline operation."""
     sources = config.train_data if is_train else config.val_data
     data_confs = [dict(conf) for conf in _flatten_data_confs(sources)]
-    if is_train and config.get("random_segment") is not None:
-        for conf in data_confs:
-            post_process = dict(conf.get("post_process") or {})
-            post_process.setdefault("random_segment", dict(config.random_segment))
-            conf["post_process"] = post_process
-    if is_train and config.get("random_merge") is not None:
-        for conf in data_confs:
-            pre_process = dict(conf.get("pre_process") or {})
-            pre_process.setdefault("random_merge", dict(config.random_merge))
-            conf["pre_process"] = pre_process
-    for conf in data_confs:
-        pre = conf.get("pre_process") or {}
-        post = conf.get("post_process") or {}
-        merge = pre.get("random_merge")
-        segment = post.get("random_segment")
-        if merge is not None and merge.get("enabled", True) and segment is not None and segment.get("enabled", True):
-            raise ValueError("Random Merge audio lists preserve utterance boundaries; disable random_segment")
+    if any(config.get(key) is not None for key in ("random_segment", "random_merge")):
+        raise ValueError("Materialize random segment/merge with recipe.phimm.tools.offline_audio before training")
     return data_confs
 
 

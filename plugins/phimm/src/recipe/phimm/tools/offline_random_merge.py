@@ -1,6 +1,6 @@
 """Prepare reproducible, source-separated ASR manifests without rewriting audio.
 
-Run with ``python -m recipe.phimm.data.offline_random_merge --help``.
+Run with ``python -m recipe.phimm.tools.offline_random_merge --help``.
 The source spec is a JSON list of {name, config} objects, where config is an
 ordinary Base3a JSONL dataset block. Only raw-input transforms are applied.
 """
@@ -17,8 +17,8 @@ import numpy as np
 import yaml
 from datasets import Dataset
 from recipe.phimm.data.dataset import jsonl_dataset, process_ds
-from recipe.phimm.data.random_merge import _iter_random_merge
-from recipe.phimm.data.random_merge_list import random_merge as random_merge_list
+from recipe.phimm.tools.random_merge import _iter_random_merge
+from recipe.phimm.tools.random_merge_list import random_merge as random_merge_list
 from recipe.phimm.utils.audio import get_audio_duration
 
 DURATION_FIELDS = ("audio_length", "audio_duration_seconds", "duration")

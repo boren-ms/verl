@@ -10,8 +10,9 @@ import soundfile as sf
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 from recipe.phimm.agentic.dataset import ASRDataset, _prepare_data_confs
-from recipe.phimm.data.dataset import augment
-from recipe.phimm.data.random_merge_list import random_merge
+from recipe.phimm.data.dataset import augment, process_ds
+from recipe.phimm.tools.offline_audio import materialize
+from recipe.phimm.tools.random_merge_list import random_merge
 from recipe.phimm.utils.audio import load_audio
 
 
@@ -77,7 +78,7 @@ def test_invalid_merge_count(count):
 
 
 def test_post_process_merge_rejected_before_task_formatting():
-    with pytest.raises(ValueError, match="pre_process before add_task_info"):
+    with pytest.raises(ValueError, match="Unsupported Base3a data transforms"):
         augment(datasets.Dataset.from_list(rows(2)), post_process={"random_merge": {}})
 
 
@@ -140,10 +141,12 @@ def test_global_block_produces_full_reference_segments_and_leaves_validation_alo
             "train_data": [source],
             "val_data": [source],
             "version": 2609,
-            "random_merge": {"max_audio_length": 10, "seed": 7},
-            "random_segment": {"enabled": False},
         }
     )
+    full_config = OmegaConf.create(
+        {"data": OmegaConf.to_container(config), "offline_data": {"random_merge": {"max_audio_length": 10, "seed": 7}}}
+    )
+    config = materialize(full_config, tmp_path / "prepared").data
     train = ASRDataset("train", None, config)
     assert len(train) == 1
     sample = train[0]
@@ -171,11 +174,7 @@ def test_source_opt_out_and_conflicting_segmentation():
             "random_segment": {"enabled": False},
         }
     )
-    sources = _prepare_data_confs(config, is_train=True)
-    assert sources[0]["pre_process"]["random_merge"] == {"enabled": False}
-    assert sources[1]["pre_process"]["random_merge"] == {"max_audio_length": 10}
-    config.random_segment.enabled = True
-    with pytest.raises(ValueError, match="disable random_segment"):
+    with pytest.raises(ValueError, match="Materialize random segment/merge"):
         _prepare_data_confs(config, is_train=True)
 
 
@@ -183,8 +182,7 @@ def test_source_block_inherits_hint_language_before_formatting(tmp_path):
     data = [dict(audio_path=f"{i}.wav", text=f"mot{i}", audio_length=1) for i in range(2)]
     ds = datasets.Dataset.from_list(data)
     result = augment(
-        ds,
-        pre_process={"random_merge": {}},
+        random_merge(ds, default_language="French"),
         add_task_info={"style": "verb", "language": "French", "lang_hint": True},
         post_process={"verl_format": {"prompt_key": "prompt"}},
     )
@@ -210,8 +208,8 @@ def test_hydra_random_merge_block_enables_context_and_disables_random_cuts():
     OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)
     with initialize_config_dir(config_dir=str(directory), version_base=None):
         config = compose(config_name="remax_earnings_short_baseline", overrides=["+asr_training=random_merge"])
-    assert config.data.random_merge.enabled
-    assert not config.data.random_segment.enabled
+    assert config.offline_data.random_merge.enabled
+    assert not config.offline_data.random_segment.enabled
     assert config.asr.context_aware
     assert config.data.max_audio_dur is None
     assert config.data.max_prompt_length == 2048
@@ -245,8 +243,7 @@ def test_merge_keeps_producer_keywords_alongside_cleaned_tags(enabled):
         ]
     )
     result = augment(
-        ds,
-        pre_process={"clean_tagged_text": {}, "random_merge": {"enabled": enabled}},
+        random_merge(process_ds(ds, clean_tagged_text={"preserve_existing_keywords": enabled}), enabled=enabled),
         add_task_info={"style": "verb", "language": "English"},
         post_process={"verl_format": {"prompt_key": "prompt"}},
     )

@@ -1,19 +1,12 @@
 # @package _global_
-# SC1 training with history-conditioned U2 validation and full-parent WER.
+# Compatibility experiment name; the parent already uses canonical full-reference U2.
 defaults:
   - remax_earnings_short_context_aware
-  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2_context@_openlong_context
+  - /data/train_data/offline_audio/earnings_short_sc1@_offline_train_2da16b5c01
   - _self_
-
-data:
-  val_data:
-    - ${_openlong_context}
-
-reward_map:
-  earnings21_u2_context: val_openasr_en
-  earnings22_u2_context: val_openasr_en
-  coraal_u2_context: val_openasr_en
-  earnings22_cleaned_aa_u2_context: val_openasr_en
 
 trainer:
   experiment_name: remax_earnings_short_context_aware_u2_context
+
+data:
+  train_data: ${_offline_train_2da16b5c01}

@@ -35,11 +35,11 @@ def test_quartr_fl_recipe_uses_target_only_data_and_foreign_validation():
     assert config.data.gen_batch_size == 32
     assert config.trainer.total_training_steps == config.asr.expected_training_steps == 170
     assert (2732 // config.data.train_batch_size) * config.trainer.total_epochs == 170
-    assert [
-        source.post_process.add_field.fields.data_source
-        for group in config.data.val_data
-        for source in group
-    ] == ["earnings22_parent4", "enhint_en", "enhint_noen"]
+    assert [source.post_process.add_field.fields.data_source for group in config.data.val_data for source in group] == [
+        "earnings22_parent4",
+        "enhint_en",
+        "enhint_noen",
+    ]
 
 
 def test_base1_preserves_mix_and_validation_routing():
@@ -58,7 +58,7 @@ def test_base1_preserves_mix_and_validation_routing():
     assert config.actor_rollout_ref.model.lora_rank == 320
     assert config.actor_rollout_ref.actor.optim.lr == 6e-7
     assert config.actor_rollout_ref.rollout.n == 8
-    assert config.data.random_segment is None
+    assert "offline_data" not in config
     for source in ("foreign_1k", "foreign_mixed_10k"):
         assert config.reward_map[source] == "train_librispeech"
     assert config.reward_map.enhint_noen == "val_foreign_language"
@@ -71,11 +71,11 @@ def test_base1_preserves_mix_and_validation_routing():
             if name != "enhint_noen":
                 assert config.reward_map[name] == "val_openasr_en"
     assert len(config.data.train_data) == 2
-    assert [
-        source.post_process.add_field.fields.data_source
-        for group in config.data.val_data
-        for source in group
-    ] == ["earnings22_parent4", "enhint_en", "enhint_noen"]
+    assert [source.post_process.add_field.fields.data_source for group in config.data.val_data for source in group] == [
+        "earnings22_parent4",
+        "enhint_en",
+        "enhint_noen",
+    ]
 
 
 def test_all_effective_data_configs_load_and_preserve_parent_metadata(tmp_path):

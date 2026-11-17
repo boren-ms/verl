@@ -1,0 +1,5430 @@
+{
+  "blob_root": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1",
+  "provenance_uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/provenance",
+  "verification": "Exact comparison of every final training row with the former online order; full remote manifest readback SHA256 verified.",
+  "configs": [
+    {
+      "path": "v2611_dev/async/remax_main_base3a_2611r2_async_sc1a.yaml",
+      "name": "remax_main_base3a_2611r2_async_sc1a",
+      "tasks": [
+        "7cca31a358ef0eb9",
+        "d89f5b185cde8297",
+        "9c96aa9441e59256",
+        "f9fcd787678150d2",
+        "8e22158f6f2a8793",
+        "86c6d75a1133b88f",
+        "a45bc4ef92384ac5"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_async_sc1a"
+    },
+    {
+      "path": "v2611_dev/async/remax_main_base3a_2611r2_async_sc1a_bs64_e1.yaml",
+      "name": "remax_main_base3a_2611r2_async_sc1a_bs64_e1",
+      "tasks": [
+        "7cca31a358ef0eb9",
+        "d89f5b185cde8297",
+        "9c96aa9441e59256",
+        "f9fcd787678150d2",
+        "8e22158f6f2a8793",
+        "86c6d75a1133b88f",
+        "a45bc4ef92384ac5"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_async_sc1a"
+    },
+    {
+      "path": "v2611_dev/async/remax_main_base3a_2611r2_async_sc1a_bs64_e1_ppo4.yaml",
+      "name": "remax_main_base3a_2611r2_async_sc1a_bs64_e1_ppo4",
+      "tasks": [
+        "7cca31a358ef0eb9",
+        "d89f5b185cde8297",
+        "9c96aa9441e59256",
+        "f9fcd787678150d2",
+        "8e22158f6f2a8793",
+        "86c6d75a1133b88f",
+        "a45bc4ef92384ac5"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_async_sc1a"
+    },
+    {
+      "path": "v2611_dev/async/remax_main_base3a_2611r2_async_sc1a_ppo2.yaml",
+      "name": "remax_main_base3a_2611r2_async_sc1a_ppo2",
+      "tasks": [
+        "7cca31a358ef0eb9",
+        "d89f5b185cde8297",
+        "9c96aa9441e59256",
+        "f9fcd787678150d2",
+        "8e22158f6f2a8793",
+        "86c6d75a1133b88f",
+        "a45bc4ef92384ac5"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_async_sc1a"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_long_bs4_sl1.yaml",
+      "name": "remax_earnings_long_bs4_sl1",
+      "tasks": [
+        "e5f23b6ea2abcd6c",
+        "285cab43885a83f4",
+        "b2c68fdb282e2d55",
+        "e1460f909ec704bb",
+        "6fdff97d30bafaf9"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_long_sl1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_long_sl1.yaml",
+      "name": "remax_earnings_long_sl1",
+      "tasks": [
+        "e5f23b6ea2abcd6c",
+        "285cab43885a83f4",
+        "b2c68fdb282e2d55",
+        "e1460f909ec704bb",
+        "6fdff97d30bafaf9"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_long_sl1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_context_aware.yaml",
+      "name": "remax_earnings_short_context_aware",
+      "tasks": [
+        "e214058bf51e3523",
+        "ab36aad43c499a72",
+        "725d10c7d3c13a6b",
+        "e04829e3a9625c34",
+        "390c0fe90c6de1d2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sc1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_context_aware_u2_context.yaml",
+      "name": "remax_earnings_short_context_aware_u2_context",
+      "tasks": [
+        "e214058bf51e3523",
+        "ab36aad43c499a72",
+        "725d10c7d3c13a6b",
+        "e04829e3a9625c34",
+        "390c0fe90c6de1d2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sc1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sc.yaml",
+      "name": "remax_earnings_short_sc",
+      "tasks": [
+        "4ec7512ec2f224a5",
+        "5c79a182c159eb80",
+        "f52a10e423430ee0",
+        "2af56362d89e6423",
+        "325eb770c3bda963"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": false
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sc"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sc1.yaml",
+      "name": "remax_earnings_short_sc1",
+      "tasks": [
+        "e214058bf51e3523",
+        "ab36aad43c499a72",
+        "725d10c7d3c13a6b",
+        "e04829e3a9625c34",
+        "390c0fe90c6de1d2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": false
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sc1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sc1_context_continue800.yaml",
+      "name": "remax_earnings_short_sc1_context_continue800",
+      "tasks": [
+        "e214058bf51e3523",
+        "ab36aad43c499a72",
+        "725d10c7d3c13a6b",
+        "e04829e3a9625c34",
+        "390c0fe90c6de1d2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sc1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sc1_no_context_continue800.yaml",
+      "name": "remax_earnings_short_sc1_no_context_continue800",
+      "tasks": [
+        "e214058bf51e3523",
+        "ab36aad43c499a72",
+        "725d10c7d3c13a6b",
+        "e04829e3a9625c34",
+        "390c0fe90c6de1d2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sc1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sc1a.yaml",
+      "name": "remax_earnings_short_sc1a",
+      "tasks": [
+        "d89f5b185cde8297",
+        "9c96aa9441e59256",
+        "f9fcd787678150d2",
+        "8e22158f6f2a8793",
+        "86c6d75a1133b88f"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": true
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sc1a"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sl1.yaml",
+      "name": "remax_earnings_short_sl1",
+      "tasks": [
+        "5c2a057273eaed77",
+        "e306bbf65012ad40",
+        "2a552bf56017ea7f",
+        "d3845956bbb3f459",
+        "1bf9accb56f6ba03"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sl1"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sl2.yaml",
+      "name": "remax_earnings_short_sl2",
+      "tasks": [
+        "9169ba559da4fed0",
+        "f8558bbcc42e0947",
+        "56b58d6a5c6c76a1",
+        "7858a42aa1a2f58f",
+        "2c5c1e548b89c737"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          5
+        ]
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sl2"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sl3.yaml",
+      "name": "remax_earnings_short_sl3",
+      "tasks": [
+        "956b775efe05e21f",
+        "e039204df96840e5",
+        "151eae519f1c9f9c",
+        "42f27bc3ffcae1a8",
+        "9d302003b1c8056d"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          10,
+          20
+        ]
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sl3"
+    },
+    {
+      "path": "v2611_dev/earnings/remax_earnings_short_sl4.yaml",
+      "name": "remax_earnings_short_sl4",
+      "tasks": [
+        "20c6bb75b9b5c553",
+        "71f57b9b404db3d5",
+        "41411ff6c240dc8b",
+        "9e14e71dc3d7522e",
+        "b2434c6b1c9d9abe"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          10
+        ]
+      },
+      "dataset_group": "data/train_data/offline_audio/earnings_short_sl4"
+    },
+    {
+      "path": "v2611_dev/foreign/remax_foreign_quartr_fl_sc2.yaml",
+      "name": "remax_foreign_quartr_fl_sc2",
+      "tasks": [
+        "79c3f8a011053b5c"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/foreign_quartr_fl_sc2"
+    },
+    {
+      "path": "v2611_dev/long/remax_main_base3a_2611r2_sl_long5.yaml",
+      "name": "remax_main_base3a_2611r2_sl_long5",
+      "tasks": [
+        "b0168598d979723b",
+        "72f994327fdd1044",
+        "b7d61211cd9e4d7b",
+        "4fca4320c8217e75",
+        "2b600d47cebe9634",
+        "7d18d4d25471ccb2",
+        "0a6d2266b58b48c2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_long5"
+    },
+    {
+      "path": "v2611_dev/long/remax_main_base3a_2611r2_sl_long5_bs64.yaml",
+      "name": "remax_main_base3a_2611r2_sl_long5_bs64",
+      "tasks": [
+        "b0168598d979723b",
+        "72f994327fdd1044",
+        "b7d61211cd9e4d7b",
+        "4fca4320c8217e75",
+        "2b600d47cebe9634",
+        "7d18d4d25471ccb2",
+        "0a6d2266b58b48c2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_long5"
+    },
+    {
+      "path": "v2611_dev/long/remax_main_base3a_2611r2_sl_long5_bs64_sl1to10.yaml",
+      "name": "remax_main_base3a_2611r2_sl_long5_bs64_sl1to10",
+      "tasks": [
+        "df69862b74057828",
+        "e5f23b6ea2abcd6c",
+        "285cab43885a83f4",
+        "b2c68fdb282e2d55",
+        "e1460f909ec704bb",
+        "6fdff97d30bafaf9",
+        "28d59ff9c04f5b0b"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_long5_bs64_sl1to10"
+    },
+    {
+      "path": "v2611_dev/long/remax_main_base3a_2611r2_sl_long5_continue868.yaml",
+      "name": "remax_main_base3a_2611r2_sl_long5_continue868",
+      "tasks": [
+        "b0168598d979723b",
+        "72f994327fdd1044",
+        "b7d61211cd9e4d7b",
+        "4fca4320c8217e75",
+        "2b600d47cebe9634",
+        "7d18d4d25471ccb2",
+        "0a6d2266b58b48c2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_long5"
+    },
+    {
+      "path": "v2611_dev/merge/remax_main_base3a_2611r2_sl_merge3m_sl1to10.yaml",
+      "name": "remax_main_base3a_2611r2_sl_merge3m_sl1to10",
+      "tasks": [
+        "eaddc58986d3c823",
+        "e3dda80a16db3208",
+        "22e7a64fefd01366",
+        "08c32041df76710a",
+        "3399772d71a98dcd",
+        "db582bf91fd4f7bd",
+        "5b451b59f4e691a0"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl1to10"
+    },
+    {
+      "path": "v2611_dev/merge/remax_main_base3a_2611r2_sl_merge3m_sl1to10_bs8.yaml",
+      "name": "remax_main_base3a_2611r2_sl_merge3m_sl1to10_bs8",
+      "tasks": [
+        "eaddc58986d3c823",
+        "e3dda80a16db3208",
+        "22e7a64fefd01366",
+        "08c32041df76710a",
+        "3399772d71a98dcd",
+        "db582bf91fd4f7bd",
+        "5b451b59f4e691a0"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl1to10"
+    },
+    {
+      "path": "v2611_dev/merge/remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs16.yaml",
+      "name": "remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs16",
+      "tasks": [
+        "28b1520f309a3f76",
+        "a1e85fb5ddfd1b31",
+        "4c9903a341a96b23",
+        "6ce0e3880d6d4467",
+        "bfce75ace4eaac9f",
+        "7bdd83a10c85f6fb",
+        "ba42496bc9dd26d8"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl5to30_bs16"
+    },
+    {
+      "path": "v2611_dev/merge/remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs8.yaml",
+      "name": "remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs8",
+      "tasks": [
+        "28b1520f309a3f76",
+        "a1e85fb5ddfd1b31",
+        "4c9903a341a96b23",
+        "6ce0e3880d6d4467",
+        "bfce75ace4eaac9f",
+        "7bdd83a10c85f6fb",
+        "ba42496bc9dd26d8"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl5to30_bs16"
+    },
+    {
+      "path": "v2611_dev/merge/remax_main_base3a_2611r2_sl_offline_merge3m.yaml",
+      "name": "remax_main_base3a_2611r2_sl_offline_merge3m",
+      "tasks": [
+        "28b1520f309a3f76",
+        "a1e85fb5ddfd1b31",
+        "4c9903a341a96b23",
+        "6ce0e3880d6d4467",
+        "bfce75ace4eaac9f",
+        "7bdd83a10c85f6fb",
+        "ba42496bc9dd26d8"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl5to30_bs16"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sc.yaml",
+      "name": "remax_main_base3a_2611r2_sc",
+      "tasks": [
+        "f6684f2505167f94",
+        "4ec7512ec2f224a5",
+        "5c79a182c159eb80",
+        "f52a10e423430ee0",
+        "2af56362d89e6423",
+        "325eb770c3bda963",
+        "e720bfce20e8f524"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sc"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sc1.yaml",
+      "name": "remax_main_base3a_2611r2_sc1",
+      "tasks": [
+        "7aa4b25af02a40cc",
+        "41bfa4665417765b",
+        "c7ed7e609a8c6150",
+        "348d83e047fb8a80",
+        "a99c76e5116a5afc",
+        "65fe87523961b2b9",
+        "426ad95faadf7d81"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sc1"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sc2.yaml",
+      "name": "remax_main_base3a_2611r2_sc2",
+      "tasks": [
+        "06b4b828508c20eb",
+        "2242103ce11b66e7",
+        "0b68af7dc5b5c844",
+        "cb86be7f4924e6d8",
+        "fe9af3acacb08ead",
+        "e8e7b9e0946a8a4a",
+        "c44bee7e868dce5d"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sc2"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sl.yaml",
+      "name": "remax_main_base3a_2611r2_sl",
+      "tasks": [
+        "b0168598d979723b",
+        "7fe0df0d1f7df22c",
+        "1d03f84ef58866fc",
+        "762d153c76ab7239",
+        "6217b374a2d86aec",
+        "d4d18dd1f253567f",
+        "0a6d2266b58b48c2"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sl1.yaml",
+      "name": "remax_main_base3a_2611r2_sl1",
+      "tasks": [
+        "df69862b74057828",
+        "5c2a057273eaed77",
+        "e306bbf65012ad40",
+        "2a552bf56017ea7f",
+        "d3845956bbb3f459",
+        "1bf9accb56f6ba03",
+        "28d59ff9c04f5b0b"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl1"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sl2.yaml",
+      "name": "remax_main_base3a_2611r2_sl2",
+      "tasks": [
+        "a5fc13e7c20f4de0",
+        "9169ba559da4fed0",
+        "f8558bbcc42e0947",
+        "56b58d6a5c6c76a1",
+        "7858a42aa1a2f58f",
+        "2c5c1e548b89c737",
+        "8a9fb921f38c7187"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          2,
+          5
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl2"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sl3.yaml",
+      "name": "remax_main_base3a_2611r2_sl3",
+      "tasks": [
+        "c1091872f5c6d2b3",
+        "956b775efe05e21f",
+        "e039204df96840e5",
+        "151eae519f1c9f9c",
+        "42f27bc3ffcae1a8",
+        "9d302003b1c8056d",
+        "6c24ad4c7eea9aad"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          10,
+          20
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl3"
+    },
+    {
+      "path": "v2611_dev/rand_segment/remax_main_base3a_2611r2_sl4.yaml",
+      "name": "remax_main_base3a_2611r2_sl4",
+      "tasks": [
+        "3f0d9e78c7bbe6b5",
+        "20c6bb75b9b5c553",
+        "71f57b9b404db3d5",
+        "41411ff6c240dc8b",
+        "9e14e71dc3d7522e",
+        "b2434c6b1c9d9abe",
+        "84663e1facae7b39"
+      ],
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          2,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "dataset_group": "data/train_data/offline_audio/main_base3a_2611r2_sl4"
+    }
+  ],
+  "tasks": {
+    "7cca31a358ef0eb9": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "7cca31a358ef0eb9",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/7cca31a358ef0eb9/source_000.jsonl.gz",
+      "bytes": 8222813,
+      "sha256": "254e68c171ceb4fee69c19b4ba5d4cdcc1bb150a5eb64ecf45f06edc4b18ab49",
+      "manifest_sha256": "6967927fb3546626165032a7aa26f8db151c8d8fe72295963cfa6c61fc49b81b",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "304ccaab7d83cf1536246c7f6968e8732f0ff48b70a864c065ee9861f99a21cf"
+    },
+    "d89f5b185cde8297": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "d89f5b185cde8297",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/d89f5b185cde8297/source_000.jsonl.gz",
+      "bytes": 525194,
+      "sha256": "968f94b366aaf06fc475ebc21e0df35bc77c317dac7dddc2d8df970adde4ee61",
+      "manifest_sha256": "6554189cf8092f9014b181c95d17aabc0d5311e68949eedf21762d8d2fb03270",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "205da9d2708a2259fd9ed1f250fd47fd6358909d04512dc217e87a5f0b947a8e"
+    },
+    "9c96aa9441e59256": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "9c96aa9441e59256",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/9c96aa9441e59256/source_000.jsonl.gz",
+      "bytes": 683767,
+      "sha256": "edb8e9197ae04a9c21de8b12d99544ac83c55c87dcc741cd6d3c5f1c20ec14ee",
+      "manifest_sha256": "0721b2196b8f16898cec9360f9c5a4e41c1b16d8107ba3ef285eaeec125f4aaa",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "b30f11945fe69cfa0a7ea08e017847b3f3180ea9ec5bff6ceceb799d648d07a9"
+    },
+    "f9fcd787678150d2": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "f9fcd787678150d2",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/f9fcd787678150d2/source_000.jsonl.gz",
+      "bytes": 439477,
+      "sha256": "dd8a9f76378e9bdbe201659d92ca382fcdd240f0282ef0b4fb921724aa26375e",
+      "manifest_sha256": "124ef81e0e9970f6b9580be6bc1ab1dd611a3bb3b2795ca0fe6955ae1b1c68ea",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "4e274a92ede03b868d0560eeb1dbd18f6495571d30bf2a0e383efa052f1aaca0"
+    },
+    "8e22158f6f2a8793": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "8e22158f6f2a8793",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/8e22158f6f2a8793/source_000.jsonl.gz",
+      "bytes": 980208,
+      "sha256": "ab18dadd11f3e74343ecd935ad825b2c2540e8b0f9b7e03ba01faf737e6ca483",
+      "manifest_sha256": "8a70ba31bee5089bec1731cccd5de54aa483662c6dc2ae37df41b61e8216a74e",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "0a3a188f231f651bd0ecb538e443777625e92182dc32e8141a211e39b882c14f"
+    },
+    "86c6d75a1133b88f": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "86c6d75a1133b88f",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/86c6d75a1133b88f/source_000.jsonl.gz",
+      "bytes": 989090,
+      "sha256": "46b2f1d145ccc55564efe7be14eb665aba5879fdaeeea5decd4aca4acb2e5fa6",
+      "manifest_sha256": "42c01fdfc0c99ce766f5b43ddca97d325bbd8cdee6c89aeeab04dd4f5a94c0ef",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "86f1c2a5010cb4031d6db1eff2bbd2f3254bfebe134e20b680c0886f637262ab"
+    },
+    "a45bc4ef92384ac5": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "even_split": true,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "a45bc4ef92384ac5",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/a45bc4ef92384ac5/source_000.jsonl.gz",
+      "bytes": 878117,
+      "sha256": "ab051c35172d8e9b608a6a5e7987febb3d84a98b24dba51acf1246067dac9b32",
+      "manifest_sha256": "1fc54fb4ad77537d2471734312e329c84ebb77238f2f9c411695e002738d8bd4",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "13d5747d5aa2fd38ab8b18be8ea23735d4f061199a5b989382be0317d164150c"
+    },
+    "e5f23b6ea2abcd6c": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch1/training_base3a_v1/earn_fy26_batch1.jsonl",
+        "pre_process": {
+          "rename_fields": {
+            "mappings": {
+              "text": "transcription"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy26_batch1"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "e5f23b6ea2abcd6c",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e5f23b6ea2abcd6c/source_000.jsonl.gz",
+      "bytes": 417895,
+      "sha256": "7c8e5018881cce0fe512614a048e49a85efecae7c8aa159da9d23aa6c6a809a2",
+      "manifest_sha256": "68197b760a2905b3ebe68a0c15638588d73d34345e69a0a4d88096f832dea735",
+      "rows": 80,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "0812812a324a31b729ee0781ede82fb66c5b2ee5d2c4e9e6f4fbd6843687a0d2"
+    },
+    "285cab43885a83f4": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch2/training_base3a_v1/earn_fy26_batch2.jsonl",
+        "pre_process": {
+          "rename_fields": {
+            "mappings": {
+              "text": "transcription"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy26_batch2"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "285cab43885a83f4",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/285cab43885a83f4/source_000.jsonl.gz",
+      "bytes": 538018,
+      "sha256": "b508fe617a83b4cdaa032cb838792efa0bc85e390377405452816f7b86d45f50",
+      "manifest_sha256": "8dd79b28833575acfe3c6fb1c167d53b4c977182eff213d0e843afeededf8965",
+      "rows": 104,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "0c6e3b530dfd6e161d3d9d9157f7c8d4a7d848d2fdbb1bb6a247aca41f393f59"
+    },
+    "b2c68fdb282e2d55": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/training_base3a_v1/quartr_1st23_long.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23_long"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "b2c68fdb282e2d55",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/b2c68fdb282e2d55/source_000.jsonl.gz",
+      "bytes": 446413,
+      "sha256": "f2912b7d2b2da17d5af0ad4f0f547b19df1a6ea716cf2c031f72771e8ddfb401",
+      "manifest_sha256": "b8ce0291963e8c274581a338e074f6f59edc69ecf004da9d8473a404b5606f2b",
+      "rows": 98,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "ac937119779c6f8068199502597248b11648bb2a7362c53aa51aab4d39767602"
+    },
+    "e1460f909ec704bb": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/training_base3a_v1/quartr_2nd48_long.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48_long"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "e1460f909ec704bb",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e1460f909ec704bb/source_000.jsonl.gz",
+      "bytes": 1030718,
+      "sha256": "83268c82dafb6b25cbb6821d422011f659c2ccbdd148a89a6bc52155816c067d",
+      "manifest_sha256": "dd1cb7c8db059ca091b74a1c753afec870237909283895d95830055ed59d3c35",
+      "rows": 235,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "dfcfe5cf1b12b27314ad0c3e200c41a9442eadbc548113127881d36a32bdeee4"
+    },
+    "6fdff97d30bafaf9": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/training_base3a_v1/quartr_3rd38_long.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38_long"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "6fdff97d30bafaf9",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/6fdff97d30bafaf9/source_000.jsonl.gz",
+      "bytes": 981614,
+      "sha256": "8ef95ab927f0026d333974865e1deb3fab66bf6c768d592b5b14a95edfcc1851",
+      "manifest_sha256": "cf35502d1219e31a810adad390e1874c4a7252fbe4d72390be393879fcca4772",
+      "rows": 222,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "75090e32dfce4e871e3d9699a1b6f9ed16c818ae380ef951a09a514fefecc6cb"
+    },
+    "e214058bf51e3523": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "e214058bf51e3523",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e214058bf51e3523/source_000.jsonl.gz",
+      "bytes": 592296,
+      "sha256": "bc0ca52291bc1d965260eb0eb5813babeb654e6cf580aabf972959409e647a4b",
+      "manifest_sha256": "67dec7d02ecd22b47e4c2579e600f73ea458901ec5e77c9fddfae4caa364bbfe",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "98f8a9636db1f2d2d69edbc548886488aa5839c71018a98a7b0fa72ad46b867d"
+    },
+    "ab36aad43c499a72": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "ab36aad43c499a72",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/ab36aad43c499a72/source_000.jsonl.gz",
+      "bytes": 755557,
+      "sha256": "da309e966b9b227468c6b92263c53e9570b8a6964ae2769770e61647d65ff22d",
+      "manifest_sha256": "5864359f77548399c35e63f7937eaa2f7c074f45d2115d3a39d50f86ac39db56",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "e0bc6a125bdd777fbe49b3d4760975810eafbccd8840143db2c10975c4150981"
+    },
+    "725d10c7d3c13a6b": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "725d10c7d3c13a6b",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/725d10c7d3c13a6b/source_000.jsonl.gz",
+      "bytes": 483109,
+      "sha256": "4824957d29ac66fb95b2a0b67e0f36b8c54b8fc4100a22f8b58f01dda80e65f3",
+      "manifest_sha256": "efa09d8c32d55f25028c1ac27c20be17da92e459a4a0adf7d3f47f4eb68b7e00",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "82f39a6c32a4955dae2501c656a46ec5fc83b9079d36cc53869d34434b12e41f"
+    },
+    "e04829e3a9625c34": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "e04829e3a9625c34",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e04829e3a9625c34/source_000.jsonl.gz",
+      "bytes": 1071895,
+      "sha256": "81ddf86a699131dfd89b3bfd3810425f1b0e7e11cf9d704c47c08a4f35f0ffc7",
+      "manifest_sha256": "e0f0b569022cb83dc1778eb0cb5e306ee04bd3321f0c4ecceeaf61b5c2884ad5",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "8947bf7164b70cddaeb748b7ed2f18e22c24b3bef2ec368e3bc9b0d38586baf1"
+    },
+    "390c0fe90c6de1d2": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "enabled": true,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "390c0fe90c6de1d2",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/390c0fe90c6de1d2/source_000.jsonl.gz",
+      "bytes": 1078640,
+      "sha256": "c386e96ec293b3aefa98205d3105ee9460871c410be81f96c4f5ee859ada85b4",
+      "manifest_sha256": "1433b0811f3ea9356a9c578e57570c9860ddf0af2535eb2860f08707ee533c0e",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "6b64fe9dead60b8b7b9ea890083516e1d1c624f04912538bbffeeffdd8cdb42b"
+    },
+    "4ec7512ec2f224a5": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "4ec7512ec2f224a5",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/4ec7512ec2f224a5/source_000.jsonl.gz",
+      "bytes": 549484,
+      "sha256": "49880feaeac5a7e4ce3831fcdaa0469388817814d10e86ab402603543bcd80ae",
+      "manifest_sha256": "0bc65596384c78ef460c6089f3b703a18e2fda528b98951c2e7fc55456b33d7d",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "754f064d92330fe952059b9d01247bae08df4484d2710ad25b9ab95b7054e8f5"
+    },
+    "5c79a182c159eb80": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "5c79a182c159eb80",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/5c79a182c159eb80/source_000.jsonl.gz",
+      "bytes": 707230,
+      "sha256": "563166144724f03a7aeb4c9b7f4f6e79c5ad7e2f93bcc1eff9231f105c022db7",
+      "manifest_sha256": "4d44dbb753abb8b9be5420145a59ef058f1accf2838b2ef0653469a06b00003d",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "cd1ad586c8392969cde04190a825d717ece35ef0622eace68471e2c78a0dc10b"
+    },
+    "f52a10e423430ee0": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "f52a10e423430ee0",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/f52a10e423430ee0/source_000.jsonl.gz",
+      "bytes": 453159,
+      "sha256": "892e2b8db34abaa5c6d9053d4b3065e2d33d4b8f8342b29857478f2955c9bcee",
+      "manifest_sha256": "3f6d3b21966961fd2e58826361b72edacea6c9981e3b1b5d135c94c074f3ab10",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "885f2af48ecaa26562c14a8ec3a084160bf3908d7b3b432eea600e303156099f"
+    },
+    "2af56362d89e6423": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "2af56362d89e6423",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/2af56362d89e6423/source_000.jsonl.gz",
+      "bytes": 1011728,
+      "sha256": "ab0d916a53f07cd682e925aaafccbe74c1236a7c003f1ea05be373ca107014be",
+      "manifest_sha256": "0b35824fd6bc4411753542d0771b99032496712fc45d111243b0e81a23d2ddb4",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "b3498a7fff00feffc23ae4d9a5136ec3510a43fea91851e04b05f541d030f414"
+    },
+    "325eb770c3bda963": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": null,
+        "even_split": false
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "325eb770c3bda963",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/325eb770c3bda963/source_000.jsonl.gz",
+      "bytes": 1019524,
+      "sha256": "6fece622f2a7a31238d7269d3f2da5602b90356a9be4002d6d4dc80b11e26f64",
+      "manifest_sha256": "8195f2d76e63c6d04c21bacb8ab7e408fda12dcd27438fbaf657cd61e13c67df",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "ce6a2b1cde7ceff2adb8e508b72a976dde295a92f6e31cf63eaab766fab0754d"
+    },
+    "5c2a057273eaed77": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "5c2a057273eaed77",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/5c2a057273eaed77/source_000.jsonl.gz",
+      "bytes": 592714,
+      "sha256": "e303237c1c88b7c75aa90b33791ee0672f6b892c647c0aa80677df55c3d15be1",
+      "manifest_sha256": "bd27b8cb809490dbdf2766d1f51958f5b250d52441ec0fca1c6716ef8cffeaa3",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "5172b0ac4d6ad4cf18daaab29c816fb0f4489a4ea07e4e7b5f8b527386cfc394"
+    },
+    "e306bbf65012ad40": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "e306bbf65012ad40",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e306bbf65012ad40/source_000.jsonl.gz",
+      "bytes": 768276,
+      "sha256": "7e7dd3f9cda99ba7ef37b297c4a48530b1d3a13391cf56ede2ea8cc53c5c7543",
+      "manifest_sha256": "cbc3687464b1285f68f9dd5c279c844d3af3fde966cc9b46d9e569dbbc334cf2",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "89cebbcf646b3c78d380359c83782b8201de8f0a4c45d6c98f3bb80d0c5e8b7e"
+    },
+    "2a552bf56017ea7f": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "2a552bf56017ea7f",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/2a552bf56017ea7f/source_000.jsonl.gz",
+      "bytes": 538691,
+      "sha256": "c07fc463cf7215fc329b40f9970e23e76ca6134361e7087aa9e8d7d4b9742f13",
+      "manifest_sha256": "6647e9530f05fe47daab51268db82a2bc742d69b805e59cc6f3a048e5af1c5c6",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "29f1f14cd1795217da47eb873f528700245ce5916090be8ff96e2f9d3bc48082"
+    },
+    "d3845956bbb3f459": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "d3845956bbb3f459",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/d3845956bbb3f459/source_000.jsonl.gz",
+      "bytes": 1238184,
+      "sha256": "1417a4f5386adedab27d9990926b89176dd868ffe11366d466250996b096f3ce",
+      "manifest_sha256": "1424e4b558ec365eab82caf46f839e780afd86ae25d8ed0f8df5584b5c8a7c86",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "083b55f1f60ba5d0dd36d2519aa1502411cd0216f10c762044d00eab15c98447"
+    },
+    "1bf9accb56f6ba03": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          1,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "1bf9accb56f6ba03",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/1bf9accb56f6ba03/source_000.jsonl.gz",
+      "bytes": 1236851,
+      "sha256": "d65869fe8f732da455ec8c4dfacfd588293eb2dbc5815938763f75a16cf4795f",
+      "manifest_sha256": "bb925ce54d8658d2cbd7682bf492ba114167241e792884d721ba2cc37499af76",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "82459ef471e91a2c8e0412c531803f6e4083129b8a5041ab974873ffcc726597"
+    },
+    "9169ba559da4fed0": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          5
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "9169ba559da4fed0",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/9169ba559da4fed0/source_000.jsonl.gz",
+      "bytes": 698800,
+      "sha256": "9882d61fbf4d9146b62f621cf4acf8c2ed9f8f60222522ea28830ac2a455e189",
+      "manifest_sha256": "d2f451d5565814656a65d1c75490bb3fb3da151e7ca923de767068fa3ae3a3ae",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "dcf9ce9861cfb1ea4f9b80d2110d2260f0b9a1b441be43764c05cee5451f8481"
+    },
+    "f8558bbcc42e0947": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          5
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "f8558bbcc42e0947",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/f8558bbcc42e0947/source_000.jsonl.gz",
+      "bytes": 898236,
+      "sha256": "1cb12dc4d2b220ed48d84be2cff8ba88eee444598ef5454f86affbcffea2cdbd",
+      "manifest_sha256": "d6171c55a51285d567c827f9082131bcaa6b2cfbe137e2d5aba4bab5ee25cc1e",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "59179dcaae79e97703e74e30616e6bffeeabf714b7545a4d3a9cc14c14d51131"
+    },
+    "56b58d6a5c6c76a1": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          5
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "56b58d6a5c6c76a1",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/56b58d6a5c6c76a1/source_000.jsonl.gz",
+      "bytes": 640328,
+      "sha256": "d3dd8ea90f4d53b1abb33a278e3bf9d880858313386e3a4344af6dab70d75e90",
+      "manifest_sha256": "85f61aaac24f9bd69ef3cf36ec8eae41261498632f4afa5effbaad2d6ea04cdb",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "08d3ee3a9f2c32920328209a8ae683c7845c10792ef779ad551ca14246b9926a"
+    },
+    "7858a42aa1a2f58f": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          5
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "7858a42aa1a2f58f",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/7858a42aa1a2f58f/source_000.jsonl.gz",
+      "bytes": 1474945,
+      "sha256": "e26c0d44602f0cd4ad6ef7b1f21248191a0c494356d207e2defa146e591d1609",
+      "manifest_sha256": "9090c9a91c2ff7590ef22c6dba076c75589920b8b420938cc61dfaa3cff18671",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "0c3551d7d3f7b30b60f22caeb08dbcb00aed2486b39d0df85106e71132dc5bc0"
+    },
+    "2c5c1e548b89c737": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          5
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "2c5c1e548b89c737",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/2c5c1e548b89c737/source_000.jsonl.gz",
+      "bytes": 1461392,
+      "sha256": "6884a06cae229a0795f2036ec0471e07b1b47e2b4d13fcbe3ad8e4b389ff3bd7",
+      "manifest_sha256": "72872433e7319fd5b38b5cbb2d14daa36b37c3ad83e2a514ffd900dd254c3f6e",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "4bc74e13f1b829827c6686042911b57b01bbf04b270ff97ab6fea945f99dd8ad"
+    },
+    "956b775efe05e21f": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          10,
+          20
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "956b775efe05e21f",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/956b775efe05e21f/source_000.jsonl.gz",
+      "bytes": 518941,
+      "sha256": "58e454d256f5308f9f52c648bc4eb3598fff954ff48a22fe41d287597662af79",
+      "manifest_sha256": "8cc521b31834ba1a63967f354b3b6bb9cdc3aff49f1bbcca8503aa944d7560d1",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "49bb0917086f7c6e2f5a9a603153ba40a10c837e7807ef33e97eb21f151c65d4"
+    },
+    "e039204df96840e5": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          10,
+          20
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "e039204df96840e5",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e039204df96840e5/source_000.jsonl.gz",
+      "bytes": 675640,
+      "sha256": "c84549ee5ef9b648575817236248c9a1cb588aff9a0a89b5e9a3832ed3f118a7",
+      "manifest_sha256": "ae80caee8c932832749b893530dd82af82fe31713118d6ba6d483fa38bef18e6",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "0c4b08212c4b85e0e55c99db99361728925c0f04ea7455d7aac621e5349b75c4"
+    },
+    "151eae519f1c9f9c": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          10,
+          20
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "151eae519f1c9f9c",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/151eae519f1c9f9c/source_000.jsonl.gz",
+      "bytes": 449461,
+      "sha256": "7b02ff9496a54cec84f9a62e731203cc65cbe22e5347a09505ccd42cabb3719f",
+      "manifest_sha256": "b8b19fb05886fffebfae0c0d448415d06f6dad7d1ec1e7cf1297d74cc30be2ea",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "80e398fae63f21df2ff06d83ac9463c62e6765b7e7f556382b4671534afecbc3"
+    },
+    "42f27bc3ffcae1a8": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          10,
+          20
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "42f27bc3ffcae1a8",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/42f27bc3ffcae1a8/source_000.jsonl.gz",
+      "bytes": 1021326,
+      "sha256": "e8d761a513fd8ea6c3b65a2913e43735446a3b106f668867666a40276870b41f",
+      "manifest_sha256": "a26244d921cbacfd8e0021e7ec93caf1ca7794034cd5b8a88fb5bf2a931ea229",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c4201b72a5e92f1b7222ad89d02bb6afb4dfb61790e6aee94f404893594a3265"
+    },
+    "9d302003b1c8056d": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          10,
+          20
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "9d302003b1c8056d",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/9d302003b1c8056d/source_000.jsonl.gz",
+      "bytes": 1028742,
+      "sha256": "64ce21030a2d76c53ac2e839cde29486654cc20f029ce479a81b32d281cdf1ca",
+      "manifest_sha256": "2843f8fc9b14bca5eb20012687f6ddcc8a458237e4ce12774371e7ecf2ff5d2f",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c272b7f50c578c362b52019a9a8283b7e015d961c949ac3d7ebd1d13306944c1"
+    },
+    "20c6bb75b9b5c553": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "20c6bb75b9b5c553",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/20c6bb75b9b5c553/source_000.jsonl.gz",
+      "bytes": 586307,
+      "sha256": "b2ef65c31984c85a494e49cf9463d3097b7493c21409730e2117e33fbcd69bf7",
+      "manifest_sha256": "fa1b11321014ce6310fb4391a800edf35d583d6f83a7c4f989044988c5c750ba",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "bab8de0b6d4dbe9bf2559c6b8570234dbe03b45209597cfaafbed39ef7b0c7b0"
+    },
+    "71f57b9b404db3d5": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "71f57b9b404db3d5",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/71f57b9b404db3d5/source_000.jsonl.gz",
+      "bytes": 761045,
+      "sha256": "4855cc517a9c78c112b9ffd3431b4e780513bbe1115634edc3c2ee6e18c34569",
+      "manifest_sha256": "feba8e385f885c94bb0df50797e54c0e193b5d111b82c541d871a8c7d4641f08",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c488b9499637c77ebcd40e8a777653cff2f312a3a78180e4cc4a200f18b16dfa"
+    },
+    "41411ff6c240dc8b": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "41411ff6c240dc8b",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/41411ff6c240dc8b/source_000.jsonl.gz",
+      "bytes": 530451,
+      "sha256": "11754bbb29074c7fd5a37c31dd8b307b29cd5364bd03c1e3764e63d8646437a4",
+      "manifest_sha256": "7d184bd1a1b9baf45d17b35cf9ce7b98b56769f52ca94cefcf90d4226f342e81",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "af09c5ac6023e8cf8185b147474ea6e635296222075ea5b7599a94845f95babb"
+    },
+    "9e14e71dc3d7522e": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "9e14e71dc3d7522e",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/9e14e71dc3d7522e/source_000.jsonl.gz",
+      "bytes": 1217506,
+      "sha256": "3f45717531a615d0f2de2bcf22266247204cb9bc241dfe033ee424febcb62cdd",
+      "manifest_sha256": "5db3f3d91cfbd1e99b058f8cbf637617d51aeb4203448bfbdbc2852297ef73cf",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "2d65053c6c93256390f2516774f587dbcf4d58fe12192f02d208af01117861fb"
+    },
+    "b2434c6b1c9d9abe": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16,
+        "segment_len": [
+          2,
+          10
+        ]
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "b2434c6b1c9d9abe",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/b2434c6b1c9d9abe/source_000.jsonl.gz",
+      "bytes": 1216690,
+      "sha256": "ae7d531d7c50dc53f522413dcb254ec09b058c6dff0654f223bd32505859bd17",
+      "manifest_sha256": "b01409429d862ba5219066457951136240cbfc4548f9fbc8c44facd0399fd470",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "60d51c56b3a4c8ea903cc2f0c1f1e0db8613de61feb8b0110e52ac93bb05cb1b"
+    },
+    "79c3f8a011053b5c": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          2
+        ],
+        "segment_len": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_FL_Segments/training_base3a_v1/quartr_fl_segments.jsonl",
+        "pre_process": {
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "target_only": true,
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_fl_segments"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "subset",
+              "audio_length",
+              "source_language",
+              "source_status",
+              "approval",
+              "source_tsv",
+              "source_row"
+            ]
+          }
+        }
+      },
+      "task": "79c3f8a011053b5c",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/79c3f8a011053b5c/source_000.jsonl.gz",
+      "bytes": 362266,
+      "sha256": "a23298570fe8397dafe4351b87f416b0ac32426228c59479cddbba4dd64f5c21",
+      "manifest_sha256": "a8489bed9d1ce8f1679dc6f3d3ce5b51158cb795f24f39533786f46c4dbf0ec1",
+      "rows": 2732,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "42ab3c26ec227dbfa1a9849baa9a832a267dbd31e0f1aba30c3fe9209d54cd78"
+    },
+    "b0168598d979723b": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "b0168598d979723b",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/b0168598d979723b/source_000.jsonl.gz",
+      "bytes": 8087663,
+      "sha256": "1e7a57559b8a942e83081b582c080451781c6d4afd650039c6c30bb498963b16",
+      "manifest_sha256": "78a34b98cbd71d31c32c1b6742c11513b9d8b0fb1a2251e5b6bfbe248aff945a",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c58c003478cdbe96fbfa6e5aa4495797f843f56d22f58adc00a1ac3e58794bc6"
+    },
+    "72f994327fdd1044": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch1/training_base3a_v1/earn_fy26_batch1.jsonl",
+        "pre_process": {
+          "rename_fields": {
+            "mappings": {
+              "text": "transcription"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy26_batch1"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "72f994327fdd1044",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/72f994327fdd1044/source_000.jsonl.gz",
+      "bytes": 289989,
+      "sha256": "04b2bef5f0fe40362876fbed9ca8a69be1b7f8b0a135261c005d0d245fe4df4b",
+      "manifest_sha256": "310511cbb8322056c6b296aadfc8711dbd439057f17253849b4e462a072f21f8",
+      "rows": 80,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "f433db00b64469709fa419fce26412b3c87b52db679f6f85433cc3fe8a9bb8c8"
+    },
+    "b7d61211cd9e4d7b": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_FY26/Chunks/Batch2/training_base3a_v1/earn_fy26_batch2.jsonl",
+        "pre_process": {
+          "rename_fields": {
+            "mappings": {
+              "text": "transcription"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy26_batch2"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "b7d61211cd9e4d7b",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/b7d61211cd9e4d7b/source_000.jsonl.gz",
+      "bytes": 373533,
+      "sha256": "d1798b3b155bdc3456d8d8c949795222b09bf4b4d8e7e74b682ed775476afc07",
+      "manifest_sha256": "5e9674ca1d19f26c5f187b3ee1a60791d0ed2454bdebfa7c54892470745a3c4b",
+      "rows": 104,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "6ecb6683e3b8114d8dda214575d6c179b7dc9d4eca83c4c988696fa187bb8a72"
+    },
+    "4fca4320c8217e75": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/training_base3a_v1/quartr_1st23_long.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/10min-chunks/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23_long"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "4fca4320c8217e75",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/4fca4320c8217e75/source_000.jsonl.gz",
+      "bytes": 344870,
+      "sha256": "2376e286dc82b24e621e9d4e5819773034ab2255baf7bab2c926324d15ecbc5d",
+      "manifest_sha256": "a22872e342d186121f177f6320334b236bcbeb8d8b4e873a1b1230fbb3acc456",
+      "rows": 98,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "9ce8c07f3368331b553eea93fb340d06b30d7a0ad79f1a7d98f84074cf8db063"
+    },
+    "2b600d47cebe9634": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/training_base3a_v1/quartr_2nd48_long.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/10min-chunks/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48_long"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "2b600d47cebe9634",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/2b600d47cebe9634/source_000.jsonl.gz",
+      "bytes": 789580,
+      "sha256": "bebfce57c8605011620207155114e6aed5f92c4307c83b2d0666080a7c926fb9",
+      "manifest_sha256": "d65a5cf12b5bf9dd251bcaa105abf72fb194215b85c8ed709c8bb0ac70ec7de2",
+      "rows": 235,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "1086688173c6e448486d97f6bcc7c45efacc35c5f72df8eb107174623366031d"
+    },
+    "7d18d4d25471ccb2": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/training_base3a_v1/quartr_3rd38_long.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/10min-chunks/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38_long"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "event_id",
+              "chunk_index",
+              "audio_length"
+            ]
+          }
+        }
+      },
+      "task": "7d18d4d25471ccb2",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/7d18d4d25471ccb2/source_000.jsonl.gz",
+      "bytes": 747565,
+      "sha256": "80c7f4e3fffce097988bbc81b9b5727af3607a6d3c7e6bcb2c2a133644f2cc0b",
+      "manifest_sha256": "cc8a1edbf8e63c7efdf8a77fcb174255a2ac7aa8ac46aea5bfda221bf6f78dc3",
+      "rows": 222,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c77f0d3dd88aa8ab3202f9a987bfd3f9f3be509f3c1698ab795ccbefd183fcd0"
+    },
+    "0a6d2266b58b48c2": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "0a6d2266b58b48c2",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/0a6d2266b58b48c2/source_000.jsonl.gz",
+      "bytes": 821022,
+      "sha256": "cd1f5143236bca7a5dc21764b5d7d977ba7ddcce72848564a2d7ce2295f0718f",
+      "manifest_sha256": "8574ab41816d3311f5b68defdd7a835106be4ef9f59020264a67643a30cd49fb",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "d5eda3b1e111b578198a78fcb3a33159fb6e1c65f7876291790710ea81e01788"
+    },
+    "df69862b74057828": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "df69862b74057828",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/df69862b74057828/source_000.jsonl.gz",
+      "bytes": 8227765,
+      "sha256": "48bc459599edac1293037da1f9b204646c8546c987e48585d6c1bde47a8681b7",
+      "manifest_sha256": "60aa6440b0ee089ed7bdfa3357d74583cfc83fde1416575378c2588e2e37cadf",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "5c4184be97e6225cf844333848f4d66659641e8172c8c222756cf25a35a6d7af"
+    },
+    "28d59ff9c04f5b0b": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42,
+        "num_proc": 16
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "28d59ff9c04f5b0b",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/28d59ff9c04f5b0b/source_000.jsonl.gz",
+      "bytes": 822378,
+      "sha256": "7120eda1792501a267a4af3cfaf0bad4d34d01fe592a245c31f756d45e437631",
+      "manifest_sha256": "4e83dd1f7f69826a4013365964821c19549d5778cde1fca728bd4248cabf00a4",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "77a354b44ea764b9161852c12711b5797939fa681249f70e6b3c59621d60a263"
+    },
+    "eaddc58986d3c823": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_1st23/data.jsonl",
+        "add_task_info": {
+          "lang_hint": true,
+          "style": "verb",
+          "language": "English"
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "eaddc58986d3c823",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/eaddc58986d3c823/source_000.jsonl.gz",
+      "bytes": 1019416,
+      "sha256": "6cdd04f590eb02aab26ed3a866b1fdb3f5c30ce7bd7551b0904c8033a0149256",
+      "manifest_sha256": "78ccb37adab276c825cd2d98a74aec62b06619a876b0078903ec10ec1d4090c7",
+      "rows": 301,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "e8d6afe12ad0b5c9219cdbb766186d9b310f2f603b8b1ce034049ef1c31ab893"
+    },
+    "e3dda80a16db3208": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_2nd48/data.jsonl",
+        "add_task_info": {
+          "lang_hint": true,
+          "style": "verb",
+          "language": "English"
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "e3dda80a16db3208",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e3dda80a16db3208/source_000.jsonl.gz",
+      "bytes": 2347285,
+      "sha256": "233462ac603852d037020f1a7b16e99f6f18c1f80dabd63dc1f231eb58959f12",
+      "manifest_sha256": "084606b46a0326e574b78b73f901034f0658ad34da684c1a799fde5af1c1e571",
+      "rows": 718,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "f07127e48c7dc721ea048435daa24332ebc40eec38307d77493c727a077451fd"
+    },
+    "22e7a64fefd01366": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_3rd38/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "22e7a64fefd01366",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/22e7a64fefd01366/source_000.jsonl.gz",
+      "bytes": 2394490,
+      "sha256": "d5334d37a5bcad15b0e7ca8aa3c1ace0a2920e3cc98c84dbb637bffc9ecc97f6",
+      "manifest_sha256": "380e671816313cd69cc5569cb1d090fda773a047feb0ab0595894fc2eaffd068",
+      "rows": 685,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "52789bcecaa84b2fd741f0a6a426a74627de216c3d2a07a321c6c354121f85bd"
+    },
+    "08c32041df76710a": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/aishell1_train_top10k/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "08c32041df76710a",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/08c32041df76710a/source_000.jsonl.gz",
+      "bytes": 2284853,
+      "sha256": "760073a0c7901d358da66957759e8563e838ddb87e308041620f009c60ab2516",
+      "manifest_sha256": "82910f70f3e40c1daddb0035a4643f02f69de9dee13299030f2c3f389514369f",
+      "rows": 257,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "3a210cae4e924bd34c4a0dd6267086c3826e3c2540d07f809b64759235d694c2"
+    },
+    "3399772d71a98dcd": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/noisy_ls/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          },
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          }
+        }
+      },
+      "task": "3399772d71a98dcd",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/3399772d71a98dcd/source_000.jsonl.gz",
+      "bytes": 17233858,
+      "sha256": "d0cfbb6ddd9f36abeb5252ce6e339b1fd541b567ddd7b018a55b8f6559c5ce2d",
+      "manifest_sha256": "82428f290caee8aa23dd7b481b074a080733c45c9f5e602893ebe4ac753f274f",
+      "rows": 930,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "f95961dbfee2de38ec6be4090ae73584d61b297f926e6909c9d6373f3b474c9e"
+    },
+    "db582bf91fd4f7bd": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          },
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          }
+        }
+      },
+      "task": "db582bf91fd4f7bd",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/db582bf91fd4f7bd/source_000.jsonl.gz",
+      "bytes": 1056789,
+      "sha256": "d5bbb927f37f73928a67ab40e287eab2d67a70da350ddde4b8ec2019461c5477",
+      "manifest_sha256": "d65283538b622277e15c5eb2de4fa42e92c5c9970fce215c3cc137afae5c8461",
+      "rows": 307,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "5ef7ccaeeafb5b3220194ded99f09c2cdd7df0a38d9be860ab3208bd0937663d"
+    },
+    "5b451b59f4e691a0": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          1,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch2/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "5b451b59f4e691a0",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/5b451b59f4e691a0/source_000.jsonl.gz",
+      "bytes": 1344295,
+      "sha256": "1af9813c85c77d815381c62c62e7f8d0f37d9e020bb3162194ed386f8bc3b1dd",
+      "manifest_sha256": "aac6b5110a188ca525f421559f2f7f844b273d8a34ca0bad0e4af9fa0e09ec44",
+      "rows": 350,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c391d4d54ebe0a5c3c26a7c2e441d591f77aa2930df57ddc9d1fcda2e07db2da"
+    },
+    "28b1520f309a3f76": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_1st23/data.jsonl",
+        "add_task_info": {
+          "lang_hint": true,
+          "style": "verb",
+          "language": "English"
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "28b1520f309a3f76",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/28b1520f309a3f76/source_000.jsonl.gz",
+      "bytes": 711305,
+      "sha256": "ee7120a1039fbe942c7fd97b50eeb3aa93b77f854f7ebb84808c20d6af8a970f",
+      "manifest_sha256": "70cdaacb1f39b580355cbe78af9e4cd5f23dc6e2096f448f5e22f8639ed2b9dd",
+      "rows": 301,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "1e0d1b905f0c1918646b0dc252f0fd445e86878da729e8bc73d47ee2b8b75623"
+    },
+    "a1e85fb5ddfd1b31": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_2nd48/data.jsonl",
+        "add_task_info": {
+          "lang_hint": true,
+          "style": "verb",
+          "language": "English"
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "a1e85fb5ddfd1b31",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/a1e85fb5ddfd1b31/source_000.jsonl.gz",
+      "bytes": 1571316,
+      "sha256": "5297295c2c5c702bbe95722cdf16411c8950b8c5ac3f49b04022f0390b407b32",
+      "manifest_sha256": "9544f2e631367a2de086d52bef75806c3500daf07dfc0fb3f479b5c56adc7775",
+      "rows": 718,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "9d2ab7771d117cc6b5b699d86edff6d8b36ffcd85ba92bdb2343ec24e0da0819"
+    },
+    "4c9903a341a96b23": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/quartr_3rd38/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "4c9903a341a96b23",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/4c9903a341a96b23/source_000.jsonl.gz",
+      "bytes": 1619330,
+      "sha256": "9edf3599239817f98964c15b29e4ed5e16964cdb52ac1930f013f083e18b4bb1",
+      "manifest_sha256": "0cf7ca0c324b98381b333e8c9754161bd9fcaf80f4df8d625b9f97d1ca28c258",
+      "rows": 685,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "a413d1313cc92f6ad93a01938fde167e64ae296eb7ca76c2898f8bfb17a84fd8"
+    },
+    "6ce0e3880d6d4467": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/aishell1_train_top10k/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "6ce0e3880d6d4467",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/6ce0e3880d6d4467/source_000.jsonl.gz",
+      "bytes": 1911246,
+      "sha256": "6c8d3f0cedc1faabe98b718cd98872835dd88920d483d3c34f1b1b1170c5085a",
+      "manifest_sha256": "c6dfc9f185907f1b8354382c2cb059f6238aae0b35962979dbba1b8999ba01e4",
+      "rows": 257,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c2339cead0af010d63bd12bb2d0b7dfd2461b7675a325276531e0383841456c4"
+    },
+    "bfce75ace4eaac9f": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/noisy_ls/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          },
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          }
+        }
+      },
+      "task": "bfce75ace4eaac9f",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/bfce75ace4eaac9f/source_000.jsonl.gz",
+      "bytes": 16370802,
+      "sha256": "63340a129fe13ab8ecd895ab06d3e27a9c342b8e16578eb7a5f9e5ec80a16a39",
+      "manifest_sha256": "fc169144d0eab8d36b682d576ee54df7628c0b4fe8ab4aa86255b74cd655762a",
+      "rows": 930,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "d52a0c97e5acb8c082f2935c109750857e28d86405e70d3113765e64fafc555b"
+    },
+    "7bdd83a10c85f6fb": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          },
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          }
+        }
+      },
+      "task": "7bdd83a10c85f6fb",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/7bdd83a10c85f6fb/source_000.jsonl.gz",
+      "bytes": 806682,
+      "sha256": "b436a569670fb8275d3671f30b1c1a9efd10d1a0b3f0f7196a976d05b448cd9f",
+      "manifest_sha256": "d5e0b3da80c748edc6ff1e4b7dd12b44ff9c3c1cf3ddde54b0fff89295790b33",
+      "rows": 307,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "11fe9fd9021c959af0d952ffedb7f05c04752394287ad55e493b69e12cc0b563"
+    },
+    "ba42496bc9dd26d8": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/offline_random_merge3m_20261114/earn_fy27_batch2/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source"
+            ]
+          }
+        }
+      },
+      "task": "ba42496bc9dd26d8",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/ba42496bc9dd26d8/source_000.jsonl.gz",
+      "bytes": 1040193,
+      "sha256": "65288102c7920a54f2d824b327729d170dd301017270cabb64ff0a42f6205ca1",
+      "manifest_sha256": "52d13bc456f6613667289f36bcc9186a3c6ca14af6660e08e54ff1e38d970fb5",
+      "rows": 350,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "54936031c23ef2a6f48af2e89a49c0dec9d78287d130a4937a22068b2e402d88"
+    },
+    "f6684f2505167f94": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "f6684f2505167f94",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/f6684f2505167f94/source_000.jsonl.gz",
+      "bytes": 8293517,
+      "sha256": "dc9436d09e959c713cdc1cde123bc724e6682f86580605ec5db22a0057d2ee60",
+      "manifest_sha256": "6a98af056e63299d43b689017795ad55ac1aabdf65109be25eda642583a82136",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "30e90e7e3dfe3d8f187093692d046b63e20c1692d42ad7fa29d945e2349a56ed"
+    },
+    "e720bfce20e8f524": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          2
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "e720bfce20e8f524",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e720bfce20e8f524/source_000.jsonl.gz",
+      "bytes": 921474,
+      "sha256": "6608f56a216565e7a16feee7d705e3eb5da678ec70f3aa8b7ccc245c0f3b3931",
+      "manifest_sha256": "2d89f624f2f0f2304de1ffbdfb4dd8640e3d86aedfa846f2660ffea23a73599e",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "215e04c96d723fc03d2f4fbd3f7dbd4cd10e467a89ce9ee903f8d7e292f93b4f"
+    },
+    "7aa4b25af02a40cc": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "7aa4b25af02a40cc",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/7aa4b25af02a40cc/source_000.jsonl.gz",
+      "bytes": 8947828,
+      "sha256": "67a9e6fa96aa74b197694ff0b3e25c5bfc7829587fc08ccaecf9a25ccbc589d0",
+      "manifest_sha256": "4f175a06997647f872daf23eb3e88a779ffb96e2945fb5bcdc02c94c229c1906",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "91208616d2345ada5b87e22c02f68c5045f6874199e56b3f46f7f31522cac663"
+    },
+    "41bfa4665417765b": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "41bfa4665417765b",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/41bfa4665417765b/source_000.jsonl.gz",
+      "bytes": 701378,
+      "sha256": "b7343f56f34f18e7db1b7bea5de5f59b9584964dff4a9eea64a88fb45c9a6dcb",
+      "manifest_sha256": "5d14a19d59beb768906817094defee3794080caf4ac01916e99e9c75ed71f04d",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "216214b0acbf058cdb2b1d0816b9d09ec6fcfc633eeaa91fbd65c04e85f1034a"
+    },
+    "c7ed7e609a8c6150": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "c7ed7e609a8c6150",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/c7ed7e609a8c6150/source_000.jsonl.gz",
+      "bytes": 876078,
+      "sha256": "32596ffc9092ae5f907e47924a2f185ad448ec1a1e31cf947f253972e0f38721",
+      "manifest_sha256": "584697dbc596478463913d2648fa8160b16fbcffcdccc23c8cd39b59eedfe45e",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "4ad13d9ac7de9000b7eb8abc266d13450e3ad4bd3925440372d7b6bd78a18a8e"
+    },
+    "348d83e047fb8a80": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "348d83e047fb8a80",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/348d83e047fb8a80/source_000.jsonl.gz",
+      "bytes": 561152,
+      "sha256": "381c671bdaf3a0ae278f9855443732b43f7f6778ebc1b8a9d24d9d5ce0983282",
+      "manifest_sha256": "dd171c21166f6514f37b885deb1aa21a5d41a0d3e1bb934ee8f726491cfc5bb3",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "45a150839203d9e9200bc0a739b681ea0a159330b87cb6cc19f6c2c0b162b8fa"
+    },
+    "a99c76e5116a5afc": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "a99c76e5116a5afc",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/a99c76e5116a5afc/source_000.jsonl.gz",
+      "bytes": 1235387,
+      "sha256": "f34ce8370ed48942209563fee1f8847d519321ecb051193ff758864b0d9ce58e",
+      "manifest_sha256": "c2fd49a233db566bb0fa72bae44a48574fde9ab81e55cf541a29622261c6c532",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "4af1d5c75f6efc1c6feeca36f016ab2ef83406c67f048b7ea37a4e15ec562cb6"
+    },
+    "65fe87523961b2b9": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "65fe87523961b2b9",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/65fe87523961b2b9/source_000.jsonl.gz",
+      "bytes": 1235890,
+      "sha256": "c5bf6befb6e06f016641544f49f2238ff412e19e5fd74c81e89b5021ccf0bdb2",
+      "manifest_sha256": "3432e761a12fda7ac711884ae0efdef8c6ee2536d61463ff34dfc8c3eb20117e",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "494bc0505f20b35020fd9b9d983b93ad3e0e2f1160959a44a44e436e0d1ae328"
+    },
+    "426ad95faadf7d81": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          2,
+          5
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "426ad95faadf7d81",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/426ad95faadf7d81/source_000.jsonl.gz",
+      "bytes": 1234264,
+      "sha256": "d49c3399af1fae8b0bb599699964151f3e5bf56bb5fb670f3888fd833eb09993",
+      "manifest_sha256": "f654aeb63c68df781ba825bf0b00b8fe4641563bb41fbea06f55f7fae61b64e9",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "b7ad3196cdabf29f62f37e1873e0d1df1208b081fb8a82a9c661c9b61fd105f2"
+    },
+    "06b4b828508c20eb": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "06b4b828508c20eb",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/06b4b828508c20eb/source_000.jsonl.gz",
+      "bytes": 8629516,
+      "sha256": "2ce9d353b0fe997f4cdc5655f313ffb550e995f98f3c4baec504dfd0317720f0",
+      "manifest_sha256": "aff447c0c6cf140b1d3208665f5a7b6c06379987104eda2b3f50e64fab3c8a0b",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "39a50854882200c3b3ee6782449a0bf5a8345068d22b55389cd355e4b62172f4"
+    },
+    "2242103ce11b66e7": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "2242103ce11b66e7",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/2242103ce11b66e7/source_000.jsonl.gz",
+      "bytes": 627634,
+      "sha256": "5e75bb5ee0f0ecc45a7fa42bebea2e167b0b2792d20ded6f6d96aa8f9748a062",
+      "manifest_sha256": "0ab92d785b521efd905bae0c4231593f8d5c77a2128e8fb8c5c32aca7d964b90",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "427b0be065e0f343123727da95d45196ba13c7fc1564bcd359dde856c54ebbb6"
+    },
+    "0b68af7dc5b5c844": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "0b68af7dc5b5c844",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/0b68af7dc5b5c844/source_000.jsonl.gz",
+      "bytes": 794219,
+      "sha256": "40edc209e5fecc778b1b7146ebbf4e5d0068db798c4ac651ddf12b8b992dec53",
+      "manifest_sha256": "4e267a8b1189e82d95619618ca6f44595df112417d52d77589083e57b9580561",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "061ac10e537f7e2451084146e7adde73c6443b2438f31444f62ecfd76ceaa078"
+    },
+    "cb86be7f4924e6d8": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "cb86be7f4924e6d8",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/cb86be7f4924e6d8/source_000.jsonl.gz",
+      "bytes": 508725,
+      "sha256": "e6ac05c06b169ef9d31670b322d1467e47ad802b0a751c77b8bf4a256ce240cb",
+      "manifest_sha256": "5f356ad141084b6a874481a2c3aaf83021216827342845103268c3c2edae4cbf",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "1ef5bdb338c675baf61bf099137e5b9a4b7384dbb6c484807ad7da355c79911b"
+    },
+    "fe9af3acacb08ead": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "fe9af3acacb08ead",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/fe9af3acacb08ead/source_000.jsonl.gz",
+      "bytes": 1126583,
+      "sha256": "64e4d483de2aeaa158ce061ec2c28ae6cafca6e82b7f88bf80a4e280a4141ff6",
+      "manifest_sha256": "4fabe3179f60621898677e59f87acff7df1f8f0aff66164bf4d15e0d8d29a1f7",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c98a3dbe813718354ad9b115fec6a40ddea3f133a24277e1326ccb2158ce2f1d"
+    },
+    "e8e7b9e0946a8a4a": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "e8e7b9e0946a8a4a",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/e8e7b9e0946a8a4a/source_000.jsonl.gz",
+      "bytes": 1132649,
+      "sha256": "1bc870168b35220980374bf16294ebdc8fe4ca8672bc13ff91797b73e89db9d8",
+      "manifest_sha256": "cf6433ee83671da54fee20769a17f5c4353e2776bd933dc32664757032a6aa81",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "1fbb57171fa2516c06b29f0409423345921da68b497937399c6bff004ee7dc9c"
+    },
+    "c44bee7e868dce5d": {
+      "mode": "random_segment",
+      "options": {
+        "segment_count": [
+          1,
+          4
+        ],
+        "segment_len": null,
+        "even_split": false,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "c44bee7e868dce5d",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/c44bee7e868dce5d/source_000.jsonl.gz",
+      "bytes": 1083103,
+      "sha256": "9b32bebdc61a70b2e331a56d54b9a0ad45bb05840011d90f413934d79051c116",
+      "manifest_sha256": "a2b41784ad3338b20ac21a6711d5c8603f5f82105999f3f35d5f21669a4166da",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "a5a6e6b97deeda6e661676a76fa4a86e8a70e5b3152385a9a9ec013351c74131"
+    },
+    "7fe0df0d1f7df22c": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "7fe0df0d1f7df22c",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/7fe0df0d1f7df22c/source_000.jsonl.gz",
+      "bytes": 500256,
+      "sha256": "f147d489654c4f14b300033da67f2ae187f7a7f0bd7c5978066db004a49caf79",
+      "manifest_sha256": "03100ef975560c3666d82937929834920d778f4a2b0cab501b2e526e9b6ee844",
+      "rows": 4695,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "5afff696dec7870f7af8b94e29059f3a6bc179426f830cd68c0b5982cb68c4cf"
+    },
+    "1d03f84ef58866fc": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audios/",
+            "dst_part": "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "earn_fy27"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "1d03f84ef58866fc",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/1d03f84ef58866fc/source_000.jsonl.gz",
+      "bytes": 652911,
+      "sha256": "40b10301cab362e834b8f56bfb8e07606044c5d7787f352bf01c06e38159e339",
+      "manifest_sha256": "65debd5ba5ecce88ea1b22727ca1db7f1540dc6d1c5101c46b8a3db8a5491b10",
+      "rows": 4873,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "9cb76c764cf3ed99fd83458951fd28f7e3033eb25720b5266089c56a2566ab29"
+    },
+    "762d153c76ab7239": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_1st23"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "762d153c76ab7239",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/762d153c76ab7239/source_000.jsonl.gz",
+      "bytes": 423439,
+      "sha256": "d3058a2d2e479a6a26bafb0af8cf6b140f966b819007f8b46d7cd2b3550675b4",
+      "manifest_sha256": "27ad8a96f67167e9b38c382efc959959376ac9114a861a995fc1006747cfacf5",
+      "rows": 3125,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "0a1a92632e2284f6fbc5345889acead4c36d07de31e90f776e536ebd1538a8da"
+    },
+    "6217b374a2d86aec": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_2nd48"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "6217b374a2d86aec",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/6217b374a2d86aec/source_000.jsonl.gz",
+      "bytes": 946609,
+      "sha256": "d27587c2b602f8332fca85f98ec95bc915a22c49b13d6db1349ef9c0ad97dc4b",
+      "manifest_sha256": "99e4a120a938eea31af9fe0d93ede6636dc679cea4a8201db18bb78b290d5360",
+      "rows": 6392,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "df8c05b111fd3d0ab7932f32f913dc64bff963196c8d0171c77ef9c42c5e8a5b"
+    },
+    "d4d18dd1f253567f": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          5,
+          30
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl",
+        "pre_process": {
+          "path_map": {
+            "field": "audio_path",
+            "src_part": "audio/",
+            "dst_part": "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+          },
+          "rename_fields": {
+            "mappings": {
+              "text": "display_ne_tagged"
+            }
+          },
+          "clean_tagged_text": {}
+        },
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "quartr_3rd38"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "d4d18dd1f253567f",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/d4d18dd1f253567f/source_000.jsonl.gz",
+      "bytes": 956247,
+      "sha256": "6e883ee2772f5590323058d695c43d9b6e38032c51b625ac3c12db2e3cd54b58",
+      "manifest_sha256": "1b05b051239d1e13d873ec783fe0b4077442c657611833f892fa60d34825de1f",
+      "rows": 6155,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "ca42d69051d4c3f11539148faebf22253aabfdf36f391114df616b06beb3c875"
+    },
+    "a5fc13e7c20f4de0": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          2,
+          5
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "a5fc13e7c20f4de0",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/a5fc13e7c20f4de0/source_000.jsonl.gz",
+      "bytes": 8616820,
+      "sha256": "0e8eb003816c5441d9765dc0a40747eb416358cbbdca4fa7c6a4fc6b0a516a91",
+      "manifest_sha256": "237fe26d0fec7ad58c390672e7c1598b02e691c411dde7b1ed9db6dd172f8ec2",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "43dffd31a72e0be68cd086342fdf777d60011b714991830f327e10594b4f78a3"
+    },
+    "8a9fb921f38c7187": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          2,
+          5
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "8a9fb921f38c7187",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/8a9fb921f38c7187/source_000.jsonl.gz",
+      "bytes": 894820,
+      "sha256": "96f7e1e6849916a84a4f0be5843411739a60ebe016fe86f9cd4a1e3ac5be820c",
+      "manifest_sha256": "43e324554812d2333a806cdbfd76f49d9d3c739bb4da513d3fc0f35378b11d87",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "258b03aca903fda11975979e4f05084f8ca5cc1fee4cd985d68c1941803d4621"
+    },
+    "c1091872f5c6d2b3": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          10,
+          20
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "c1091872f5c6d2b3",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/c1091872f5c6d2b3/source_000.jsonl.gz",
+      "bytes": 8087663,
+      "sha256": "1e7a57559b8a942e83081b582c080451781c6d4afd650039c6c30bb498963b16",
+      "manifest_sha256": "78a34b98cbd71d31c32c1b6742c11513b9d8b0fb1a2251e5b6bfbe248aff945a",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "c58c003478cdbe96fbfa6e5aa4495797f843f56d22f58adc00a1ac3e58794bc6"
+    },
+    "6c24ad4c7eea9aad": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          10,
+          20
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "6c24ad4c7eea9aad",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/6c24ad4c7eea9aad/source_000.jsonl.gz",
+      "bytes": 821022,
+      "sha256": "cd1f5143236bca7a5dc21764b5d7d977ba7ddcce72848564a2d7ce2295f0718f",
+      "manifest_sha256": "8574ab41816d3311f5b68defdd7a835106be4ef9f59020264a67643a30cd49fb",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "d5eda3b1e111b578198a78fcb3a33159fb6e1c65f7876291790710ea81e01788"
+    },
+    "3f0d9e78c7bbe6b5": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          2,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "English",
+          "lang_hint": true
+        },
+        "post_process": {
+          "add_field": {
+            "fields": {
+              "data_source": "noisy_ls"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt"
+          }
+        }
+      },
+      "task": "3f0d9e78c7bbe6b5",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/3f0d9e78c7bbe6b5/source_000.jsonl.gz",
+      "bytes": 8221554,
+      "sha256": "ce6a87fedac2e68b1ecfe0d1289eb8f8c7da125505d9dca16fa54eb009acf36e",
+      "manifest_sha256": "9f8f0b59bf941d8857d71ad115fffe30ff048401468f4b9819b4e318546db99a",
+      "rows": 20424,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "539eac4c9da293804175df0a27d0b53ef667aa72365a2e7bea62ef3c41945de8"
+    },
+    "84663e1facae7b39": {
+      "mode": "random_segment",
+      "options": {
+        "segment_len": [
+          2,
+          10
+        ],
+        "segment_count": null,
+        "seed": 42
+      },
+      "source": {
+        "dataset_name": "jsonl",
+        "jsonl_paths": "az://orngwus2cresco/data/boren/data/aishell1_refine_2611r2_20261110/train_top20000.jsonl",
+        "add_task_info": {
+          "style": "verb",
+          "language": "Chinese",
+          "lang_hint": true
+        },
+        "post_process": {
+          "input_egs_limit": 10000,
+          "add_field": {
+            "fields": {
+              "data_source": "aishell1_train_top10k"
+            }
+          },
+          "verl_format": {
+            "prompt_key": "prompt",
+            "extra_keys": [
+              "data_source",
+              "source_row",
+              "source_split",
+              "selection_rank",
+              "selection_n_err",
+              "selection_n_ref",
+              "source_manifest_sha256",
+              "source_chunk",
+              "source_chunk_index",
+              "source_filename",
+              "diagnostic_subset"
+            ]
+          }
+        }
+      },
+      "task": "84663e1facae7b39",
+      "uri": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/84663e1facae7b39/source_000.jsonl.gz",
+      "bytes": 822317,
+      "sha256": "23d172562c35184a71aceed302f40f2c11b8a16559a8455fc5f1f6847c3fb380",
+      "manifest_sha256": "d70cd448233e96c01be9dd1106065f04adca611d58cc5e275f69987ab492757d",
+      "rows": 10000,
+      "remote_readback_verified": true,
+      "final_training_rows_sha256": "4dc6daa1ab65f6258f12f8d2f99f9352389f550a41f09311a0bd92eb07054f76"
+    }
+  }
+}

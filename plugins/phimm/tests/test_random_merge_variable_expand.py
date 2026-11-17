@@ -6,8 +6,8 @@ from itertools import combinations
 import datasets
 import pytest
 from recipe.phimm.data.dataset import augment
-from recipe.phimm.data.random_merge_expand import plan_random_expansion
-from recipe.phimm.data.random_merge_list import _merge_rows
+from recipe.phimm.tools.random_merge_expand import plan_random_expansion
+from recipe.phimm.tools.random_merge_list import _merge_rows
 
 
 def rows(n=300):

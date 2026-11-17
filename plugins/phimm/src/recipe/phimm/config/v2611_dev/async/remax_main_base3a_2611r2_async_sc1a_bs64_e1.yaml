@@ -5,9 +5,11 @@
 
 defaults:
   - remax_main_base3a_2611r2_async_sc1a
+  - /data/train_data/offline_audio/main_base3a_2611r2_async_sc1a@_offline_train_0e6d6715f5
   - _self_
 
 data:
+  train_data: ${_offline_train_0e6d6715f5}
   train_batch_size: 64
 
 trainer:

@@ -18,8 +18,9 @@ def test_u2_context_config_preserves_training_and_clip_inputs():
     OmegaConf.resolve(config)
     assert config.asr.context_aware
     assert config.data.get("validation_reference_scope", "parent") == "parent"
-    for key in ("train_data", "mix", "random_segment", "train_batch_size"):
+    for key in ("train_data", "mix", "train_batch_size"):
         assert config.data[key] == base.data[key]
+    assert "offline_data" not in config and "offline_data" not in base
     assert config.rewards == base.rewards
     assert config.algorithm == base.algorithm
     assert config.trainer.total_training_steps == base.trainer.total_training_steps == 394
@@ -28,7 +29,7 @@ def test_u2_context_config_preserves_training_and_clip_inputs():
         assert "2parents_fullref_" in new.jsonl_paths
         assert new.jsonl_paths.endswith(".jsonl.gz")
         source = new.post_process.add_field.fields.data_source
-        assert source == old.post_process.add_field.fields.data_source + "_context"
+        assert source == old.post_process.add_field.fields.data_source
         assert config.reward_map[source] == "val_openasr_en"
         assert {"parent_audio_path", "seg_start", "seg_index"} <= set(new.post_process.verl_format.extra_keys)
 
@@ -150,7 +151,7 @@ def test_every_u2_manifest_defaults_to_full_parent_references():
 
     directory = Path(recipe.phimm.__file__).parent / "config/data/val_data/openasr"
     manifests = list(directory.glob("openlong_all_2parents_error_2609r2b_u2*.yaml"))
-    assert len(manifests) == 3
+    assert len(manifests) == 1
     for path in manifests:
         sources = OmegaConf.load(path)
         assert len(sources) == 4

@@ -2,6 +2,7 @@
 # Continue the existing independent SC1 baseline, using the full-parent U2 reference.
 defaults:
   - remax_earnings_short_sc1_context_continue800
+  - /data/train_data/offline_audio/earnings_short_sc1@_offline_train_f6a248f756
   - _self_
 
 trainer:
@@ -10,6 +11,7 @@ trainer:
 
 # Preserve this archived producer's training length limits.
 data:
+  train_data: ${_offline_train_f6a248f756}
   max_prompt_length: 1024
   max_model_length: 1792
 

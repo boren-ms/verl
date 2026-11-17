@@ -11,8 +11,6 @@ import pyarrow as pa
 import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
 from recipe.phimm.data.prompts import get_task_output, get_task_prompt, resolve_language
-from recipe.phimm.data.random_merge_list import random_merge
-from recipe.phimm.data.random_segment import random_segment
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import (
     all_rank_print,
@@ -287,8 +285,6 @@ def process_ds(ds, **kwargs):
     """Post process the dataset."""
     map_kwargs = pop_map_kwargs(kwargs)
     unsupported = set(kwargs) - {
-        "random_segment",
-        "random_merge",
         "input_egs_limit",
         "path_map",
         "rename_fields",
@@ -299,10 +295,6 @@ def process_ds(ds, **kwargs):
     }
     if unsupported:
         raise ValueError(f"Unsupported Base3a data transforms: {sorted(unsupported)}")
-    merge = kwargs.get("random_merge")
-    segment = kwargs.get("random_segment")
-    if merge is not None and merge.get("enabled", True) and segment is not None and segment.get("enabled", True):
-        raise ValueError("Random Merge audio lists preserve utterance boundaries; disable random_segment")
     if input_egs_limit := kwargs.get("input_egs_limit", None):
         ds = limit_ds(ds, egs_limit=input_egs_limit)
     if path_map_kwargs := kwargs.get("path_map", {}):
@@ -311,11 +303,7 @@ def process_ds(ds, **kwargs):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
     if "clean_tagged_text" in kwargs:
         clean_tagged_text_kwargs = dict(kwargs.get("clean_tagged_text") or {})
-        if merge is not None and merge.get("enabled", True):
-            clean_tagged_text_kwargs.setdefault("preserve_existing_keywords", True)
         ds = clean_tagged_text(ds, **merge_kwargs(map_kwargs, clean_tagged_text_kwargs))
-    if "random_merge" in kwargs:
-        ds = random_merge(ds, **dict(kwargs["random_merge"] or {}))
     if "cache_audio" in kwargs:
         cache_audio_kwargs = kwargs.get("cache_audio") or {}
         ds = cache_audio(ds, **merge_kwargs(map_kwargs, cache_audio_kwargs))
@@ -323,8 +311,6 @@ def process_ds(ds, **kwargs):
         ds = add_field_ds(ds, **merge_kwargs(map_kwargs, add_field_kwargs))
     if verl_format_kwargs := kwargs.get("verl_format", {}):
         ds = verl_format_ds(ds, **merge_kwargs(map_kwargs, verl_format_kwargs))
-    if "random_segment" in kwargs:
-        ds = random_segment(ds, **dict(kwargs["random_segment"] or {}))
     return ds
 
 
@@ -430,16 +416,8 @@ def add_task_info(ds, *, style="verb", language=None, lang_hint=False, target_on
 
 def augment(ds, **kwargs):
     """Augment the dataset with additional information."""
-    post_merge = (kwargs.get("post_process") or {}).get("random_merge")
-    if post_merge is not None and post_merge.get("enabled", True):
-        raise ValueError("Random Merge must run in pre_process before add_task_info, not post_process")
     map_kwargs = pop_map_kwargs(kwargs)
     if pre_process_kwargs := kwargs.get("pre_process", {}):
-        pre_process_kwargs = dict(pre_process_kwargs)
-        if "random_merge" in pre_process_kwargs:
-            options = dict(pre_process_kwargs["random_merge"] or {})
-            options.setdefault("default_language", (kwargs.get("add_task_info") or {}).get("language"))
-            pre_process_kwargs["random_merge"] = options
         ds = process_ds(ds, **merge_kwargs(map_kwargs, pre_process_kwargs))
     if "mask_foreign_language" in kwargs:
         mask_kwargs = kwargs.get("mask_foreign_language") or {}

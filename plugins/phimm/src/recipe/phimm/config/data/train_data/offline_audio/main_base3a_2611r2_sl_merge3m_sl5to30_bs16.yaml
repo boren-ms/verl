@@ -1,0 +1,99 @@
+# Prepared offline; original transform settings and hashes are in preparation.json.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/28b1520f309a3f76/source_000.jsonl.gz
+  add_task_info:
+    lang_hint: true
+    style: verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/a1e85fb5ddfd1b31/source_000.jsonl.gz
+  add_task_info:
+    lang_hint: true
+    style: verb
+    language: English
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/4c9903a341a96b23/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/6ce0e3880d6d4467/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: Chinese
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: aishell1_train_top10k
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/bfce75ace4eaac9f/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+    add_field:
+      fields:
+        data_source: noisy_ls
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/7bdd83a10c85f6fb/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+    add_field:
+      fields:
+        data_source: earn_fy27
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/ba42496bc9dd26d8/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source

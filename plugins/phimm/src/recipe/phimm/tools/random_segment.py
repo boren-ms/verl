@@ -54,6 +54,7 @@ def random_segment(
     seed=42,
     enabled=True,
     num_proc=None,
+    duration_cache=None,
 ):
     """Replace audio_path with ordered percentage ranges without decoding audio.
 
@@ -108,6 +109,8 @@ def random_segment(
             fractions = [1 / count] * count if even_split else _segment_fractions(rng, count, min_segment_fraction)
         else:
             duration = row.get("audio_length")
+            if duration is None and duration_cache is not None:
+                duration = duration_cache.get(source)
             if duration is None:
                 duration = get_audio_duration(source)
             if (

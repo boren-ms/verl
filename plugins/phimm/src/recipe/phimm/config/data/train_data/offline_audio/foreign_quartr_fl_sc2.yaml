@@ -1,0 +1,23 @@
+# Prepared offline; original transform settings and hashes are in preparation.json.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/79c3f8a011053b5c/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    target_only: true
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_fl_segments
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - subset
+      - audio_length
+      - source_language
+      - source_status
+      - approval
+      - source_tsv
+      - source_row

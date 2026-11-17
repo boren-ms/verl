@@ -552,6 +552,7 @@ def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop,
     import datasets
     from recipe.phimm.agentic.dataset import ASRDataset
     from recipe.phimm.data.dataset import augment
+    from recipe.phimm.tools.random_merge_list import random_merge
 
     loop, _, _ = multi_turn_loop
     raw = datasets.Dataset.from_list(
@@ -561,8 +562,7 @@ def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop,
         ]
     )
     prepared = augment(
-        raw,
-        pre_process={"random_merge": {"max_audio_length": 3}},
+        random_merge(raw, max_audio_length=3),
         post_process={"verl_format": {"prompt_key": "prompt"}},
     )
     dataset = ASRDataset.__new__(ASRDataset)
