@@ -1,5 +1,5 @@
 # @package _global_
-# Quartr FL segments only, with English target-only verbatim prompts.
+# Quartr FL segments only, with English language-hint verbatim prompts.
 # 2,732 rows / batch32 = 85 full batches per epoch; two epochs = 170 updates.
 defaults:
   - base@_global_

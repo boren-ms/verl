@@ -355,9 +355,8 @@ Do not combine this block with enabled random segmentation.
 Text variants follow the same order, keywords are unioned without duplicates,
 and language names/codes are normalized and unioned. Existing components are
 flattened in order. Missing languages use the source's configured hint, or
-English when no hint is given. Merged language unions survive task formatting;
-`target_only` tasks still select their configured target. To keep packs
-monolingual, include `language` in `group_by`.
+English when no hint is given. Merged language unions survive task formatting.
+To keep packs monolingual, include `language` in `group_by`.
 `source_audio_lengths`, `source_languages`, and `random_merge_source_indices`
 align with the audio list. Other producer fields become ordered lists of
 JSON-encoded values; `source_metadata_json` retains complete original rows.

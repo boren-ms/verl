@@ -1,6 +1,6 @@
 # Offline cross-dataset merge of 25,240 Earnings Short + 2,732 FL originals.
 # 111,888 parents (4x): 55,944 pairs + 55,944 triples; audio_path lists.
-# English target-only; FL-only empty references preserved.
+# English language hints; FL-only empty references preserved.
 # Raw normalization and merge precede add_task_info; disable online merge/splitting.
 # Offline merge before add_task_info; do not merge again online.
 - dataset_name: jsonl
@@ -9,7 +9,6 @@
     style: verb
     language: English
     lang_hint: true
-    target_only: true
   post_process:
     add_field:
       fields:
@@ -33,7 +32,6 @@
     style: verb
     language: English
     lang_hint: true
-    target_only: true
   post_process:
     add_field:
       fields:
@@ -57,7 +55,6 @@
     style: verb
     language: English
     lang_hint: true
-    target_only: true
   post_process:
     add_field:
       fields:
@@ -81,7 +78,6 @@
     style: verb
     language: English
     lang_hint: true
-    target_only: true
   post_process:
     add_field:
       fields:
@@ -105,7 +101,6 @@
     style: verb
     language: English
     lang_hint: true
-    target_only: true
   post_process:
     add_field:
       fields:
@@ -127,7 +122,6 @@
   jsonl_paths: az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_v1/quartr_fl/data.jsonl
   add_task_info:
     style: verb
-    target_only: true
     language: English
     lang_hint: true
   post_process:

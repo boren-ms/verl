@@ -7,38 +7,30 @@ TASK = {"style": "verb", "lang_hint": True, "language": "English"}
 
 
 @pytest.mark.parametrize("language", ["English", "French", "Chinese"])
-def test_target_language_prompt_and_output(language):
-    prompt = get_task_prompt("verb", language=language, target_only=True)
-    assert f"Only include speech in {language}." in prompt
-    assert "Omit speech in other languages; do not translate it." in prompt
+def test_language_hint_prompt_and_output(language):
+    prompt = get_task_prompt("verb", language=language)
+    assert "Only include speech" not in prompt
+    assert "Omit speech" not in prompt
     assert f"The language is {language}." in prompt
-    assert get_task_output("verb", language=language, text="sample", target_only=True) == (
+    assert get_task_output("verb", language=language, text="sample") == (
         f"<src={language}><tgt={language}>\n<VERBATIM>\nsample"
     )
 
 
 def test_language_alias_is_normalized():
     assert resolve_language("en") == "English"
-    assert "Only include speech in English." in get_task_prompt(language="en", target_only=True)
+    assert "The language is English." in get_task_prompt(language="en")
 
 
-@pytest.mark.parametrize("language", [None, "Unknown", "English French"])
-def test_target_language_prompt_rejects_missing_or_ambiguous_target(language):
-    with pytest.raises(ValueError, match="requires one known language"):
-        get_task_prompt("verb", language=language, target_only=True)
-
-
-@pytest.mark.parametrize("target_only", [False, True])
-def test_config_language_overrides_audio_language(target_only):
+def test_config_language_overrides_audio_language():
     ds = Dataset.from_list([{"text": "Hello", "language": "en_fr"}])
-    row = add_task_info(ds, **{**TASK, "target_only": target_only})[0]
+    row = add_task_info(ds, **TASK)[0]
     assert row["language"] == "English"
-    assert ("Only include speech in English." in row["prompt"]) == target_only
     assert "The language is English." in row["prompt"]
     assert row["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\nHello"
 
 
-def test_target_only_does_not_rewrite_reference():
+def test_language_hint_does_not_rewrite_reference():
     ds = Dataset.from_list(
         [
             {
@@ -48,36 +40,20 @@ def test_target_only_does_not_rewrite_reference():
             }
         ]
     )
-    row = add_task_info(ds, **{**TASK, "target_only": True})[0]
+    row = add_task_info(ds, **TASK)[0]
     assert row["text"] == "Hello bonjour"
     assert row["gt_output"] == (
-        "<src=English><tgt=English>\n<VERBATIM>\nHello\n"
-        "<src=French><tgt=French>\n<VERBATIM>\nbonjour"
+        "<src=English><tgt=English>\n<VERBATIM>\nHello\n<src=French><tgt=French>\n<VERBATIM>\nbonjour"
     )
 
 
-@pytest.mark.parametrize("lang_hint", [False, True])
-def test_target_only_preserves_existing_foreign_reference_mask(lang_hint):
-    ds = Dataset.from_list([{"text": "Bonjour", "language": "fr"}])
-    row = augment(ds, mask_foreign_language={}, add_task_info={**TASK, "target_only": True, "lang_hint": lang_hint})[0]
-    assert row["text"] == "<foreign_language>"
-    assert row["gt_output"].endswith("<foreign_language>")
-    assert "Only include speech in English." in row["prompt"]
-
-
-def test_target_only_allows_disabled_language_hint():
+def test_language_hint_can_be_disabled():
     ds = Dataset.from_list([{"text": "Hello", "language": "en_fr"}])
-    row = add_task_info(ds, **{**TASK, "target_only": True, "lang_hint": False})[0]
-    assert "Only include speech in English." in row["prompt"]
+    row = add_task_info(ds, **{**TASK, "lang_hint": False})[0]
+    assert "Only include speech" not in row["prompt"]
     assert "The language is" not in row["prompt"]
     assert row["language"] == "English"
     assert row["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\nHello"
-
-
-def test_target_only_cannot_use_an_implicit_default_language():
-    ds = Dataset.from_list([{"text": "Hello", "language": "en"}])
-    with pytest.raises(ValueError, match="requires one known language"):
-        add_task_info(ds, style="verb", lang_hint=True, target_only=True)
 
 
 @pytest.mark.parametrize(

@@ -1,8 +1,8 @@
 # @package _global_
-# Shared foreign ReMax settings: model, target-only validation, and rewards.
+# Shared foreign ReMax settings: model, language-hint validation, and rewards.
 defaults:
   - ../base@_global_
-  - /data/val_data/foreign/openlong_target_only@_openlong_target_only_val
+  - /data/val_data/foreign/openlong@_openlong_foreign_val
   - _self_
 
 actor_rollout_ref:
@@ -11,7 +11,7 @@ actor_rollout_ref:
 
 data:
   val_data:
-    - ${_openlong_target_only_val}
+    - ${_openlong_foreign_val}
 
 rewards:
   val_foreign_language:
