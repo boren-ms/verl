@@ -9,7 +9,8 @@ import pytest
 import soundfile as sf
 from omegaconf import OmegaConf
 from recipe.phimm.agentic.dataset import ASRDataset
-from recipe.phimm.data.random_segment import random_segment
+from recipe.phimm.tools.offline_audio import materialize
+from recipe.phimm.tools.random_segment import random_segment
 from recipe.phimm.utils.audio import _is_chunk_spec, get_audio_duration, load_audio
 
 
@@ -158,11 +159,10 @@ def test_dataset_block_expands_paths_without_splitting_reference_or_loading_audi
                     "post_process": {"verl_format": {"prompt_key": "prompt"}},
                 }
             ],
-            "random_segment": {
-                **mode,
-            },
         }
     )
+    full_config = OmegaConf.create({"data": OmegaConf.to_container(config), "offline_data": {"random_segment": mode}})
+    config = materialize(full_config, tmp_path / "prepared").data
     train = ASRDataset("train", object(), config)
     assert len(train) == 1
     row = train[0]
@@ -188,8 +188,19 @@ def test_segmented_and_unsegmented_sources_share_a_mix(tmp_path):
     for name in ("segmented", "original"):
         post = {"verl_format": {"prompt_key": "prompt"}, "add_field": {"fields": {"data_source": name}}}
         if name == "segmented":
-            post["random_segment"] = {"segment_count": [2, 2]}
-        sources.append({"dataset_name": "jsonl", "jsonl_paths": str(path), "post_process": post})
+            segmented = random_segment(
+                datasets.Dataset.from_list([{"audio_path": "A.wav", "text": "reference", "prompt": "task<audio>"}]),
+                segment_count=[2, 2],
+            )
+            prepared = tmp_path / "segmented.jsonl"
+            prepared.write_text("".join(json.dumps(row) + "\n" for row in segmented))
+        sources.append(
+            {
+                "dataset_name": "jsonl",
+                "jsonl_paths": str(prepared if name == "segmented" else path),
+                "post_process": post,
+            }
+        )
     config = OmegaConf.create(
         {
             "train_files": "train",
@@ -252,7 +263,7 @@ def test_random_partitions_support_archive_entries_and_concatenated_ranges(tmp_p
 def test_length_mode_prefers_audio_length_without_audio_io(monkeypatch):
     import importlib
 
-    module = importlib.import_module("recipe.phimm.data.random_segment")
+    module = importlib.import_module("recipe.phimm.tools.random_segment")
     monkeypatch.setattr(module, "get_audio_duration", lambda source: pytest.fail("must use audio_length"))
     ds = datasets.Dataset.from_list(
         [{"audio_path": f"missing-{i}.wav", "audio_length": 39.0, "text": "full reference"} for i in range(40)]
@@ -344,7 +355,7 @@ def test_minimum_segments_requires_length_mode():
 def test_null_duration_defaults_to_count_mode_without_duration_io(monkeypatch, options):
     import importlib
 
-    module = importlib.import_module("recipe.phimm.data.random_segment")
+    module = importlib.import_module("recipe.phimm.tools.random_segment")
     monkeypatch.setattr(
         module, "get_audio_duration", lambda source: pytest.fail("default mode must not inspect duration")
     )
@@ -388,7 +399,7 @@ def test_length_mode_rejects_invalid_audio_length(duration):
 def test_count_mode_never_inspects_duration_and_supports_twenty_segments(monkeypatch):
     import importlib
 
-    module = importlib.import_module("recipe.phimm.data.random_segment")
+    module = importlib.import_module("recipe.phimm.tools.random_segment")
     monkeypatch.setattr(
         module, "get_audio_duration", lambda source: pytest.fail("count mode must not inspect duration")
     )
@@ -482,24 +493,26 @@ def test_random_segments_partition_the_entire_concatenated_waveform(tmp_path):
 def test_multisegment_config_keeps_sample_counts_and_per_segment_budgets(duration_mode):
     from pathlib import Path
 
-    from hydra import compose, initialize_config_dir
-
     import recipe.phimm
+    from hydra import compose, initialize_config_dir
 
     directory = Path(recipe.phimm.__file__).parent / "config/v2611_dev/main"
     OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)
     with initialize_config_dir(config_dir=str(directory), version_base=None):
         overrides = ["+asr_training=multi_segment"]
         if duration_mode:
-            overrides += ["data.random_segment.segment_count=null", "data.random_segment.segment_len=[10,20]"]
+            overrides += [
+                "offline_data.random_segment.segment_count=null",
+                "offline_data.random_segment.segment_len=[10,20]",
+            ]
         config = compose(config_name="remax_main_base3a_2611r2", overrides=overrides)
     OmegaConf.resolve(config)
     if duration_mode:
-        assert config.data.random_segment.segment_count is None
-        assert list(config.data.random_segment.segment_len) == [10, 20]
+        assert config.offline_data.random_segment.segment_count is None
+        assert list(config.offline_data.random_segment.segment_len) == [10, 20]
     else:
-        assert list(config.data.random_segment.segment_count) == [1, 2]
-        assert config.data.random_segment.segment_len is None
+        assert list(config.offline_data.random_segment.segment_count) == [1, 2]
+        assert config.offline_data.random_segment.segment_len is None
     assert config.data.max_audio_dur is None
     assert config.actor_rollout_ref.rollout.response_length == 768
     assert config.asr.expected_training_rows == 55664

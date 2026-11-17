@@ -3,11 +3,11 @@
 
 defaults:
   - base_short
+  - /data/train_data/offline_audio/earnings_short_sl1@_offline_train_0c04f2d055
   - _self_
-
-data:
-  random_segment:
-    segment_len: [1, 10]
 
 trainer:
   experiment_name: remax_earnings_short_2611r2_sl1
+
+data:
+  train_data: ${_offline_train_0c04f2d055}

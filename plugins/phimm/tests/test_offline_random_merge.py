@@ -8,7 +8,7 @@ import pytest
 import soundfile as sf
 import yaml
 from recipe.phimm.data.dataset import augment, jsonl_dataset, process_ds
-from recipe.phimm.data.offline_random_merge import merge_metadata, prepare_rows, run
+from recipe.phimm.tools.offline_random_merge import merge_metadata, prepare_rows, run
 from recipe.phimm.utils.audio import load_audio
 
 
@@ -93,7 +93,8 @@ def test_nullable_metadata_across_arrow_json_blocks(tmp_path):
         assert [json.loads(value) for value in row["evidence"]] == [rows[i]["evidence"] for i in order]
 
 
-def test_generated_yaml_loads_without_online_merge_transform(tmp_path):
+@pytest.mark.parametrize("audio_format", ["semicolon", "list"])
+def test_generated_yaml_loads_without_online_merge_transform(tmp_path, audio_format):
     source = tmp_path / "source.jsonl"
     rows = [dict(audio_path=f"{i}.wav", text=f"word{i}", audio_length=1.0, audience=f"audience{i}") for i in range(2)]
     source.write_text("".join(json.dumps(row) + "\n" for row in rows))
@@ -119,6 +120,8 @@ def test_generated_yaml_loads_without_online_merge_transform(tmp_path):
             buffer_size=100,
             seed=42,
             workers=1,
+            audio_format=audio_format,
+            merge_count=[2, 3] if audio_format == "list" else None,
         )
     )
     for path in [output / "train_data.yaml", output / "example/train_data.yaml"]:
@@ -128,13 +131,16 @@ def test_generated_yaml_loads_without_online_merge_transform(tmp_path):
         assert len(loaded) == 1
         row = loaded[0]
         indices = row["random_merge_source_indices"]
-        assert row["audience"] == [rows[i]["audience"] for i in indices]
+        expected = [rows[i]["audience"] for i in indices]
+        assert row["audience"] == ([json.dumps(value) for value in expected] if audio_format == "list" else expected)
+        if audio_format == "list":
+            assert row["audio_path"] == [rows[i]["audio_path"] for i in indices]
         assert row["text"] == " ".join(rows[i]["text"] for i in indices)
         assert row["audio_length"] == 2.0
 
 
-def test_dataset_rejects_removed_online_merge_transform(tmp_path):
+def test_dataset_merge_block_is_not_a_runtime_transform(tmp_path):
     path = tmp_path / "data.jsonl"
     path.write_text(json.dumps(dict(audio_path="a.wav", text="a", audio_length=1.0)) + "\n")
-    with pytest.raises(ValueError, match="Unsupported Base3a data transforms.*random_merge"):
+    with pytest.raises(ValueError, match="Unsupported Base3a data transforms"):
         process_ds(jsonl_dataset(str(path)), random_merge={"max_audio_length": 180})

@@ -151,6 +151,10 @@ class TaskRunnerV1:
         OmegaConf.resolve(config)
         self.config = config
 
+        # Isolate concurrent jobs when the installed TQ uses fixed actor names.
+        from verl.utils.transferqueue_namespace import configure_transfer_queue_namespace
+
+        configure_transfer_queue_namespace()
         # initialize transfer queue
         tq.init(config.transfer_queue)
         succeeded = False

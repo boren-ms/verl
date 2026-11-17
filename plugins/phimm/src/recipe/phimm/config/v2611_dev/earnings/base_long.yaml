@@ -14,10 +14,6 @@ defaults:
 data:
   train_batch_size: 128
   max_audio_dur: null
-  random_segment:
-    segment_count: null
-    seed: 42
-    num_proc: 16
   train_data:
     - ${_earn_fy26_batch1_long_train}
     - ${_earn_fy26_batch2_long_train}

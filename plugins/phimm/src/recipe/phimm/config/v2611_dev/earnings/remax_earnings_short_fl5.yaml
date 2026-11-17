@@ -3,13 +3,10 @@
 # Recordings shorter than 4 seconds are split into two shorter halves.
 
 defaults:
-  - base_short
-  - _self_
-
+- base_short
+- /data/train_data/offline_audio/earnings_short_fl5@_offline_train_dc77b55ce0
+- _self_
 data:
-  random_segment:
-    segment_len: [2, 30]
-    min_segments: 2
-
+  train_data: ${_offline_train_dc77b55ce0}
 trainer:
   experiment_name: remax_earnings_short_fl5

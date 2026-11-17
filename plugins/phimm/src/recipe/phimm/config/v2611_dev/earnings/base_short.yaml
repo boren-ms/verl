@@ -9,10 +9,6 @@ defaults:
 data:
   train_batch_size: 128
   max_audio_dur: null
-  random_segment:
-    segment_count: null
-    seed: 42
-    num_proc: 16
   train_data:
     - ${_earning_train}
     - ${_quartr_first23_train}

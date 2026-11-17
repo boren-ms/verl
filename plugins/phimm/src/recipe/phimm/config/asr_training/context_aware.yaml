@@ -1,0 +1,14 @@
+# @package _global_
+# Enable with +asr_training=context_aware on the normal training config.
+# Each sampled/greedy trajectory uses its own previous segment output.
+
+defaults:
+  - multi_segment
+  - _self_
+
+asr:
+  context_aware: true
+
+data:
+  # Reserve room for the previous response alongside the current audio.
+  max_prompt_length: 2048

@@ -1,8 +1,8 @@
 # @package _global_
 # Main-native port of the noearnings-foreign-language worktree's Base1.
-# Original + mixed data, target-language-only verbatim, without a GT rollout.
+# Original + mixed data, language-hint verbatim, without a GT rollout.
 # 12,800 samples/epoch x 2 epochs / batch128 = 200 optimizer updates.
-# All three validation sources use target_only=true.
+# All three validation sources use English language hints.
 defaults:
   - base@_global_
   - /data/train_data/foreign/english_hint_1k_lang_only_verb@_foreign_train_1k

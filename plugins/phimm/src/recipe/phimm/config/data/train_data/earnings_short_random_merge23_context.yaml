@@ -1,0 +1,92 @@
+# Materialized before add_task_info; ordered whole-utterance audio lists.
+# Source audit and hashes accompany the immutable manifest root.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_random_merge23_context_v1/earnings_batch1/data.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_random_merge23_context_v1/earnings_batch2/data.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_random_merge23_context_v1/quartr_first23/data.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_random_merge23_context_v1/quartr_second48/data.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_random_merge23_context_v1/quartr_third38/data.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages

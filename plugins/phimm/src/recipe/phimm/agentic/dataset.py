@@ -28,14 +28,11 @@ def _flatten_data_confs(data_confs):
 
 
 def _prepare_data_confs(config, *, is_train):
-    """Flatten source configs and apply training defaults below source overrides."""
+    """Flatten materialized sources; audio-list generation is an offline operation."""
     sources = config.train_data if is_train else config.val_data
     data_confs = [dict(conf) for conf in _flatten_data_confs(sources)]
-    if is_train and config.get("random_segment") is not None:
-        for conf in data_confs:
-            post_process = dict(conf.get("post_process") or {})
-            post_process.setdefault("random_segment", dict(config.random_segment))
-            conf["post_process"] = post_process
+    if any(config.get(key) is not None for key in ("random_segment", "random_merge")):
+        raise ValueError("Materialize random segment/merge with recipe.phimm.tools.offline_audio before training")
     return data_confs
 
 

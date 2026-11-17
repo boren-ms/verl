@@ -47,6 +47,21 @@ The ASR scorer computes the delta/absolute vote reward. The
 trainer passes the baseline score to the standard ReMax advantage estimator.
 Validation groups and sorts segments before scoring full parent references;
 corpus error rates use summed error/reference counts.
+The default U2 cohort uses
+`openlong_all_2parents_error_2609r2b_u2.yaml`: 1,085 unchanged audio clips
+from eight parent recordings, with the original full reference repeated on
+that parent's rows. Grouping metadata is retained, so WER aligns joined new
+outputs against the full reference once per parent. All U2 callers use this canonical configuration. `asr.context_aware`
+controls decoding separately and is not changed by the scoring default.
+Historical independently scored U2 WER is a different metric convention.
+
+The immutable manifests and `manifest_verified.json` can be reproduced without
+loading a model using `python -m recipe.phimm.data.u2_full_reference` on an
+existing node with Blob access (`--dry-run` validates without publication).
+The original inferred text is retained as `legacy_segment_text` for audit.
+Cleaned AA retains its original U2 clips; its two endings precede the canonical
+chunk manifest by 0.692s and 10.956s. Running jobs retain their launch snapshots.
+
 Training and validation pass the same ordered list of raw segment responses
 to the scorer. They share response parsing and text extraction, preserving
 independent boundaries for language/format checks when those measures are
@@ -133,19 +148,87 @@ Select them with `--config-path config/v2611_dev/rand_segment` and `--config-nam
 - `remax_main_base3a_2611r2_sl3`: `segment_len: [10, 20]` seconds.
 - `remax_main_base3a_2611r2_sl4`: `segment_len: [2, 10]` seconds.
 
-These presets inherit `main/remax_main_base3a_2611r2.yaml`, disable duration cropping,
-and use separate experiment names. For other training configs,
-multi-segment training can be enabled with `+asr_training=multi_segment` and
-an explicit `trainer.experiment_name=<unique-name>`. Each original recording
-remains one dataset sample with its full reference. The `random_segment`
-dataset block replaces its `audio_path` with an ordered list of selectors:
+These presets inherit `main/remax_main_base3a_2611r2.yaml`, disable duration
+cropping, and load prepared offline manifests directly. All 40 concrete segment
+presets, including Earnings/FL, async, long-form, merge-then-segment and
+continuation variants, use the datasource groups in
+`config/data/train_data/offline_audio/`. Identical datasets share a group;
+`preparation.json` records each preset's original generation options, ordered
+sources, row counts, parity hashes and remote publication checksums. Their
+training YAMLs select these manifests directly and contain no `offline_data`
+section. Context is controlled by `asr.context_aware`. Preparation plans are
+used only when explicitly invoking the offline tool. The manifests are
+available under:
+
+```text
+az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/<task>/source_000.jsonl.gz
+```
+
+The SC2, SC2a, FL5, synchronous SC1a and async SC/batch64/PPO4 recipes
+also use prepared data. Shared variants reuse existing manifests; additional
+partitions are published under
+`az://orngwus2cresco/data/boren/data/Training/offline_audio_main_merge_20261117_v1/`.
+FL5 retains its minimum of two segments, including for short recordings.
+
+Every generated training row was compared with the former online processing
+order. Uploaded manifests were downloaded and checked against both compressed
+and original JSONL SHA256 hashes. Gzip changes only storage; `audio_path`
+remains an ordered list. Raw input manifests, original effective configs,
+duration provenance and preparation scripts are archived under the same root's
+`provenance/` directory. Existing offline Random Merge presets continue using
+their prepared datasets.
+
+Random Segment and Random Merge run only in offline tools, never in the
+training loader's `pre_process` or `post_process` blocks. For a **new** dataset
+or segmentation range, start from the raw base with a preparation plan:
+
+```bash
+PYTHONPATH=plugins/phimm/src:plugins/qwen35_audio/src:. \
+uv run --no-project python -m recipe.phimm.tools.offline_audio \
+  --config-dir plugins/phimm/src/recipe/phimm/config/v2611_dev/main \
+  --config-name remax_main_base3a_2611r2 \
+  --output-dir /shared/prepared/base3a_sc1 \
+  +asr_training=context_aware offline_data.random_segment.segment_count=[2,2]
+```
+
+Launch training using the generated snapshot:
+
+```bash
+python -m recipe.phimm.main_asr_remax \
+  --config-path /shared/prepared/base3a_sc1 --config-name training
+```
+
+The output directory must be new. It contains fixed `source_NNN.jsonl`
+manifests, `train_data.yaml`, `training.yaml`, and `preparation.json` with
+settings, counts and hashes. The tool applies raw path/text normalization,
+generates the audio lists, then saves rows **before** task information,
+foreign-language masking and prompt/reference formatting. Those steps still
+run when training loads the prepared rows. Validation inputs, optimizer
+budgets, and `asr.context_aware` are preserved. Prepare new datasets with this
+tool before training, then launch the generated snapshot or update the preset
+to read the prepared manifests directly.
+
+Use a directory accessible on all training nodes. `--blob-root az://...`
+sets emitted manifest URIs; upload the generated JSONL files separately before
+launching. For new mixes, review merged-parent budgets and expected row counts.
+To reproduce an existing preset's data, use its original effective config from
+`provenance/original_configs/`; the ready-to-train preset has no active
+generation plan. Changing segmentation settings requires regenerating the
+manifests, rather than overriding a prepared preset's runtime settings.
+For more control, pass Hydra overrides after the CLI options, for example
+`offline_data.random_segment.even_split=true`. `+asr_training=multi_segment`,
+`+asr_training=context_aware` and `+asr_training=random_merge` select offline
+preparation plans. Already-materialized merge presets need no extra preparation.
+
+Each original recording remains one sample with its full reference. An offline
+segment plan replaces `audio_path` with an ordered list of selectors:
 
 ```yaml
-# Inside a dataset's post_process block:
-random_segment:
-  segment_count: [1, 2]  # Inclusive segment count range.
-  segment_len: null
-  seed: 42
+offline_data:
+  random_segment:
+    segment_count: [1, 2]
+    segment_len: null
+    seed: 42
 ```
 
 For exactly two segments, set `segment_count: [2, 2]`. Cut points are random;
@@ -194,7 +277,7 @@ The count is still sampled uniformly when its bounds differ. Even splitting
 uses the full recording, preserves the original reference, and needs no duration
 lookup. It is supported only in count mode; combining it with `segment_len`
 raises an error. For the earnings-short SC preset, enable it with
-`data.random_segment.even_split=true`.
+`offline_data.random_segment.even_split=true`.
 
 `min_segment_fraction` is an optional
 count-mode-only floor relative to the full recording,
@@ -219,19 +302,113 @@ supplying `audio_length` avoids that IO as well. Existing time selectors are
 accounted for when reading duration metadata. `audio_length`, when supplied,
 must describe the selected source's duration.
 
-`data.random_segment` applies the block to every training source; a source's
-own `post_process.random_segment` takes precedence, including `enabled: false`.
-The opt-in config above sets this global default and disables duration
-cropping. The standard per-segment prompt/response token limits still apply.
-Without the opt-in config, a listed segment exceeding `max_audio_dur` fails
-instead of silently cropping audio against a full reference. Validation is
-not augmented by the global training option.
+The training loader consumes the saved list unchanged. All sampled rollouts,
+greedy baselines and epochs reuse the same saved boundaries; validation is
+never randomly augmented. The normal per-segment token limits still apply.
 
-Prepare merged parents offline before training. Dataset preprocessing supports
-loading prepared manifests and random segmentation. Use the preparation command:
+### Random Merge: ordered audio lists
+
+Use `+asr_training=random_merge` with `recipe.phimm.tools.offline_audio`.
+This selects ordered-list merging before task information is added, enables
+`asr.context_aware=true`, reserves a 2048-token prompt budget and disables
+random cuts. The offline plan is:
+
+```yaml
+offline_data:
+  random_merge:
+    max_audio_length: 180
+    buffer_size: 100
+    seed: 42
+    merge_count: [2, 3]
+    text_separator: " "
+    group_by: [data_source, prompt]
+  random_segment:
+    enabled: false
+```
+
+A random starting utterance and compatible utterances that fit the cap form
+one parent, up to a uniformly sampled target count in `merge_count` (inclusive).
+Omit `merge_count` for duration-only packing. Packing uses bounded lookahead and chooses the longest fitting
+candidate, with random ties. Every input appears once; a leftover remains a
+singleton list when the buffer or duration cap prevents a pair. The minimum
+count is a target, never a reason to drop a source. Duration uses `audio_length` or audio header metadata; no
+waveform is decoded or rewritten. Inputs must be individual path strings;
+already concatenated or segmented lists are rejected. An input at or above
+the cap raises rather than truncating its reference.
+
+For example, merging two rows produces the following structure (order is the
+sampled audio order):
+
+```json
+{
+  "audio_path": ["A.wav", "B.wav"],
+  "text": "hello bonjour",
+  "keywords": ["Alice", "Paris"],
+  "language": "English French",
+  "components": [
+    {"language": "English", "target_language": "English", "text": "hello"},
+    {"language": "French", "target_language": "French", "text": "bonjour"}
+  ]
+}
+```
+
+The ASR dataset expands this list into two segments, preserving the original
+utterance boundaries. B is decoded with A's generated response as an assistant
+prefix. The full joined text is scored once per trajectory; the prefix is not
+scored twice. Sampled and greedy trajectories retain their own histories.
+Do not combine this block with enabled random segmentation.
+
+Text variants follow the same order, keywords are unioned without duplicates,
+and language names/codes are normalized and unioned. Existing components are
+flattened in order. Missing languages use the source's configured hint, or
+English when no hint is given. Merged language unions survive task formatting.
+To keep packs monolingual, include `language` in `group_by`.
+`source_audio_lengths`, `source_languages`, and `random_merge_source_indices`
+align with the audio list. Other producer fields become ordered lists of
+JSON-encoded values; `source_metadata_json` retains complete original rows.
+Stale producer `gt_output` is regenerated from the merged text/components.
+Use `verl_format.extra_keys` for provenance fields needed in rollout details.
+
+Packing changes the number of dataset rows. Mix budgets now count merged
+parents; choose an appropriate budget (for example `epoch: 1` per datasource)
+and training step target for a new experiment. The merge plan clears inherited fixed row/step assertions. Existing jobs and
+their targets are unchanged.
+
+For source-spec-based offline packing, use the same raw preprocessing
+before task formatting, then load the resulting manifests without merging again:
 
 ```bash
-python -m recipe.phimm.data.offline_random_merge \
+python -m recipe.phimm.tools.offline_random_merge \
+  --sources sources.json --output-dir merged_data \
+  --audio-format list --merge-count 2 3 --cap 180 --seed 42
+```
+
+`sources.json` is a list of `{name, config}` source blocks. The command records
+source/manifest hashes, exact-once coverage, duration conservation, count
+distributions and JSONL loader roundtrips. Generated YAML runs `add_task_info`
+on the merged raw metadata. Enabled merging in `post_process` is rejected.
+The `remax_earnings_short_random_merge23_context` Earnings preset uses the
+materialized list dataset, 394 optimizer updates and U2 full-parent references
+with history decoding. This matches the SC1 context run's update budget; audio
+exposure per update differs because a parent contains multiple utterances.
+
+For a matched context-off experiment, use
+`remax_earnings_short_random_merge23_no_context`. It reads the exact same
+materialized manifests and sets `asr.context_aware: false` for sampled training,
+the ReMax greedy baseline AND validation. All three decode with empty assistant
+prefixes. U2 grouping and full-parent references are retained for WER scoring.
+The old preset name `remax_earnings_short_random_merge23_no_train_context` is
+an alias with the same shared policy. There is no separate training override.
+Use only `asr.context_aware` in configurations and CLI overrides.
+
+### Offline packing with concatenated audio
+
+The existing offline preparation command retains its semicolon-based format
+for recipes that concatenate and then resegment audio. Use:
+
+
+```bash
+python -m recipe.phimm.tools.offline_random_merge \
   --sources sources.json --output-dir /path/to/output \
   --blob-root az://orngwus2cresco/data/boren/data/verl/my_offline_dataset \
   --cap 180 --buffer-size 100 --seed 42 --workers 32
@@ -326,6 +503,48 @@ The evaluation manifest retains the reference run's 35 datasets, including
 `eslo_telephony_fr` and `accueil_ubs_fr` from its producer revision
 `965a025ac220c91305aa762bdb176697b55e0fb5`. The current development branch's
 generic manifest omits these two reference datasets.
+
+For context-aware OpenLong evaluation, select `eval_openlong_context_zip`:
+
+```bash
+python plugins/phimm/submit.py --evaluate --submission-id <unique-context-eval-id> \
+  --config-name eval_openlong_context_zip \
+  actor_rollout_ref.model.path=<verified-HF-path>
+```
+
+This evaluates the complete Earnings21, Earnings22 and CORAAL parent groups.
+Segments run in timestamp order within each recording. The immediately
+preceding segment's decoded output (including its ASR formatting, excluding
+chat special tokens) is appended directly to the next prompt's open assistant
+turn, after `<|im_start|>assistant\n`. The first segment has an empty prefix;
+prefixes reset between recordings, and recordings can run concurrently.
+Only newly generated tokens are scored and carried to the following segment;
+history is not accumulated. Saved `asr_detail.context_prefixes` aligns with
+`segment_outputs` for auditing. The preset reserves 2048 prompt tokens for
+audio and prefix together and raises an error on overflow.
+
+The shared option `asr.context_aware=true` enables this behavior in both
+training and validation. For training, use `+asr_training=context_aware` on
+the normal training config and set a unique `trainer.experiment_name`. This
+selects the offline multi-segment plan (one or two random segments per sample)
+and reserves 2048 prompt tokens. Materialize it before launching training. Context stays within each sample's
+ordered `asr_segments`; it never crosses unrelated or shuffled training
+examples. Set `offline_data.random_segment.segment_count` to choose another supported
+segment count, or enable the flag directly on an existing multi-segment config.
+Single-segment samples have no preceding context.
+
+For Earnings Short SC1, select
+`--config-path config/v2611_dev/earnings --config-name remax_earnings_short_context_aware`.
+This inherits the Earnings Short baseline data and training budget, enables
+segmentation explicitly, and uses exactly two segments with a random cut per
+full clip. Context is enabled for both training and validation.
+
+Sampled rollouts and ReMax greedy baselines each build their own context from
+their own generated outputs. The prefix belongs to the prompt for both the
+rollout server and actor: only new response tokens retain response masks and
+rollout logprobs and contribute to the policy loss. All segments share the
+single parent-level outcome reward. The default remains independent decoding
+(`asr.context_aware=false`).
 
 The recipe selects the installed NVIDIA CUDA runtime matching PyTorch's CUDA
 major version. The source branch's explicit-runtime helper is reused in the

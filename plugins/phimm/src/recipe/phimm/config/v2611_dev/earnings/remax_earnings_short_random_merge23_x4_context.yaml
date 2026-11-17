@@ -1,0 +1,19 @@
+# @package _global_
+# Expanded data, with an 800-update budget shared by the new context-on/off pair.
+defaults:
+  - remax_earnings_short_random_merge23_context
+  - /data/train_data/earnings_short_random_merge23_x4_context@_random_merge23_x4_train
+  - _self_
+
+data:
+  train_data:
+    - ${_random_merge23_x4_train}
+
+trainer:
+  experiment_name: remax_earnings_short_random_merge23_x4_context
+  total_training_steps: 800
+
+asr:
+  context_aware: true
+  expected_training_rows: 100960
+  expected_training_steps: 800

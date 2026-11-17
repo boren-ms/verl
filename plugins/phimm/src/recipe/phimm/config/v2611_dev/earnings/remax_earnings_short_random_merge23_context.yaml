@@ -1,0 +1,31 @@
+# @package _global_
+# Matched optimizer budget against Earnings Short SC1 context; more audio/update.
+defaults:
+  - remax_earnings_short_context_aware_u2_context
+  - /data/train_data/earnings_short_random_merge23_context@_random_merge23_train
+  - _self_
+
+data:
+  train_data:
+    - ${_random_merge23_train}
+  # Already materialized in raw preprocessing, before task formatting.
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, epoch: 1, shuffle: true}
+        - {name: quartr_1st23, epoch: 1, shuffle: true}
+        - {name: quartr_2nd48, epoch: 1, shuffle: true}
+        - {name: quartr_3rd38, epoch: 1, shuffle: true}
+
+trainer:
+  experiment_name: remax_earnings_short_random_merge23_context
+  total_training_steps: 394
+  # At most 3 inputs/parent means >=8414 parents, >=65 batches/epoch.
+  # Seven is an outer-loop ceiling; the absolute step target stops at 394.
+  total_epochs: 7
+  resume_mode: disable
+  resume_from_path: null
+
+asr:
+  expected_training_rows: null
+  expected_training_steps: 394

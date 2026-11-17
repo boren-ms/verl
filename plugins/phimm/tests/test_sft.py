@@ -87,8 +87,9 @@ def local_config(tmp_path):
 
 def test_sft_reuses_exact_base3a_data_and_model():
     sft, rl = load_config(), load_config("main")
-    for key in ("train_data", "val_data", "mix", "shuffle", "train_batch_size", "version", "random_segment"):
+    for key in ("train_data", "val_data", "mix", "shuffle", "train_batch_size", "version"):
         assert sft.data[key] == rl.data[key]
+    assert sft.data.get("random_segment") is rl.data.get("random_segment") is None
     assert sum(entry.sample for entry in sft.data.mix[0].datasource) == 55664
     cohorts = [source for group in sft.data.val_data for source in group]
     assert len(cohorts) == 9

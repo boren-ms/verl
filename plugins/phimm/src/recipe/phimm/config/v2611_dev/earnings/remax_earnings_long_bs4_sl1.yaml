@@ -3,13 +3,12 @@
 
 defaults:
   - base_long
+  - /data/train_data/offline_audio/earnings_long_sl1@_offline_train_dd6f05dcdd
   - _self_
 
 data:
+  train_data: ${_offline_train_dd6f05dcdd}
   train_batch_size: 4
-  random_segment:
-    segment_len: [1, 10]
-
 trainer:
   experiment_name: remax_earnings_long_2611r2_bs4_sl1
   total_training_steps: 368

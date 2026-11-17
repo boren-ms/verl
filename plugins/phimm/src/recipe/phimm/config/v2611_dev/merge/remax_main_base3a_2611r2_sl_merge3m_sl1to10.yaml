@@ -3,17 +3,14 @@
 # User-confirmed FL means SL; retain the Base3a SL model/reward/optimizer recipe.
 defaults:
   - remax_main_base3a_2611r2_sl_offline_merge3m
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl1to10@_offline_train_ccff60139d
   - _self_
 
 data:
+  train_data: ${_offline_train_ccff60139d}
   # 3,548 parents; drop_last=true: floor(3548 / 16) * 2 = 442 updates.
   train_batch_size: 16
   gen_batch_size: 16
-  random_segment:
-    segment_len: [1, 10]
-    segment_count: null
-    seed: 42
-
 actor_rollout_ref:
   actor:
     ppo_mini_batch_size: 16

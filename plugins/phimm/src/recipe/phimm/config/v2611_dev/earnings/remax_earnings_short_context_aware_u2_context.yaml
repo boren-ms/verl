@@ -1,0 +1,12 @@
+# @package _global_
+# Compatibility experiment name; the parent already uses canonical full-reference U2.
+defaults:
+  - remax_earnings_short_context_aware
+  - /data/train_data/offline_audio/earnings_short_sc1@_offline_train_2da16b5c01
+  - _self_
+
+trainer:
+  experiment_name: remax_earnings_short_context_aware_u2_context
+
+data:
+  train_data: ${_offline_train_2da16b5c01}

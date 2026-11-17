@@ -1,0 +1,23 @@
+# @package _global_
+# Whole utterances become an ordered audio_path list with a full merged reference.
+# Enable with +asr_training=random_merge on a Main ASR config.
+defaults:
+  - context_aware
+  - _self_
+
+asr:
+  # Dataset size changes from short utterances to merged parent samples.
+  expected_training_rows: null
+  expected_training_steps: null
+
+offline_data:
+  random_merge:
+    enabled: true
+    max_audio_length: 180
+    buffer_size: 100
+    seed: 42
+    merge_count: [2, 3]
+    text_separator: " "
+    group_by: [data_source, prompt]
+  random_segment:
+    enabled: false

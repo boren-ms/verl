@@ -1,0 +1,21 @@
+# @package _global_
+# Continue the completed context-aware SC1 lineage; restore all training state.
+defaults:
+  - remax_earnings_short_context_aware_u2_context
+  - /data/train_data/offline_audio/earnings_short_sc1@_offline_train_7654de9cd4
+  - _self_
+
+trainer:
+  experiment_name: earnings_short_sc1_context_continue800
+  total_training_steps: 800
+  # 25,240 parents / batch 128 gives 197 updates per epoch; five reach 800.
+  total_epochs: 5
+  resume_mode: resume_path
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/earnings-short-sc1-context-fullhist-20261117/global_step_394
+
+asr:
+  context_aware: true
+  expected_training_steps: 800
+
+data:
+  train_data: ${_offline_train_7654de9cd4}

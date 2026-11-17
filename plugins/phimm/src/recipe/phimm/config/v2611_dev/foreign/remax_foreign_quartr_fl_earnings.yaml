@@ -1,20 +1,20 @@
 # @package _global_
-# Standard Quartr FL plus the full Earnings Short mix; all data is target-only.
+# Standard Quartr FL plus the full Earnings Short mix; all data uses English language hints.
 # Quartr FL is sampled 5x: 2,732 x 5 = 13,660 samples per epoch.
 # 38,900 rows / batch128 = 303 full batches; one epoch = 303 updates.
 defaults:
   - remax_foreign_quartr_fl@_global_
-  - /data/train_data/foreign/earn_fy27_target_only@_earning_train
-  - /data/train_data/foreign/quartr_1st23_target_only@_quartr_first23_train
-  - /data/train_data/foreign/quartr_2nd48_target_only@_quartr_second48_train
-  - /data/train_data/foreign/quartr_3rd38_target_only@_quartr_third38_train
-  - /data/val_data/foreign/openlong_u2_target_only@_openlong_u2_val
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/train_data/quartr_3rd38@_quartr_third38_train
+  - /data/val_data/foreign/openlong_u2@_openlong_u2_val
   - _self_
 
 data:
   train_batch_size: 128
   val_data:
-    - ${_openlong_target_only_val}
+    - ${_openlong_foreign_val}
     - ${_openlong_u2_val}
   train_data:
     - ${_quartr_fl_train}

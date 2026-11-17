@@ -5,6 +5,7 @@
 # permits step868; total_training_steps is the fixed stopping condition.
 defaults:
   - remax_main_base3a_2611r2_sl_long5
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_long5@_offline_train_09554eba38
   - _self_
 
 trainer:
@@ -17,3 +18,6 @@ trainer:
 
 asr:
   expected_training_steps: 868
+
+data:
+  train_data: ${_offline_train_09554eba38}

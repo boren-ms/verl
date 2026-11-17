@@ -1,11 +1,10 @@
 # @package data.val_data
-# U2-tagged datasources for all segments from the two highest-error parents.
-# Segment text is inferred from model hypotheses and needs human review. Parent
-# grouping keys are deliberately omitted so clips are scored independently.
-# Parent ranking uses the original saved n_err, which may be inflated by
-# normalization across segment boundaries; consult the output summary.
+# U2 default: original full-parent references, one WER alignment per parent.
+# Retains the exact 1,085 legacy audio clips from 8 parents. Decoding can use
+# asr.context_aware independently; only newly generated output is scored.
+# Provenance/coverage: manifest_verified.json beside these immutable manifests.
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings21.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_fullref_2609r2b_step400_v1/earnings21.jsonl.gz
   add_task_info:
     style: verb
     language: English
@@ -16,9 +15,10 @@
         data_source: earnings21_u2
     verl_format:
       prompt_key: prompt
+      extra_keys: [parent_audio_path, seg_index, seg_start, seg_end, n_segments, reference_scope]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings22.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_fullref_2609r2b_step400_v1/earnings22.jsonl.gz
   add_task_info:
     style: verb
     language: English
@@ -29,9 +29,10 @@
         data_source: earnings22_u2
     verl_format:
       prompt_key: prompt
+      extra_keys: [parent_audio_path, seg_index, seg_start, seg_end, n_segments, reference_scope]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/coraal.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_fullref_2609r2b_step400_v1/coraal.jsonl.gz
   add_task_info:
     style: verb
     language: English
@@ -42,9 +43,10 @@
         data_source: coraal_u2
     verl_format:
       prompt_key: prompt
+      extra_keys: [parent_audio_path, seg_index, seg_start, seg_end, n_segments, reference_scope]
 
 - dataset_name: jsonl
-  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_2609r2b_step400_v1/earnings22_cleaned_aa.jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_fullref_2609r2b_step400_v1/earnings22_cleaned_aa.jsonl.gz
   add_task_info:
     style: verb
     language: English
@@ -55,3 +57,4 @@
         data_source: earnings22_cleaned_aa_u2
     verl_format:
       prompt_key: prompt
+      extra_keys: [parent_audio_path, seg_index, seg_start, seg_end, n_segments, reference_scope]

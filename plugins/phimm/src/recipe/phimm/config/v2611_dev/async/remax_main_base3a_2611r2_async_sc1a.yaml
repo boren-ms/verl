@@ -3,14 +3,11 @@
 
 defaults:
   - remax_main_base3a_2611r2_async@_global_
+  - /data/train_data/offline_audio/main_base3a_2611r2_async_sc1a@_offline_train_11f0c7cb10
   - _self_
 
 data:
-  random_segment:
-    segment_count: [2, 2]
-    segment_len: null
-    even_split: true
-    seed: 42
+  train_data: ${_offline_train_11f0c7cb10}
   max_audio_dur: null
 
 trainer:

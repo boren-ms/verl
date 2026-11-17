@@ -3,13 +3,11 @@
 
 defaults:
   - ../main/remax_main_base3a_2611r2
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl@_offline_train_380a8530cc
   - _self_
 
 data:
-  random_segment:
-    segment_len: [5, 30]
-    segment_count: null
-    seed: 42
+  train_data: ${_offline_train_380a8530cc}
   max_audio_dur: null
 
 trainer:

@@ -4,9 +4,5 @@ defaults:
   - base_short
   - _self_
 
-data:
-  random_segment:
-    enabled: false
-
 trainer:
   experiment_name: remax_earnings_short_baseline

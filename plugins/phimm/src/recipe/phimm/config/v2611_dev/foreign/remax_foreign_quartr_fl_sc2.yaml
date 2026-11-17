@@ -2,13 +2,11 @@
 # Quartr FL with exactly two random audio segments per training example.
 defaults:
   - remax_foreign_quartr_fl
+  - /data/train_data/offline_audio/foreign_quartr_fl_sc2@_offline_train_c17bb7c187
   - _self_
 
 data:
-  random_segment:
-    segment_count: [2, 2]
-    segment_len: null
-    seed: 42
+  train_data: ${_offline_train_c17bb7c187}
   max_audio_dur: null
 
 trainer:

@@ -6,25 +6,11 @@
 
 defaults:
   - ../rand_segment/remax_main_base3a_2611r2_sl
-  - /data/train_data/earn_fy26_batch1@_earn_fy26_batch1_long_train
-  - /data/train_data/earn_fy26_batch2@_earn_fy26_batch2_long_train
-  - /data/train_data/quartr_1st23_long@_quartr_first23_long_train
-  - /data/train_data/quartr_2nd48_long@_quartr_second48_long_train
-  - /data/train_data/quartr_3rd38_long@_quartr_third38_long_train
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_long5@_offline_train_137efa3261
   - _self_
 
 data:
-  random_segment:
-    # Parallelize header IO; seed + original row index preserves identical partitions.
-    num_proc: 16
-  train_data:
-    - ${_noisy_ls_train}
-    - ${_earn_fy26_batch1_long_train}
-    - ${_earn_fy26_batch2_long_train}
-    - ${_quartr_first23_long_train}
-    - ${_quartr_second48_long_train}
-    - ${_quartr_third38_long_train}
-    - ${_aishell_train}
+  train_data: ${_offline_train_137efa3261}
   mix:
     - shuffle: true
       datasource:

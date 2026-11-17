@@ -3,9 +3,11 @@
 # Two epochs, drop_last=true: floor(3548 / 8) * 2 = 886 updates.
 defaults:
   - remax_main_base3a_2611r2_sl_merge3m_sl5to30_bs16
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl5to30_bs16@_offline_train_fa43af9ea2
   - _self_
 
 data:
+  train_data: ${_offline_train_fa43af9ea2}
   train_batch_size: 8
   gen_batch_size: 8
 

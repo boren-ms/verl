@@ -1,0 +1,23 @@
+# @package _global_
+# Continue the existing independent SC1 baseline, using the full-parent U2 reference.
+defaults:
+  - remax_earnings_short_sc1_context_continue800
+  - /data/train_data/offline_audio/earnings_short_sc1@_offline_train_f6a248f756
+  - _self_
+
+trainer:
+  experiment_name: earnings_short_sc1_no_context_continue800
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/remax_earnings_short_sc1_20261115/global_step_394
+
+# Preserve this archived producer's training length limits.
+data:
+  train_data: ${_offline_train_f6a248f756}
+  max_prompt_length: 1024
+  max_model_length: 1792
+
+actor_rollout_ref:
+  rollout:
+    max_num_batched_tokens: 57344
+
+asr:
+  context_aware: false

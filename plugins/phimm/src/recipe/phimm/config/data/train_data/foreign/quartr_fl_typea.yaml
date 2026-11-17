@@ -16,7 +16,6 @@
     clean_tagged_text: {}
   add_task_info:
     style: verb
-    target_only: true
     language: English
     lang_hint: true
   post_process:

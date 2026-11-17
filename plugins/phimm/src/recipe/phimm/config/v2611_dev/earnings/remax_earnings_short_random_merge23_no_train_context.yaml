@@ -1,0 +1,8 @@
+# @package _global_
+# Compatibility name: training and validation always share the history policy.
+defaults:
+  - remax_earnings_short_random_merge23_no_context
+  - _self_
+
+trainer:
+  experiment_name: remax_earnings_short_random_merge23_no_train_context

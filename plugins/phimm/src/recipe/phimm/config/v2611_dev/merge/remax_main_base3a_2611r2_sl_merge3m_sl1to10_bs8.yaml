@@ -4,9 +4,11 @@
 # Reuse the same seven offline manifests, SL 1-10s, seed, model and rewards.
 defaults:
   - remax_main_base3a_2611r2_sl_merge3m_sl1to10
+  - /data/train_data/offline_audio/main_base3a_2611r2_sl_merge3m_sl1to10@_offline_train_1e3eaefeaa
   - _self_
 
 data:
+  train_data: ${_offline_train_1e3eaefeaa}
   train_batch_size: 8
   gen_batch_size: 8
 

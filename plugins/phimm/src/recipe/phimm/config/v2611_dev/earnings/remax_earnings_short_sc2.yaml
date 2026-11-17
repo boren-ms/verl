@@ -2,12 +2,10 @@
 # Earnings-only short-form SC2: exactly three segments with random cuts.
 
 defaults:
-  - remax_earnings_short_sc
-  - _self_
-
+- base_short
+- /data/train_data/offline_audio/earnings_short_sc2@_offline_train_3ba3264891
+- _self_
 data:
-  random_segment:
-    segment_count: [3, 3]
-
+  train_data: ${_offline_train_3ba3264891}
 trainer:
   experiment_name: remax_earnings_short_sc2

@@ -11,7 +11,6 @@ import pyarrow as pa
 import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
 from recipe.phimm.data.prompts import get_task_output, get_task_prompt, resolve_language
-from recipe.phimm.data.random_segment import random_segment
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import (
     all_rank_print,
@@ -150,7 +149,9 @@ def clean_tagged_text(ds, **kwargs):
 
     def clean_text(egs):
         text = get_value(egs, src_field, "") or ""
-        keywords = []
+        keywords = (
+            list(dict.fromkeys(egs.get(tgt_field) or [])) if kwargs.get("preserve_existing_keywords", False) else []
+        )
         tagged_values = [
             (match.start(), match.group(2) or match.group(4)) for match in paired_tag_pattern.finditer(text)
         ]
@@ -284,7 +285,6 @@ def process_ds(ds, **kwargs):
     """Post process the dataset."""
     map_kwargs = pop_map_kwargs(kwargs)
     unsupported = set(kwargs) - {
-        "random_segment",
         "input_egs_limit",
         "path_map",
         "rename_fields",
@@ -302,7 +302,7 @@ def process_ds(ds, **kwargs):
     if rename_fields_kwargs := kwargs.get("rename_fields", {}):
         ds = rename_fields(ds, **merge_kwargs(map_kwargs, rename_fields_kwargs))
     if "clean_tagged_text" in kwargs:
-        clean_tagged_text_kwargs = kwargs.get("clean_tagged_text") or {}
+        clean_tagged_text_kwargs = dict(kwargs.get("clean_tagged_text") or {})
         ds = clean_tagged_text(ds, **merge_kwargs(map_kwargs, clean_tagged_text_kwargs))
     if "cache_audio" in kwargs:
         cache_audio_kwargs = kwargs.get("cache_audio") or {}
@@ -311,20 +311,16 @@ def process_ds(ds, **kwargs):
         ds = add_field_ds(ds, **merge_kwargs(map_kwargs, add_field_kwargs))
     if verl_format_kwargs := kwargs.get("verl_format", {}):
         ds = verl_format_ds(ds, **merge_kwargs(map_kwargs, verl_format_kwargs))
-    if "random_segment" in kwargs:
-        ds = random_segment(ds, **dict(kwargs["random_segment"] or {}))
     return ds
 
 
 def mask_foreign_language(ds, *, task_info, **kwargs):
-    """Mask foreign speech for verbatim language-hint or target-only examples.
+    """Mask foreign speech for verbatim language-hint examples.
 
     Mixed-language rows require ordered, language-labelled components covering
     the original text; the block never guesses language boundaries.
     """
-    if task_info.get("style", "verb") != "verb" or not (
-        task_info.get("lang_hint", False) or task_info.get("target_only", False)
-    ):
+    if task_info.get("style", "verb") != "verb" or not task_info.get("lang_hint", False):
         return ds
     hint = task_info.get("language")
     if not hint:
@@ -389,21 +385,23 @@ def mask_foreign_language(ds, *, task_info, **kwargs):
     return ds.map(transform, **pop_map_kwargs(kwargs), desc="Masking foreign-language speech")
 
 
-def add_task_info(ds, *, style="verb", language=None, lang_hint=False, target_only=False, **kwargs):
+def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs):
     """Add the prompt, formatted output, and resolved language without changing text."""
-    if target_only and not language:
-        raise ValueError("target_only requires one known language")
 
     def add_info(row):
-        lang = resolve_language(language or row.get("language") or "English")
+        # A merged list can contain multiple spoken languages. The configured
+        # source hint filled missing languages before merging; retain the union
+        # here when constructing the language hint and formatted reference.
+        merged_list = row.get("random_merge_count") is not None and isinstance(row.get("audio_path"), list)
+        hint = row.get("language") if merged_list else language
+        lang = resolve_language(hint or row.get("language") or "English")
         return {
-            "prompt": get_task_prompt(style=style, language=lang, target_only=target_only, lang_hint=lang_hint),
+            "prompt": get_task_prompt(style=style, language=lang, lang_hint=lang_hint),
             "gt_output": get_task_output(
                 style=style,
                 language=lang,
                 text=row.get("text", ""),
                 components=row.get("components"),
-                target_only=target_only,
             ),
             "language": lang,
         }

@@ -47,7 +47,6 @@ data:
   # Validation keeps full reference audio, including multi-part audio paths.
   val_max_audio_dur: null
   chunk_load_mode: indexed
-  random_segment: null
   num_workers: 1
 
 trainer:

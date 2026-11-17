@@ -19,7 +19,7 @@ from verl.utils.profiler import simple_timer
 
 @register("asr")
 class ASRAgentLoop(AgentLoopBase):
-    async def generate_row(self, row, sampling_params, *, validate):
+    async def generate_row(self, row, sampling_params, *, validate, assistant_prefix=""):
         """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
@@ -29,6 +29,9 @@ class ASRAgentLoop(AgentLoopBase):
             tokenize=False,
             **dict(self.config.data.get("apply_chat_template_kwargs", {})),
         )
+        # Continue the open assistant turn. A completed assistant message would
+        # insert an end-of-turn token and give the prefix different semantics.
+        text += assistant_prefix
         inputs = await asyncio.to_thread(self.processor, text=[text], audios=[audio], return_tensors="pt")
         prompt_ids = inputs["input_ids"][0].tolist()
         if len(prompt_ids) > self.rollout_config.prompt_length:
@@ -63,13 +66,26 @@ class ASRAgentLoop(AgentLoopBase):
             multi_modal_data={"multi_modal_inputs": dict(inputs)},
             metrics=metrics,
             num_turns=2,
-            extra_fields=dict(output.extra_fields),
+            extra_fields={**output.extra_fields, "asr_context_prefix": assistant_prefix},
         )
 
     async def generate_segments(self, rows, sampling_params, *, validate):
-        """Generate each segment independently and preserve dataset segment order."""
+        """Optionally condition each segment on its predecessor's generated text."""
         if not rows:
             raise ValueError("ASR requires at least one segment")
+        if getattr(self.config, "asr", {}).get("context_aware", False):
+            outputs, texts = [], []
+            prefix = ""
+            # Rows are already grouped by source/parent and ordered by start.
+            # State belongs to this invocation, so concurrent parents never mix.
+            for row in rows:
+                output = await self.generate_row(row, sampling_params, validate=validate, assistant_prefix=prefix)
+                outputs.append(output)
+                # Only newly generated tokens are scored and carried forward;
+                # the injected prefix is never counted a second time.
+                prefix = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
+                texts.append(prefix)
+            return outputs, texts
         outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
         texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
         return outputs, texts
@@ -77,6 +93,10 @@ class ASRAgentLoop(AgentLoopBase):
     async def greedy_baseline(self, row):
         params = dict(temperature=0.0, top_p=1.0, top_k=-1, logprobs=False)
         rows = row.get("asr_segments") or [row]
+        # A greedy trajectory conditions on its own earlier outputs, matching
+        # the sampled trajectory's context policy without sharing its history.
+        # validate=True selects greedy decoding limits. History uses the same
+        # asr.context_aware flag in sampled training, greedy training and validation.
         _, texts = await self.generate_segments(rows, params, validate=True)
         text = "\n".join(texts)
         info = copy.deepcopy(row.get("extra_info") or {})
@@ -98,7 +118,7 @@ class ASRAgentLoop(AgentLoopBase):
         score_row = dict(rows[0])
         if "reward_model" in kwargs:
             score_row["reward_model"] = kwargs["reward_model"]
-        # Train and validation both score raw independent responses against
+        # Train and validation both score raw newly generated responses against
         # the parent reference, preserving boundaries for language/format checks.
         result = await asyncio.to_thread(score_response, self.config, score_row, texts, extra_info=info)
         reward_info = {
@@ -109,6 +129,7 @@ class ASRAgentLoop(AgentLoopBase):
                     "parent_info": info,
                     "segment_outputs": texts,
                     "segment_info": [r.get("extra_info") or {} for r in rows],
+                    "context_prefixes": [o.extra_fields.get("asr_context_prefix", "") for o in outputs],
                     **({"segment_rows": rows} if validate else {}),
                 },
                 ensure_ascii=False,
