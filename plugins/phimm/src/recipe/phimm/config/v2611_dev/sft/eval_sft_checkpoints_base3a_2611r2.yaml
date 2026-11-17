@@ -1,0 +1,42 @@
+# @package _global_
+# Decode committed native SFT model shards; perform no optimizer updates.
+defaults:
+  - eval_sft_base3a_2611r2@_global_
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+    lora_rank: 320
+    lora_alpha: 640
+    use_remove_padding: false
+    lora:
+      merge: true
+  actor:
+    checkpoint:
+      load_contents: [model]
+
+trainer:
+  v1:
+    trainer_class: recipe.phimm.sft.validation.SFTCheckpointValidationTrainer
+
+asr:
+  sft_validation:
+    checkpoint_root: ???
+    steps: [20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240,
+            260, 280, 300, 320, 340, 360, 380, 400, 420, 440, 460, 480,
+            500, 520, 540, 560, 580, 600, 620, 640, 660, 680, 700, 720,
+            740, 760, 780, 800, 820, 840, 860, 868]
+    wait_for_checkpoints: true
+    poll_seconds: 30
+    expected_validation_groups: 2767
+    expected_sources:
+      - earning_chunk_verb
+      - openml_bad
+      - urgent2024_delta
+      - earnings21_u2
+      - earnings22_u2
+      - coraal_u2
+      - earnings22_cleaned_aa_u2
+      - zh_aishell1_top500_2611r2
+      - zh_fleurs_top500_2611r2

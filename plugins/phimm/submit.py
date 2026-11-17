@@ -10,7 +10,10 @@ from pathlib import Path
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--submission-id", required=True)
-    parser.add_argument("--evaluate", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--evaluate", action="store_true")
+    mode.add_argument("--sft", action="store_true", help="Run the Qwen audio supervised trainer")
+    mode.add_argument("--sft-evaluate", action="store_true", help="Decode native SFT checkpoints without training")
     parser.add_argument("--config-name")
     parser.add_argument("--config-path")
     parser.add_argument("overrides", nargs="*")
@@ -20,6 +23,10 @@ def main(argv=None):
 
     repository = Path(__file__).resolve().parents[2]
     module = "recipe.phimm.main_asr_eval" if args.evaluate else "recipe.phimm.main_asr_remax"
+    if args.sft:
+        module = "recipe.phimm.sft.main_ray"
+    if args.sft_evaluate:
+        module = "recipe.phimm.sft.evaluate"
     command = ["python", "-u", "-m", module]
     for flag, value in [("--config-name", args.config_name), ("--config-path", args.config_path)]:
         if value is not None:

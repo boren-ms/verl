@@ -86,6 +86,24 @@ def test_eval_defaults_experiment_to_submission_id(submitter):
     ray.shutdown.assert_called_once()
 
 
+def test_sft_uses_native_ray_supervised_entrypoint(submitter):
+    module, ray, client = submitter
+    module.main(["--submission-id", "sft-test", "--sft", "model.path=/models/qwen-audio"])
+    command = shlex.split(client.submit_job.call_args.kwargs["entrypoint"])
+    assert "recipe.phimm.sft.main_ray" in command
+    assert "trainer.experiment_name=sft-test" in command
+    assert "model.path=/models/qwen-audio" in command
+    ray.shutdown.assert_called_once()
+
+
+def test_sft_and_evaluation_are_mutually_exclusive(submitter):
+    module, ray, client = submitter
+    with pytest.raises(SystemExit):
+        module.main(["--submission-id", "sft-test", "--sft", "--evaluate"])
+    ray.init.assert_not_called()
+    client.submit_job.assert_not_called()
+
+
 def test_submission_failure_disconnects_without_retry(submitter):
     module, ray, client = submitter
     client.submit_job.side_effect = RuntimeError("submission rejected")
@@ -93,3 +111,21 @@ def test_submission_failure_disconnects_without_retry(submitter):
         module.main(["--submission-id", "test-job"])
     client.submit_job.assert_called_once()
     ray.shutdown.assert_called_once()
+
+
+def test_native_sft_evaluation_uses_read_only_checkpoint_entrypoint(submitter):
+    module, ray, client = submitter
+    module.main(["--submission-id", "sft-val-test", "--sft-evaluate"])
+    command = shlex.split(client.submit_job.call_args.kwargs["entrypoint"])
+    assert "recipe.phimm.sft.evaluate" in command
+    assert "trainer.experiment_name=sft-val-test" in command
+    ray.shutdown.assert_called_once()
+
+
+@pytest.mark.parametrize("flag", ["--sft", "--evaluate"])
+def test_native_sft_evaluation_cannot_select_another_job_mode(submitter, flag):
+    module, ray, client = submitter
+    with pytest.raises(SystemExit):
+        module.main(["--submission-id", "test", "--sft-evaluate", flag])
+    ray.init.assert_not_called()
+    client.submit_job.assert_not_called()

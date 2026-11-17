@@ -1,0 +1,23 @@
+# @package _global_
+# Decode an exported SFT checkpoint on the original nine Base3a val cohorts.
+# Inherit ReMax's validation sampling, grouping, and corpus scorers unchanged.
+
+defaults:
+  - ../main/remax_main_base3a_2611r2@_global_
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: ???
+    lora_rank: 0
+
+data:
+  train_data: ${data.val_data}
+  mix: null
+  dataloader_num_workers: 0
+
+trainer:
+  project_name: v2611_sft_val
+  experiment_name: ???
+  resume_mode: disable
+  val_only: true

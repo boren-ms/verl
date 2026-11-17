@@ -1,0 +1,41 @@
+# @package _global_
+# Shared Base3a data sources, preprocessing, source budgets, and validation cohorts.
+
+defaults:
+  - /data/val_data/earnings22_verb_langhint@_earning_val
+  - /data/val_data/openasr/openasr_ml_bad_fmt_lang_bracket_langhint@_ml_val
+  - /data/val_data/urgent2024_delta@_urgent_delta
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_openlong
+  - /data/val_data/aishell/openasr_zh_hard_top500_2611r2_verb_langhint_zip@_zh_hard_val
+  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/train_data/quartr_3rd38@_quartr_third38_train
+  - /data/train_data/aishell/aishell1_train_top10k_2611r2_verb_langhint@_aishell_train
+  - _self_
+
+data:
+  train_data:
+    - ${_noisy_ls_train}
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+    - ${_aishell_train}
+  shuffle: false
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: noisy_ls, sample: 20424, shuffle: true}
+        - {name: earn_fy27, sample: 9568, shuffle: true}
+        - {name: quartr_1st23, sample: 3125, shuffle: true}
+        - {name: quartr_2nd48, sample: 6392, shuffle: true}
+        - {name: quartr_3rd38, sample: 6155, shuffle: true}
+        - {name: aishell1_train_top10k, sample: 10000, shuffle: true}
+  val_data:
+    - ${_earning_val}
+    - ${_ml_val}
+    - ${_urgent_delta}
+    - ${_openlong}
+    - ${_zh_hard_val}
