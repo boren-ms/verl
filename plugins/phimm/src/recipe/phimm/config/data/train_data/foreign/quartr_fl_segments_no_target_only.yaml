@@ -1,0 +1,33 @@
+# Independent no-target-only variant; preserve source manifests and text processing.
+# Quartr FY27 Batch1 FL segments: all four main groups; 2,732 rows, 5.319776 hours.
+# Converted from the delivered TSVs; only main folders are included, never *_review.
+# Matches Quartr short: strip tags and extract NE keywords; FL-only targets become empty.
+# Keep manually approved mixtures even when SourceStatus describes an excluded original FL clip.
+# Detected FL is source_language; the ASR task language remains English.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_FL_Segments/training_base3a_v1/quartr_fl_segments.jsonl
+  pre_process:
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    target_only: false
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_fl_segments
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - subset
+      - audio_length
+      - source_language
+      - source_status
+      - approval
+      - source_tsv
+      - source_row

@@ -1,0 +1,16 @@
+# @package _global_
+# PPO2 counterpart with target_only=false on every training/validation source.
+# Preserve the English hint, text processing, data mix, batch128 and one epoch.
+defaults:
+  - remax_foreign_quartr_fl_earnings_ppo2
+  - /data/train_data/foreign/quartr_fl_segments_no_target_only@_quartr_fl_train
+  - /data/train_data/foreign/earn_fy27_no_target_only@_earning_train
+  - /data/train_data/foreign/quartr_1st23_no_target_only@_quartr_first23_train
+  - /data/train_data/foreign/quartr_2nd48_no_target_only@_quartr_second48_train
+  - /data/train_data/foreign/quartr_3rd38_no_target_only@_quartr_third38_train
+  - /data/val_data/foreign/openlong_no_target_only@_openlong_target_only_val
+  - /data/val_data/foreign/openlong_u2_no_target_only@_openlong_u2_val
+  - _self_
+
+trainer:
+  experiment_name: remax_foreign_quartr_fl_earnings_ppo2_no_target_only

@@ -1,0 +1,6 @@
+# @package _global_
+# Foreign recipe entry point for the complete English target-only OpenLong suite.
+# Reuse the canonical manifests, full-parent grouping and evaluation settings.
+defaults:
+  - ../eval/eval_openlong_target_only_zip@_global_
+  - _self_

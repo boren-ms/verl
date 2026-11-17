@@ -6,10 +6,10 @@ from collections import defaultdict
 from collections.abc import Mapping, Sequence
 
 import datasets
-from torch.utils.data import Dataset
-
+import pyarrow as pa
 from recipe.phimm.data.dataset import create_audio_dataset
 from recipe.phimm.utils.audio import set_chunk_load_mode
+from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,19 @@ def _align_source_features(data_sets):
         if list_paths and "audio_path" in ds.features and not hasattr(ds.features["audio_path"], "feature"):
             ds = ds.map(lambda row: {"audio_path": [row["audio_path"]] if row["audio_path"] else None})
         aligned.append(ds)
-    return _align_null_features(aligned)
+    aligned = _align_null_features(aligned)
+    # Arrow cannot concatenate nested structs with different child fields.
+    # Keep parent-group metadata when another source omits those fields.
+    features = datasets.Features.from_arrow_schema(pa.unify_schemas([ds.features.arrow_schema for ds in aligned]))
+    result = []
+    for ds in aligned:
+        for name in features:
+            if name not in ds.column_names:
+                ds = ds.add_column(name, [None] * len(ds))
+        if ds.features.arrow_schema != features.arrow_schema:
+            ds = ds.cast(features)
+        result.append(ds)
+    return result
 
 
 def _collect_datasources(data_sets: Sequence[datasets.Dataset]) -> dict[str, datasets.Dataset]:
