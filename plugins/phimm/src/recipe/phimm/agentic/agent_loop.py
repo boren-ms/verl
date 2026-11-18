@@ -7,6 +7,12 @@ from uuid import uuid4
 
 import ray
 import torch
+from recipe.phimm.agentic.context_prompt import (
+    DEFAULT_CONTEXT_MODE,
+    ContextPrompt,
+    add_context_to_messages,
+    context_options,
+)
 from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
@@ -23,15 +29,8 @@ class ASRAgentLoop(AgentLoopBase):
         """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
-        messages = row[self.config.data.prompt_key]
-        if previous_context:
-            messages = copy.deepcopy(messages)
-            for message in reversed(messages):
-                if message["role"] == "user":
-                    message["content"] += f"\nPrevious segment transcript (for context): {previous_context}"
-                    break
-            else:
-                raise ValueError("ASR previous context requires a user prompt")
+        mode = context_options(getattr(self.config, "asr", {})).get("mode", DEFAULT_CONTEXT_MODE)
+        messages = add_context_to_messages(row[self.config.data.prompt_key], previous_context, mode)
         text = chat.apply_chat_template(
             messages,
             add_generation_prompt=True,
@@ -76,24 +75,31 @@ class ASRAgentLoop(AgentLoopBase):
         )
 
     async def generate_segments(self, rows, sampling_params, *, validate):
-        """Optionally condition each segment on its predecessor's generated text."""
+        """Optionally condition each segment on earlier outputs in this trajectory."""
         if not rows:
             raise ValueError("ASR requires at least one segment")
-        if getattr(self.config, "asr", {}).get("context_aware", False):
+        config = context_options(getattr(self.config, "asr", {}))
+        if config.get("enable", False):
             outputs, texts = [], []
-            previous_context = ""
-            # Rows are already grouped by source/parent and ordered by start.
-            # State belongs to this invocation, so concurrent parents never mix.
+            context = ContextPrompt(
+                config.get("mode", DEFAULT_CONTEXT_MODE),
+                version=getattr(self.config.data, "version", None),
+                max_terms=config.get("max_terms", 24),
+                filter_common=config.get("filter_common", True),
+                filter_numbers=config.get("filter_numbers", True),
+                filter_fillers=config.get("filter_fillers", True),
+                extra_common_words=config.get("common_words", ()),
+            )
+            # Use the supplied segment order. Each invocation has its own context.
             for row in rows:
                 output = await self.generate_row(
-                    row, sampling_params, validate=validate, previous_context=previous_context
+                    row, sampling_params, validate=validate, previous_context=context.context
                 )
                 outputs.append(output)
-                # Score raw new responses, but carry only the transcript text
-                # into the next user prompt, without language/format metadata.
+                # Score raw new responses; the context builder consumes cleaned text.
                 text = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
                 texts.append(text)
-                previous_context = get_hyp_text(text, version=getattr(self.config.data, "version", None))
+                context.observe(text)
             return outputs, texts
         outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
         texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
@@ -105,7 +111,7 @@ class ASRAgentLoop(AgentLoopBase):
         # A greedy trajectory conditions on its own earlier outputs, matching
         # the sampled trajectory's context policy without sharing its history.
         # validate=True selects greedy decoding limits. History uses the same
-        # asr.context_aware flag in sampled training, greedy training and validation.
+        # context settings in sampled training, greedy training and validation.
         _, texts = await self.generate_segments(rows, params, validate=True)
         text = "\n".join(texts)
         info = copy.deepcopy(row.get("extra_info") or {})

@@ -25,5 +25,6 @@ trainer:
   experiment_name: remax_fl_earnings_short_random_merge23_x4_context
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true
   expected_training_rows: 111888

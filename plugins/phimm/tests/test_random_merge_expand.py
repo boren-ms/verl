@@ -125,7 +125,7 @@ def test_x4_training_pair_shares_all_controls_except_context_and_output_identity
     on, off = [OmegaConf.to_container(cfg, resolve=True) for cfg in configs]
     assert on["data"] == off["data"]
     assert on["rewards"] == off["rewards"]
-    assert on["asr"]["context_aware"] is True and off["asr"]["context_aware"] is False
+    assert on["asr"]["context_aware"]["enable"] is True and off["asr"]["context_aware"]["enable"] is False
     for cfg in (on, off):
         assert cfg["asr"]["expected_training_rows"] == 100960
         assert cfg["trainer"]["total_training_steps"] == 800
@@ -143,5 +143,5 @@ def test_x4_training_pair_shares_all_controls_except_context_and_output_identity
             return value.replace(run_name, "RUN") if isinstance(value, str) else value
 
         cfg.update(normalize(cfg))
-    off["asr"]["context_aware"] = True
+    off["asr"]["context_aware"]["enable"] = True
     assert on == off

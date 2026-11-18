@@ -14,7 +14,8 @@ trainer:
   resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/earnings-short-sc1-context-fullhist-20261117/global_step_394
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true
   expected_training_steps: 800
 
 data:

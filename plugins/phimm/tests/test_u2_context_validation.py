@@ -16,7 +16,7 @@ def test_u2_context_config_preserves_training_and_clip_inputs():
         base = compose(config_name="remax_earnings_short_context_aware")
         config = compose(config_name="remax_earnings_short_context_aware_u2_context")
     OmegaConf.resolve(config)
-    assert config.asr.context_aware
+    assert config.asr.context_aware.enable
     assert config.data.get("validation_reference_scope", "parent") == "parent"
     for key in ("train_data", "mix", "train_batch_size"):
         assert config.data[key] == base.data[key]
@@ -126,7 +126,7 @@ def test_u2_decode_pair_only_changes_context_and_identity():
                 overrides=[
                     "actor_rollout_ref.model.path=/verified/step80",
                     f"trainer.experiment_name=u2-{mode}",
-                    f"asr.context_aware={mode}",
+                    f"asr.context_aware.enable={mode}",
                 ],
             )
             for mode in ("true", "false")
@@ -138,7 +138,7 @@ def test_u2_decode_pair_only_changes_context_and_identity():
         assert config.trainer.nnodes == 2 and config.trainer.n_gpus_per_node == 8
     # Normalize identity before resolution so all derived artifact paths match.
     configs[1].trainer.experiment_name = configs[0].trainer.experiment_name
-    configs[1].asr.context_aware = True
+    configs[1].asr.context_aware.enable = True
     for config in configs:
         OmegaConf.resolve(config)
     assert configs[0] == configs[1]

@@ -34,7 +34,7 @@ def test_fl_earnings_training_sources_have_registered_scorers(compose_recipe, co
     for source in sources:
         scorer = config.reward_map.get(source, source)
         assert scorer in config.rewards, f"No scorer for {source!r}"
-    assert config.asr.context_aware is context
+    assert config.asr.context_aware.enable is context
 
 
 def test_context_openlong_preserves_full_suite_and_evaluation_settings(compose_recipe):
@@ -47,7 +47,7 @@ def test_context_openlong_preserves_full_suite_and_evaluation_settings(compose_r
     assert all(source.val_batch_size == -1 for source in config.data.val_data[0])
     assert config.trainer.val_only and config.trainer.resume_mode == "disable"
     assert config.actor_rollout_ref.model.lora_rank == 0
-    assert config.asr.context_aware and not base.asr.context_aware
+    assert config.asr.context_aware.enable and not base.asr.context_aware.enable
     assert config.actor_rollout_ref.rollout.prompt_length == 2048
     assert config.data.max_model_length == 2816
 
@@ -56,7 +56,7 @@ def test_context_training_preserves_recipe_and_enables_ordered_segments(compose_
     base = compose_recipe()
     config = compose_recipe(overrides=["+asr_training=context_aware", "trainer.experiment_name=context-train"])
     OmegaConf.resolve(config)
-    assert config.asr.context_aware and not base.asr.context_aware
+    assert config.asr.context_aware.enable and not base.asr.context_aware.enable
     assert list(config.offline_data.random_segment.segment_count) == [1, 2]
     assert config.offline_data.random_segment.segment_len is None
     assert config.data.max_audio_dur is None

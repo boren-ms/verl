@@ -6,7 +6,8 @@ defaults:
 
 asr:
   # One shared policy for sampled training, ReMax greedy baseline and validation.
-  context_aware: false
+  context_aware:
+    enable: false
 
 trainer:
   experiment_name: remax_earnings_short_random_merge23_no_context

@@ -27,6 +27,7 @@ trainer:
   resume_from_path: null
 
 asr:
-  context_aware: false
+  context_aware:
+    enable: false
   expected_training_rows: 180
   expected_training_steps: 360

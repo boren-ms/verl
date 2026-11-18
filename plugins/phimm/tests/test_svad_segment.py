@@ -191,7 +191,7 @@ def test_long_svad_recipe_uses_earnings_base_without_history():
     with initialize_config_dir(config_dir=str(directory), version_base=None):
         candidate = compose(config_name="remax_earnings_long_svad30_no_context")
         baseline = compose(config_name="base_earning")
-    assert candidate.asr.context_aware is False
+    assert candidate.asr.context_aware.enable is False
     for key in (
         "actor_rollout_ref.model",
         "algorithm",

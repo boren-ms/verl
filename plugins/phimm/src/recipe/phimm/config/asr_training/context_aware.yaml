@@ -7,7 +7,8 @@ defaults:
   - _self_
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true
 
 data:
   # Reserve room for the previous transcript text alongside the current audio.

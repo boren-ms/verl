@@ -297,7 +297,7 @@ def test_full_earnings_preset_preserves_mix_validation_and_shared_context(contex
     assert config.data.max_audio_dur is None
     assert config.trainer.total_training_steps == base.trainer.total_training_steps == 394
     assert config.asr.expected_training_rows == 25240
-    assert config.asr.context_aware is context_aware
+    assert config.asr.context_aware.enable is context_aware
     assert config.algorithm.adv_estimator == "remax"
     assert config.actor_rollout_ref.rollout.n == 8
     base.trainer.experiment_name = config.trainer.experiment_name
