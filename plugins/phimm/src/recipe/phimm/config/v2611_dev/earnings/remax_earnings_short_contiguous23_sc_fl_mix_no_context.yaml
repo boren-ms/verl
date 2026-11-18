@@ -1,0 +1,43 @@
+# @package _global_
+# Keep the Earnings short/contiguous/SC OFF mixture and add one complete copy
+# of each Quartr FL variant: short, random 2-3 segments, contiguous 2-3 clips.
+# 75,720 + 3 * 2,732 = 83,916 rows, globally shuffled without oversampling.
+# Two epochs: floor(83,916 / 128) * 2 = 1,310 optimizer updates.
+defaults:
+  - remax_earnings_short_contiguous23_sc_mix_no_context
+  - /data/train_data/foreign/quartr_fl_segments@_quartr_fl_short_train
+  - /data/train_data/offline_audio/quartr_fl_segments_random_segment23@_quartr_fl_rs_train
+  - /data/train_data/offline_audio/quartr_fl_segments_contiguous23@_quartr_fl_contiguous_train
+  - _self_
+
+data:
+  train_data:
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+    - ${_contiguous_train}
+    - ${_sc_train}
+    - ${_quartr_fl_short_train}
+    - ${_quartr_fl_rs_train}
+    - ${_quartr_fl_contiguous_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, sample: 28704, shuffle: true}
+        - {name: quartr_1st23, sample: 9375, shuffle: true}
+        - {name: quartr_2nd48, sample: 19176, shuffle: true}
+        - {name: quartr_3rd38, sample: 18465, shuffle: true}
+        - {name: quartr_fl_segments, sample: 8196, shuffle: true}
+
+reward_map:
+  quartr_fl_segments: train_librispeech
+
+asr:
+  expected_training_rows: 83916
+  expected_training_steps: 1310
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_sc_fl_mix_no_context
+  total_epochs: 2
+  total_training_steps: 1310
