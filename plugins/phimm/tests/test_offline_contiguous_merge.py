@@ -92,7 +92,7 @@ def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_p
         assert [json.loads(line) for line in stream] == output
     [block] = yaml.safe_load((root / "train_data.yaml").read_text())
     assert "pre_process" not in block
-    config = OmegaConf.create({"train_files": "train", "version": 2609, "train_data": [block]})
+    config = OmegaConf.create({"train_files": "train", "train_data": [block]})
     training = ASRDataset("train", None, config)
     assert len(training) == expected_count
     for merged, sample in zip(output, training, strict=True):

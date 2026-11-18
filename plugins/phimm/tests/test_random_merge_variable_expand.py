@@ -1,5 +1,6 @@
 """Variable-count offline augmentation keeps singletons and whole-audio order."""
 
+import json
 from collections import Counter
 from itertools import combinations
 
@@ -57,7 +58,10 @@ def test_singleton_and_five_segments_keep_task_components():
     for raw, final in zip(samples, formatted, strict=True):
         assert isinstance(raw["audio_path"], list)
         assert final["reward_model"]["ground_truth"] == raw["text"]
-        assert final["reward_model"]["gt_output"].count("<src=English>") == len(raw["audio_path"])
+        lines = list(map(json.loads, final["reward_model"]["gt_output"].splitlines()))
+        assert len(lines) == len(raw["audio_path"])
+        assert {line["language"] for line in lines} == {"English"}
+        assert " ".join(line["text"] for line in lines) == raw["text"]
 
 
 def test_impossible_quota_duration_and_unique_inputs_fail():

@@ -107,7 +107,6 @@ data:
   custom_cls:
     path: pkg://recipe.phimm.agentic.dataset
     name: ASRDataset
-  version: 2609
   max_model_length: ${eval:${data.max_prompt_length}+${data.max_response_length}}
   max_audio_dur: 40
   chunk_load_mode: indexed

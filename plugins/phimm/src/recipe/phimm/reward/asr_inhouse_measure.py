@@ -380,7 +380,7 @@ def eval_score(solution_str: str | list[str], ground_truth: str, **kwargs):
     compute_eer = kwargs.get("compute_eer", False)
     extra_info = kwargs.get("extra_info") or {}
     locale = _resolve_locale(kwargs.get("locale"), extra_info.get("language", kwargs.get("language")))
-    hyp_text = _clean_hyp(get_hyp_text(solution_str, version=kwargs.get("version")))
+    hyp_text = _clean_hyp(get_hyp_text(solution_str))
     ref_text = _clean_ref(ground_truth)
     # The dfmetrics TER backend used by `_compute_dter` shells out to `dotnet`
     # (via fstalign), so the SpeechInsight pack must be installed and its dotnet

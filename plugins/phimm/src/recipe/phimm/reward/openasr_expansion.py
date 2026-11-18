@@ -1,7 +1,6 @@
 """MOE 18143a6e scoring for supplementary Mandarin/Vietnamese/French rows."""
 
 import regex
-
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.chinese_normalizer import ChineseTextNormalizer
@@ -45,5 +44,5 @@ def openasr_expansion_eval(solution_str: str | list[str], ground_truth, **kwargs
     extra = kwargs.get("extra_info") or {}
     language = extra.get("language", kwargs.get("language", ""))
     lang = get_language_code(language.lower().strip())
-    hyp = get_hyp_text(solution_str, version=kwargs.get("version"))
+    hyp = get_hyp_text(solution_str)
     return measure_expansion(hyp, ground_truth, lang)

@@ -1,6 +1,6 @@
 import re
 
-from recipe.phimm.reward.asr_response import get_asr_text, get_hyp_text, parse_response_outputs
+from recipe.phimm.reward.asr_response import clean_text, get_hyp_text, parse_response_outputs
 from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
     _HFEnglishTextNormalizer,
@@ -56,8 +56,10 @@ def measure_openasr_oiwer(hyp_text, lattice, lang):
 
 def non_speech_eval(solution_str: str | list[str], ground_truth, **kwargs):
     """Evaluate non-speech audio by requiring an empty cleaned hypothesis."""
-    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
-    n_err = int(bool(hyp_text.strip()))
+    outputs = parse_response_outputs(solution_str)
+    n_err = int(
+        any(segment["language"] is None or clean_text(segment["text"]) for output in outputs for segment in output)
+    )
     return {
         "score": 1.0 - n_err,
         "wer": float(n_err),
@@ -68,9 +70,15 @@ def non_speech_eval(solution_str: str | list[str], ground_truth, **kwargs):
 
 def foreign_language_eval(solution_str: str | list[str], ground_truth=None, **kwargs):
     """Accept empty text or a foreign-language marker as a correct response."""
-    task_outputs = parse_response_outputs("" if solution_str is None else solution_str, version=kwargs.get("version"))
+    task_outputs = parse_response_outputs("" if solution_str is None else solution_str)
     marker = re.compile(r"</?foreign_language>", re.IGNORECASE)
-    accuracy = int(all(not (text := get_asr_text(output)).strip() or marker.search(text) for output in task_outputs))
+    accuracy = int(
+        all(
+            segment["language"] is not None and (not (text := segment["text"]).strip() or marker.search(text))
+            for output in task_outputs
+            for segment in output
+        )
+    )
     return {
         "score": float(accuracy),
         "n_err": 1 - accuracy,
@@ -95,7 +103,7 @@ def openasr_eval(solution_str: str | list[str], ground_truth, **kwargs):
         from recipe.phimm.reward.openasr_expansion import openasr_expansion_eval
 
         return openasr_expansion_eval(solution_str, ground_truth, **kwargs)
-    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    hyp_text = get_hyp_text(solution_str)
     result = measure_wer(
         hyp_text,
         ground_truth,
@@ -115,7 +123,7 @@ def openasr_hi_in_eval(solution_str: str | list[str], ground_truth, **kwargs):
     """Evaluate Monsoon Hindi against its lattice with OIWER."""
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "Hindi")).lower().strip()
-    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    hyp_text = get_hyp_text(solution_str)
     result = measure_openasr_oiwer(hyp_text, extra_info.get("lattice"), get_language_code(tgt_lang))
     return {
         "score": 1.0 - result["wer"],
@@ -130,7 +138,7 @@ def openasr_en_eval(solution_str: str | list[str], ground_truth, **kwargs):
     from recipe.phimm.reward.asr_measure import compute_kw_score
 
     extra_info = kwargs.get("extra_info") or {}
-    hyp_text = get_hyp_text(solution_str, version=kwargs.get("version"))
+    hyp_text = get_hyp_text(solution_str)
     result = measure_openasr_en_wer(hyp_text, ground_truth)
     keyword_result = compute_kw_score(
         ground_truth,

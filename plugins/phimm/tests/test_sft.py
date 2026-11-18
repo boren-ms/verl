@@ -9,6 +9,10 @@ import soundfile as sf
 import torch
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
+from recipe.phimm.agentic.dataset import _prepare_data_confs
+from recipe.phimm.agentic.scoring import aggregate_error_rates, score_response
+from recipe.phimm.data.prompts import get_task_output
+from recipe.phimm.reward.asr_response import get_hyp_text, parse_jsonl_response
 from recipe.phimm.sft.dataset import ASRSFTDataset
 
 
@@ -87,7 +91,7 @@ def local_config(tmp_path):
 
 def test_sft_reuses_exact_base3a_data_and_model():
     sft, rl = load_config(), load_config("main")
-    for key in ("train_data", "val_data", "mix", "shuffle", "train_batch_size", "version"):
+    for key in ("train_data", "val_data", "mix", "shuffle", "train_batch_size"):
         assert sft.data[key] == rl.data[key]
     assert sft.data.get("random_segment") is rl.data.get("random_segment") is None
     assert sum(entry.sample for entry in sft.data.mix[0].datasource) == 55664
@@ -147,24 +151,76 @@ def test_real_source_loading_keeps_train_budgets_and_all_val_rows(local_config):
             assert "input_ids" not in sample["multi_modal_inputs"]
 
 
+def test_jsonl_sft_supervises_one_object_with_original_text(local_config):
+    train = ASRSFTDataset(local_config.data.train_files, Tokenizer(), local_config.data, AudioProcessor())
+    assert len(train) == 12
+    labels = set()
+    for index, row in enumerate(train.ds):
+        sample = train[index]
+        assert "Return JSONL only" in row["prompt"][0]["content"]
+        supervised = bytes(sample["input_ids"][sample["loss_mask"].bool()].tolist()).decode()
+        line = supervised.removesuffix("<eot>\n")
+        [parsed] = parse_jsonl_response(line)
+        assert parsed["text"] == row["reward_model"]["ground_truth"]
+        labels.add(parsed["language"])
+        assert "\n" not in line
+    assert labels == {"Chinese", "English"}
+
+
+def test_jsonl_full_eval_extracts_transcript_and_counts_invalid_responses():
+    root = Path(__file__).resolve().parents[1] / "src/recipe/phimm/config/v2611_dev/eval"
+    with initialize_config_dir(config_dir=str(root), version_base=None):
+        cfg = compose(
+            config_name="eval_openfull_zip",
+            overrides=["actor_rollout_ref.model.path=/models/jsonl", "trainer.experiment_name=jsonl-eval"],
+        )
+    sources = _prepare_data_confs(cfg.data, is_train=False)
+    assert len(sources) == 35 and all(source.get("add_task_info") for source in sources)
+    line = json.dumps({"language": "English", "text": 'He said "hi".\nThen left.'}, ensure_ascii=False)
+    assert parse_jsonl_response(line)[0]["text"] == 'He said "hi".\nThen left.'
+    other = json.dumps({"language": "English", "text": "Again."})
+    assert get_hyp_text([line + "\n" + other, "invalid"]) == 'He said "hi".\nThen left. Again. invalid'
+    duplicate = '{"language":"English","text":"one","text":"two"}'
+    assert parse_jsonl_response(duplicate) == [{"language": None, "text": duplicate}]
+    assert parse_jsonl_response('{"language":"English","text":""}')[0]["text"] == ""
+    row = {
+        "data_source": "ls_clean",
+        "reward_model": {"ground_truth": "hello"},
+        "extra_info": {"language": "English"},
+    }
+    valid = score_response(cfg, row, ['{"language":"English","text":"hello"}\n{"language":"English","text":""}'])
+    invalid = score_response(cfg, row, ['{"language":"English","text":"hello"}\nlegacy output'])
+    assert valid["n_err"] == 0
+    assert invalid["n_err"] == 2
+    assert score_response(cfg, row, ["hello"])["n_err"] == 0
+    results = {key: [valid[key], invalid[key]] for key in ("n_json_valid", "n_json_total")}
+    assert aggregate_error_rates([row["data_source"]] * 2, results) == {"val-aux/ls_clean/json_valid_rate/mean@1": 0.5}
+
+
 def test_sft_keeps_list_audio_and_validation_segments(local_config):
     cfg = local_config
     ds = ASRSFTDataset(cfg.data.val_files, Tokenizer(), cfg.data, AudioProcessor())
     row = dict(ds.ds[0])
     row["audio_path"] = [row["audio_path"], row["audio_path"]]
+    segments = [{"language": "English", "text": "Hi."}, {"language": "French", "text": "Salut."}]
+    row["reward_model"]["gt_output"] = get_task_output(components=segments)
     ds.ds = [row, row]
     assert len(ds) == 2  # Parent metadata never collapses supervised rows.
-    ds[0]
+    sample = ds[0]
+    target = bytes(sample["input_ids"][sample["loss_mask"].bool()].tolist()).decode().removesuffix("<eot>\n")
+    assert list(map(json.loads, target.splitlines())) == segments
     assert len(ds.processor.audios[0]) == 6400
 
 
-@pytest.mark.parametrize("problem", ["target", "length", "duration", "template"])
+@pytest.mark.parametrize("problem", ["target", "format", "length", "duration", "template"])
 def test_sft_rejects_misaligned_or_truncated_targets(local_config, problem):
     cfg = local_config
     ds = ASRSFTDataset(cfg.data.train_files, Tokenizer(), cfg.data, AudioProcessor())
     ds.ds = [dict(ds.ds[0])]
     if problem == "target":
         ds.ds[0]["reward_model"]["gt_output"] = None
+    elif problem == "format":
+        ds.ds[0]["reward_model"]["gt_output"] = "<src=English><tgt=English>\n<VERBATIM>\nHello"
     elif problem == "length":
         cfg.data.max_length = 1
     elif problem == "duration":

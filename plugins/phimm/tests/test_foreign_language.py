@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from datasets import Dataset
 from recipe.phimm.data.dataset import add_task_info, augment, mask_foreign_language
@@ -12,9 +14,10 @@ def test_language_hint_prompt_and_output(language):
     assert "Only include speech" not in prompt
     assert "Omit speech" not in prompt
     assert f"The language is {language}." in prompt
-    assert get_task_output("verb", language=language, text="sample") == (
-        f"<src={language}><tgt={language}>\n<VERBATIM>\nsample"
-    )
+    assert json.loads(get_task_output("verb", language=language, text="sample")) == {
+        "language": language,
+        "text": "sample",
+    }
 
 
 def test_language_alias_is_normalized():
@@ -27,7 +30,7 @@ def test_config_language_overrides_audio_language():
     row = add_task_info(ds, **TASK)[0]
     assert row["language"] == "English"
     assert "The language is English." in row["prompt"]
-    assert row["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\nHello"
+    assert json.loads(row["gt_output"]) == {"language": "English", "text": "Hello"}
 
 
 def test_language_hint_does_not_rewrite_reference():
@@ -42,9 +45,10 @@ def test_language_hint_does_not_rewrite_reference():
     )
     row = add_task_info(ds, **TASK)[0]
     assert row["text"] == "Hello bonjour"
-    assert row["gt_output"] == (
-        "<src=English><tgt=English>\n<VERBATIM>\nHello\n<src=French><tgt=French>\n<VERBATIM>\nbonjour"
-    )
+    assert list(map(json.loads, row["gt_output"].splitlines())) == [
+        {"language": "English", "text": "Hello"},
+        {"language": "French", "text": "bonjour"},
+    ]
 
 
 def test_language_hint_can_be_disabled():
@@ -53,7 +57,7 @@ def test_language_hint_can_be_disabled():
     assert "Only include speech" not in row["prompt"]
     assert "The language is" not in row["prompt"]
     assert row["language"] == "English"
-    assert row["gt_output"] == "<src=English><tgt=English>\n<VERBATIM>\nHello"
+    assert json.loads(row["gt_output"]) == {"language": "English", "text": "Hello"}
 
 
 @pytest.mark.parametrize(
@@ -65,11 +69,11 @@ def test_language_hint_can_be_disabled():
 )
 def test_mask_before_prompt_and_ground_truth(language, text, expected):
     ds = Dataset.from_list([{"text": text, "language": language}])
-    row = augment(ds, mask_foreign_language={}, add_task_info=TASK, version="2609")[0]
+    row = augment(ds, mask_foreign_language={}, add_task_info=TASK)[0]
     assert row["text"] == expected
     assert row["language"] == "English"
     assert "The language is English." in row["prompt"]
-    assert row["gt_output"].endswith(expected)
+    assert json.loads(row["gt_output"])["text"] == expected
 
 
 @pytest.mark.parametrize("info", [{**TASK, "lang_hint": False}, {**TASK, "style": "lex"}])
@@ -86,11 +90,11 @@ def test_mixed_segments_mask_foreign_text(source_language):
         {"text": "world", "language": "en"},
     ]
     ds = Dataset.from_list([{"text": "Hello bonjour world", "language": source_language, "components": components}])
-    row = augment(ds, mask_foreign_language={}, add_task_info=TASK, version="2609")[0]
+    row = augment(ds, mask_foreign_language={}, add_task_info=TASK)[0]
     assert row["text"] == "Hello <foreign_language> world"
     assert row["components"] is None
     assert "The language is English." in row["prompt"]
-    assert row["gt_output"].endswith("Hello <foreign_language> world")
+    assert json.loads(row["gt_output"])["text"] == "Hello <foreign_language> world"
 
 
 def test_mixed_segments_keep_text_spacing_and_punctuation():
@@ -123,10 +127,10 @@ def test_mixed_segments_require_complete_language_boundaries():
 def test_monolingual_components_are_masked_as_one_utterance():
     components = [{"text": "Bon", "language": "fr"}, {"text": "jour", "language": "fr"}]
     ds = Dataset.from_list([{"text": "Bon jour", "language": "fr", "components": components}])
-    row = augment(ds, mask_foreign_language={}, add_task_info=TASK, version="2609")[0]
+    row = augment(ds, mask_foreign_language={}, add_task_info=TASK)[0]
     assert row["text"] == "<foreign_language>"
     assert row["components"] is None
-    assert row["gt_output"].endswith("<foreign_language>")
+    assert json.loads(row["gt_output"])["text"] == "<foreign_language>"
 
 
 def test_mixed_and_monolingual_rows_can_share_a_dataset():

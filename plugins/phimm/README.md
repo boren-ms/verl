@@ -459,7 +459,7 @@ The paired multi-segment ReMax presets are
 They share all five prepared sources and the same ReMax recipe (`n=8`), and set
 `asr.context_aware` to true/false across sampled rollout, greedy baseline and
 validation. Both retain ordered 2/3-utterance lists and full-parent U2 scoring;
-the context-off preset decodes each segment with an empty assistant prefix.
+the context-off preset decodes each segment without previous transcript text.
 
 Set `data.max_audio_dur: null` when using
 these complete lists; `asr.context_aware` controls history for both training and
@@ -521,15 +521,14 @@ joins their text for lexical, keyword, punctuation and capitalization
 metrics against the original full reference. Language and format checks run
 separately on each response and are averaged with equal segment weights;
 when a reference lists multiple languages (for example `English_Chinese`),
-each header may match any listed language, with matching `src` and `tgt`.
-An independent response need not contain all reference languages. Mixed
-responses check every header; unsupported or mismatched languages lose credit.
-Single-language references retain their existing extra-header penalties.
-For all references,
-missing or malformed responses remain visible to these checks. Combined
-metrics (`word_lang`, `char_lang`, `word_fmt`) use those averaged checks.
-Only model response format 2609 is supported; omitted versions default to
-2609 and other configured versions raise an error.
+each predicted target language name may match any listed language. Repeated
+labels on separate lines are valid.
+
+Responses use JSONL: one `{"language":"English","text":"Hello."}` object per
+segment, with one or more lines in transcript order. The scorer joins the
+`text` fields in order. A malformed line contributes its raw text, gets
+no language credit, and fails the format check for that response. Combined metrics
+(`word_lang`, `char_lang`, `word_fmt`) use the same per-segment checks.
 ReMax likewise generates all greedy segment responses and scores them as one
 sample before sampled trajectories start. The agent returns independent
 outputs through Main's multi-output interface (`uid_session_segment`), each
@@ -590,14 +589,13 @@ python plugins/phimm/submit.py --evaluate --submission-id <unique-context-eval-i
 
 This evaluates the complete Earnings21, Earnings22 and CORAAL parent groups.
 Segments run in timestamp order within each recording. The immediately
-preceding segment's decoded output (including its ASR formatting, excluding
-chat special tokens) is appended directly to the next prompt's open assistant
-turn, after `<|im_start|>assistant\n`. The first segment has an empty prefix;
-prefixes reset between recordings, and recordings can run concurrently.
-Only newly generated tokens are scored and carried to the following segment;
-history is not accumulated. Saved `asr_detail.context_prefixes` aligns with
-`segment_outputs` for auditing. The preset reserves 2048 prompt tokens for
-audio and prefix together and raises an error on overflow.
+preceding response's transcript is passed as context in the next user prompt.
+The assistant turn starts empty for fresh JSONL. The first segment has no
+history. Histories reset between recordings, and recordings can run
+concurrently. Only newly generated objects are scored. Saved
+`asr_detail.context_prefixes` aligns with the raw `segment_outputs` for auditing.
+The preset reserves 2048 prompt tokens for audio and context together and
+raises an error on overflow.
 
 The shared option `asr.context_aware=true` enables this behavior in both
 training and validation. For training, use `+asr_training=context_aware` on

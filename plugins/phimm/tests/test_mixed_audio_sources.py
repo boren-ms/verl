@@ -35,7 +35,7 @@ def test_short_and_contiguous_mix_preserves_audio_metadata_and_segments(tmp_path
                 "post_process": {"verl_format": {"prompt_key": "prompt"}},
             }
         )
-    config = OmegaConf.create({"train_files": "train", "version": 2609, "train_data": sources})
+    config = OmegaConf.create({"train_files": "train", "train_data": sources})
     data = ASRDataset("train", None, config)
 
     assert len(data) == 2

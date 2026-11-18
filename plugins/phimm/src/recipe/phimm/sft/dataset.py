@@ -7,6 +7,7 @@ from recipe.phimm.agentic.dataset import (
     _prepare_data_confs,
 )
 from recipe.phimm.data.dataset import create_audio_dataset
+from recipe.phimm.reward.asr_response import parse_jsonl_response
 from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
 from torch.utils.data import Dataset
 
@@ -29,7 +30,7 @@ class ASRSFTDataset(Dataset):
         self.is_train = parquet_files == config.train_files
         set_chunk_load_mode(config.get("chunk_load_mode") or "indexed")
         sources = _prepare_data_confs(config, is_train=self.is_train)
-        data_sets = [create_audio_dataset(**{**conf, "version": config.version}) for conf in sources]
+        data_sets = [create_audio_dataset(**conf) for conf in sources]
         # RL-only diagnostics have different nested schemas across sources.
         # SFT consumes the prompt, audio, source name, and formatted reference.
         data_sets = [ds.remove_columns("extra_info") if "extra_info" in ds.column_names else ds for ds in data_sets]
@@ -43,8 +44,8 @@ class ASRSFTDataset(Dataset):
     def __getitem__(self, index):
         row = dict(self.ds[index])
         target = row["reward_model"].get("gt_output")
-        if not isinstance(target, str) or not target:
-            raise ValueError(f"ASR SFT row {index} requires a nonempty reward_model.gt_output")
+        if not isinstance(target, str) or any(segment["language"] is None for segment in parse_jsonl_response(target)):
+            raise ValueError(f"ASR SFT row {index} requires valid JSONL in reward_model.gt_output")
         # Never crop a waveform while retaining the complete supervised target.
         row["asr_full_reference"] = True
         paths = row.get("audio_path")

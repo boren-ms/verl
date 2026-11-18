@@ -388,7 +388,7 @@ def mask_foreign_language(ds, *, task_info, **kwargs):
 def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs):
     """Add the prompt, formatted output, and resolved language without changing text."""
 
-    def add_info(row):
+    def format_jsonl_example(row):
         # A merged list can contain multiple spoken languages. The configured
         # source hint filled missing languages before merging; retain the union
         # here when constructing the language hint and formatted reference.
@@ -406,7 +406,7 @@ def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs)
             "language": lang,
         }
 
-    return ds.map(add_info, **pop_map_kwargs(kwargs))
+    return ds.map(format_jsonl_example, **pop_map_kwargs(kwargs))
 
 
 def augment(ds, **kwargs):
