@@ -361,9 +361,9 @@ sampled audio order):
 ```
 
 The ASR dataset expands this list into two segments, preserving the original
-utterance boundaries. B is decoded with A's generated response as an assistant
-prefix. The full joined text is scored once per trajectory; the prefix is not
-scored twice. Sampled and greedy trajectories retain their own histories.
+utterance boundaries. B's user prompt includes A's generated transcript text as
+`Previous segment transcript (for context): {previous context}`. The full joined text is scored
+once per trajectory; injected context is not scored twice. Sampled and greedy trajectories retain their own histories.
 Do not combine this block with enabled random segmentation.
 
 Text variants follow the same order, keywords are unioned without duplicates,
@@ -403,8 +403,7 @@ exposure per update differs because a parent contains multiple utterances.
 For a matched context-off experiment, use
 `remax_earnings_short_random_merge23_no_context`. It reads the exact same
 materialized manifests and sets `asr.context_aware: false` for sampled training,
-the ReMax greedy baseline AND validation. All three decode with empty assistant
-prefixes. U2 grouping and full-parent references are retained for WER scoring.
+the ReMax greedy baseline AND validation. All three decode without previous context in the user prompt. U2 grouping and full-parent references are retained for WER scoring.
 The old preset name `remax_earnings_short_random_merge23_no_train_context` is
 an alias with the same shared policy. There is no separate training override.
 Use only `asr.context_aware` in configurations and CLI overrides.
@@ -459,7 +458,7 @@ The paired multi-segment ReMax presets are
 They share all five prepared sources and the same ReMax recipe (`n=8`), and set
 `asr.context_aware` to true/false across sampled rollout, greedy baseline and
 validation. Both retain ordered 2/3-utterance lists and full-parent U2 scoring;
-the context-off preset decodes each segment with an empty assistant prefix.
+the context-off preset decodes each segment without previous context in its prompt.
 
 Set `data.max_audio_dur: null` when using
 these complete lists; `asr.context_aware` controls history for both training and
@@ -590,14 +589,17 @@ python plugins/phimm/submit.py --evaluate --submission-id <unique-context-eval-i
 
 This evaluates the complete Earnings21, Earnings22 and CORAAL parent groups.
 Segments run in timestamp order within each recording. The immediately
-preceding segment's decoded output (including its ASR formatting, excluding
-chat special tokens) is appended directly to the next prompt's open assistant
-turn, after `<|im_start|>assistant\n`. The first segment has an empty prefix;
-prefixes reset between recordings, and recordings can run concurrently.
-Only newly generated tokens are scored and carried to the following segment;
-history is not accumulated. Saved `asr_detail.context_prefixes` aligns with
-`segment_outputs` for auditing. The preset reserves 2048 prompt tokens for
-audio and prefix together and raises an error on overflow.
+preceding segment's transcript text is appended to the next user prompt as
+`Previous segment transcript (for context): {previous context}` before applying the chat template.
+Language headers, ASR formatting tags, and nonspeech markers are removed using
+the standard transcript extractor. The assistant turn starts empty. The first
+segment has no context line; context resets between recordings, and recordings
+can run concurrently. Only newly generated tokens are scored, with raw response
+formatting preserved for reward checks. Only the immediately previous segment's
+text is carried forward; history is not accumulated. Saved
+`asr_detail.previous_contexts` aligns with `segment_outputs` for auditing.
+The preset reserves 2048 prompt tokens for audio and context together and raises
+an error on overflow.
 
 The shared option `asr.context_aware=true` enables this behavior in both
 training and validation. For training, use `+asr_training=context_aware` on
@@ -616,7 +618,7 @@ segmentation explicitly, and uses exactly two segments with a random cut per
 full clip. Context is enabled for both training and validation.
 
 Sampled rollouts and ReMax greedy baselines each build their own context from
-their own generated outputs. The prefix belongs to the prompt for both the
+their own generated transcript text. Context belongs to the user prompt for both the
 rollout server and actor: only new response tokens retain response masks and
 rollout logprobs and contribute to the policy loss. All segments share the
 single parent-level outcome reward. The default remains independent decoding

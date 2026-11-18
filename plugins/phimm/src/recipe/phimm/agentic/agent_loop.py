@@ -19,19 +19,25 @@ from verl.utils.profiler import simple_timer
 
 @register("asr")
 class ASRAgentLoop(AgentLoopBase):
-    async def generate_row(self, row, sampling_params, *, validate, assistant_prefix=""):
+    async def generate_row(self, row, sampling_params, *, validate, previous_context=""):
         """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
+        messages = row[self.config.data.prompt_key]
+        if previous_context:
+            messages = copy.deepcopy(messages)
+            for message in reversed(messages):
+                if message["role"] == "user":
+                    message["content"] += f"\nPrevious segment transcript (for context): {previous_context}"
+                    break
+            else:
+                raise ValueError("ASR previous context requires a user prompt")
         text = chat.apply_chat_template(
-            row[self.config.data.prompt_key],
+            messages,
             add_generation_prompt=True,
             tokenize=False,
             **dict(self.config.data.get("apply_chat_template_kwargs", {})),
         )
-        # Continue the open assistant turn. A completed assistant message would
-        # insert an end-of-turn token and give the prefix different semantics.
-        text += assistant_prefix
         inputs = await asyncio.to_thread(self.processor, text=[text], audios=[audio], return_tensors="pt")
         prompt_ids = inputs["input_ids"][0].tolist()
         if len(prompt_ids) > self.rollout_config.prompt_length:
@@ -66,7 +72,7 @@ class ASRAgentLoop(AgentLoopBase):
             multi_modal_data={"multi_modal_inputs": dict(inputs)},
             metrics=metrics,
             num_turns=2,
-            extra_fields={**output.extra_fields, "asr_context_prefix": assistant_prefix},
+            extra_fields={**output.extra_fields, "asr_previous_context": previous_context},
         )
 
     async def generate_segments(self, rows, sampling_params, *, validate):
@@ -75,16 +81,19 @@ class ASRAgentLoop(AgentLoopBase):
             raise ValueError("ASR requires at least one segment")
         if getattr(self.config, "asr", {}).get("context_aware", False):
             outputs, texts = [], []
-            prefix = ""
+            previous_context = ""
             # Rows are already grouped by source/parent and ordered by start.
             # State belongs to this invocation, so concurrent parents never mix.
             for row in rows:
-                output = await self.generate_row(row, sampling_params, validate=validate, assistant_prefix=prefix)
+                output = await self.generate_row(
+                    row, sampling_params, validate=validate, previous_context=previous_context
+                )
                 outputs.append(output)
-                # Only newly generated tokens are scored and carried forward;
-                # the injected prefix is never counted a second time.
-                prefix = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
-                texts.append(prefix)
+                # Score raw new responses, but carry only the transcript text
+                # into the next user prompt, without language/format metadata.
+                text = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
+                texts.append(text)
+                previous_context = get_hyp_text(text, version=getattr(self.config.data, "version", None))
             return outputs, texts
         outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
         texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
@@ -129,7 +138,7 @@ class ASRAgentLoop(AgentLoopBase):
                     "parent_info": info,
                     "segment_outputs": texts,
                     "segment_info": [r.get("extra_info") or {} for r in rows],
-                    "context_prefixes": [o.extra_fields.get("asr_context_prefix", "") for o in outputs],
+                    "previous_contexts": [o.extra_fields.get("asr_previous_context", "") for o in outputs],
                     **({"segment_rows": rows} if validate else {}),
                 },
                 ensure_ascii=False,

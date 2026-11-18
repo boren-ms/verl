@@ -1,5 +1,5 @@
 # @package _global_
-# Earnings Short SC1 with previous-output context in training and decoding.
+# Earnings Short SC1 with previous-transcript prompt context in training and decoding.
 defaults:
   - remax_earnings_short_baseline
   - /data/train_data/offline_audio/earnings_short_sc1@_offline_train_0ca15ad2f2
@@ -9,7 +9,7 @@ trainer:
   experiment_name: remax_earnings_short_context_aware
 
 data:
-  # Reserve room for the previous response alongside the current audio.
+  # Reserve room for the previous transcript text alongside the current audio.
   max_prompt_length: 2048
   train_data: ${_offline_train_0ca15ad2f2}
 
