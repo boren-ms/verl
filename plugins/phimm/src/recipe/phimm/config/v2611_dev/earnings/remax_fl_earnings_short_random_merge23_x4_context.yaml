@@ -18,6 +18,9 @@ data:
         - {name: quartr_3rd38, epoch: 1, shuffle: true}
         - {name: quartr_fl_segments, epoch: 1, shuffle: true}
 
+reward_map:
+  quartr_fl_segments: train_librispeech
+
 trainer:
   experiment_name: remax_fl_earnings_short_random_merge23_x4_context
 

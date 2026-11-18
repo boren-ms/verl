@@ -24,6 +24,19 @@ def compose_recipe():
     return load
 
 
+@pytest.mark.parametrize("context", [True, False])
+def test_fl_earnings_training_sources_have_registered_scorers(compose_recipe, context):
+    suffix = "context" if context else "no_context"
+    config = compose_recipe(kind="earnings", name=f"remax_fl_earnings_short_random_merge23_x4_{suffix}")
+    OmegaConf.resolve(config)
+    sources = {source.post_process.add_field.fields.data_source for group in config.data.train_data for source in group}
+    assert "quartr_fl_segments" in sources
+    for source in sources:
+        scorer = config.reward_map.get(source, source)
+        assert scorer in config.rewards, f"No scorer for {source!r}"
+    assert config.asr.context_aware is context
+
+
 def test_context_openlong_preserves_full_suite_and_evaluation_settings(compose_recipe):
     overrides = ["actor_rollout_ref.model.path=/models/sft38000", "trainer.experiment_name=context-test"]
     base = compose_recipe(kind="eval", name="eval_openlong_zip", overrides=overrides)
