@@ -8,7 +8,7 @@ defaults:
 
 data:
   train_data: ${_contiguous_full_train}
-  train_batch_size: 1
+  train_batch_size: 2
   max_audio_dur: null
   mix:
     - shuffle: true
@@ -20,9 +20,9 @@ data:
 
 trainer:
   experiment_name: remax_earnings_short_contiguous_full_no_context
-  # 180 full-recording parents / batch1 = 180 updates per epoch, 360 total.
+  # 180 full-recording parents / batch2 = 90 updates per epoch, 360 total.
   total_training_steps: null
-  total_epochs: 2
+  total_epochs: 4
   resume_mode: disable
   resume_from_path: null
 
