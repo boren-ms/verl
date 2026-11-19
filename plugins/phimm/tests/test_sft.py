@@ -272,6 +272,7 @@ def test_full_diarization_ls_preset_uses_shared_prompt_and_waveform_timing(tmp_p
     assert sources[1]["sft_single_speaker"]
     assert cfg.data.mix is None
     assert (cfg.trainer.nnodes, cfg.trainer.n_gpus_per_node) == (4, 8)
+    assert (cfg.trainer.save_freq, cfg.trainer.test_freq) == (100, 100)
     assert "/moe_ami_dev/" in cfg.data.val_data[0].jsonl_paths
     wav = tmp_path / "sample.wav"
     sf.write(wav, np.zeros(3200, dtype=np.float32), 16000)

@@ -1,0 +1,16 @@
+# @package _global_
+# Score each exported 1000-step SFT checkpoint (plus final) on a separate 1x8 pool.
+# The run queue supplies the verified HF export URI and unique experiment name.
+# DAI uses the same speaker JSONL prompt as the diarization training data.
+defaults:
+  - /v2611_dev/eval/eval_diarization@_global_
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: ???
+    lora_rank: 0
+
+trainer:
+  nnodes: 1
+  n_gpus_per_node: 8

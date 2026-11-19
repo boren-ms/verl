@@ -28,3 +28,5 @@ trainer:
   experiment_name: sft_diarization_ls_2611r2
   nnodes: 4
   n_gpus_per_node: 8
+  save_freq: 100
+  test_freq: 100
