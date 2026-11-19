@@ -118,6 +118,18 @@ def format_speaker_jsonl(row):
     return "\n".join(json.dumps(item, ensure_ascii=False, separators=(",", ":")) for item in segments)
 
 
+def format_single_speaker_jsonl(text, audio_length_s):
+    """Supervise pure ASR from zero to the input audio length in 10 ms units."""
+    if not isinstance(text, str) or not text.strip():
+        raise ValueError("Single-speaker ASR requires nonempty reference text")
+    if not _valid_time(audio_length_s) or audio_length_s <= 0:
+        raise ValueError("Single-speaker ASR requires a finite positive audio length in seconds")
+    end = round(audio_length_s * 100)
+    if end <= 0:
+        raise ValueError("Input audio is too short to represent in 10 ms units")
+    return json.dumps({"spk": 1, "text": text, "start": 0, "end": end}, ensure_ascii=False, separators=(",", ":"))
+
+
 def is_speaker_segment(fields, *, allow_empty_text=False):
     """Validate an object in the speaker JSONL schema."""
     if fields.keys() - {"spk", "text", "start", "end"} or not isinstance(fields.get("text"), str):

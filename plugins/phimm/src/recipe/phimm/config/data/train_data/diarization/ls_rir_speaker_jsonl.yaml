@@ -1,0 +1,20 @@
+# LibriSpeech RIR/noise data for diarization-format SFT.
+# Full manifest; no source sampling budget.
+# Uses SPEAKER_JSONL_PROMPT, shared with the annotated diarization sources.
+# Pure ASR target: spk=1, start=0, end=round(actual input audio seconds * 100).
+# Timing is constructed after decoding the waveform in ASRSFTDataset.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_aug_audio_rir_but_v1/data.jsonl
+sft_target_format: speaker_jsonl
+sft_single_speaker: true
+add_task_info:
+  style: verb
+  language: English
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: noisy_ls
+  verl_format:
+    prompt_key: prompt
+    target_format: speaker_jsonl

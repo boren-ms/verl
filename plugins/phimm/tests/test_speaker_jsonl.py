@@ -1,7 +1,24 @@
 import json
 
 import pytest
-from recipe.phimm.data.speaker_jsonl import format_speaker_jsonl, is_speaker_jsonl
+from recipe.phimm.data.speaker_jsonl import format_single_speaker_jsonl, format_speaker_jsonl, is_speaker_jsonl
+
+
+@pytest.mark.parametrize("audio_length_s,end", [(0.2, 20), (1, 100), (1.2431875, 124)])
+def test_pure_asr_spans_input_audio_in_integer_ticks(audio_length_s, end):
+    target = format_single_speaker_jsonl('He said "hello".\n你好', audio_length_s)
+    assert len(target.splitlines()) == 1
+    assert is_speaker_jsonl(target)
+    assert json.loads(target) == {"spk": 1, "text": 'He said "hello".\n你好', "start": 0, "end": end}
+
+
+@pytest.mark.parametrize(
+    "text,audio_length_s",
+    [("", 0.2), ("Hi", 0), ("Hi", -1), ("Hi", 0.0000625), ("Hi", float("nan")), ("Hi", float("inf"))],
+)
+def test_pure_asr_rejects_missing_text_or_unrepresentable_audio(text, audio_length_s):
+    with pytest.raises(ValueError):
+        format_single_speaker_jsonl(text, audio_length_s)
 
 
 def test_segment_metadata_is_optional_and_independent():

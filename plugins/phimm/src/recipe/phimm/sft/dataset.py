@@ -7,7 +7,7 @@ from recipe.phimm.agentic.dataset import (
     _prepare_data_confs,
 )
 from recipe.phimm.data.dataset import create_audio_dataset
-from recipe.phimm.data.speaker_jsonl import is_speaker_jsonl
+from recipe.phimm.data.speaker_jsonl import format_single_speaker_jsonl, is_speaker_jsonl
 from recipe.phimm.reward.asr_response import parse_jsonl_response
 from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
 from torch.utils.data import Dataset
@@ -35,8 +35,11 @@ class ASRSFTDataset(Dataset):
         distinct_formats = set(formats)
         if distinct_formats - {"jsonl", "text", "speaker_jsonl"}:
             raise ValueError("sft_target_format must be jsonl, text or speaker_jsonl")
+        single_speaker_sources = [bool(conf.pop("sft_single_speaker", False)) for conf in sources]
         data_sets = []
-        for conf, target_format in zip(sources, formats, strict=True):
+        for conf, target_format, single_speaker in zip(sources, formats, single_speaker_sources, strict=True):
+            if single_speaker and target_format != "speaker_jsonl":
+                raise ValueError("sft_single_speaker requires sft_target_format=speaker_jsonl")
             if target_format == "speaker_jsonl":
                 post_process = dict(conf.get("post_process") or {})
                 verl_format = dict(post_process.get("verl_format") or {})
@@ -45,6 +48,8 @@ class ASRSFTDataset(Dataset):
             ds = create_audio_dataset(**conf)
             if distinct_formats != {"jsonl"}:
                 ds = ds.add_column("sft_target_format", [target_format] * len(ds))
+            if any(single_speaker_sources):
+                ds = ds.add_column("sft_single_speaker", [single_speaker] * len(ds))
             data_sets.append(ds)
         # RL-only diagnostics have different nested schemas across sources.
         # SFT consumes the prompt, audio, source name, and formatted reference.
@@ -76,6 +81,12 @@ class ASRSFTDataset(Dataset):
             row.pop("audio", None)
         max_dur = self.config.max_audio_dur if self.is_train else self.config.val_max_audio_dur
         audio = load_audio(row, max_dur=max_dur)
+        if row.get("sft_single_speaker"):
+            # Use the waveform actually passed to the processor, including
+            # audio selectors/concatenation, rather than manifest duration hints.
+            waveform, sample_rate = audio
+            audio_length_s = len(waveform) / sample_rate
+            target = format_single_speaker_jsonl(row["reward_model"]["ground_truth"], audio_length_s)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
         kwargs = dict(self.config.get("apply_chat_template_kwargs", {}))
         prompt = row[self.config.prompt_key]

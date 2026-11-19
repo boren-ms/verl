@@ -12,6 +12,7 @@ from omegaconf import OmegaConf
 from recipe.phimm.agentic.dataset import _prepare_data_confs
 from recipe.phimm.agentic.scoring import aggregate_error_rates, score_response
 from recipe.phimm.data.prompts import get_task_output
+from recipe.phimm.data.speaker_jsonl import SPEAKER_JSONL_PROMPT
 from recipe.phimm.reward.asr_response import get_hyp_text, parse_jsonl_response
 from recipe.phimm.sft.dataset import ASRSFTDataset
 
@@ -260,6 +261,43 @@ def test_ami_speaker_jsonl_preset_uses_only_ami_and_supervises_one_line_per_segm
             {"spk": 2, "text": "morning", "start": 4, "end": 10},
             {"spk": 1, "text": "today.", "start": 10, "end": 20},
         ]
+
+
+def test_full_diarization_ls_preset_uses_shared_prompt_and_waveform_timing(tmp_path):
+    root = Path(__file__).resolve().parents[1] / "src/recipe/phimm/config/v2611_dev/sft"
+    with initialize_config_dir(config_dir=str(root), version_base=None):
+        cfg = compose(config_name="sft_diarization_ls_2611r2")
+    sources = _prepare_data_confs(cfg.data, is_train=True)
+    assert len(sources) == 2 and len(sources[0]["jsonl_paths"]) == 6
+    assert sources[1]["sft_single_speaker"]
+    assert cfg.data.mix is None
+    assert (cfg.trainer.nnodes, cfg.trainer.n_gpus_per_node) == (4, 8)
+    assert "/moe_ami_dev/" in cfg.data.val_data[0].jsonl_paths
+    wav = tmp_path / "sample.wav"
+    sf.write(wav, np.zeros(3200, dtype=np.float32), 16000)
+    manifest = tmp_path / "train.jsonl"
+    manifest.write_text(
+        json.dumps(
+            {
+                "audio_path": str(wav),
+                "text": "Hello.",
+                "prompt": "Old ASR prompt.<audio>",
+                "duration_s": 99.0,
+            }
+        )
+        + "\n"
+    )
+    cfg.data.train_data[0][0].jsonl_paths = str(manifest)
+    cfg.data.train_data[1].jsonl_paths = str(manifest)
+    ds = ASRSFTDataset(cfg.data.train_files, Tokenizer(), cfg.data, AudioProcessor())
+    assert len(ds) == 2
+    for row in ds.ds:
+        assert row["prompt"] == [{"role": "user", "content": SPEAKER_JSONL_PROMPT}]
+    # Pure ASR timing follows the actual 0.2 s waveform, not the stale 99 s hint.
+    index = next(index for index, row in enumerate(ds.ds) if row["sft_single_speaker"])
+    sample = ds[index]
+    target = bytes(sample["input_ids"][sample["loss_mask"].bool()].tolist()).decode().removesuffix("<eot>\n")
+    assert json.loads(target) == {"spk": 1, "text": "Hello.", "start": 0, "end": 20}
 
 
 def test_jsonl_full_eval_extracts_transcript_and_counts_invalid_responses():
