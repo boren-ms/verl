@@ -368,7 +368,7 @@ def test_pooling_does_not_report_partial_corpus_as_complete():
         ("dai_asr_i18n_public_en_internal_test", "data-internal-test.jsonl"),
     ],
 )
-def test_native_eval_config_dispatches_to_diarization_and_preserves_row_fields(dataset, manifest):
+def test_native_eval_config_dispatches_to_diarization_and_preserves_row_fields(dataset, manifest, tmp_path):
     import recipe.phimm
 
     OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)
@@ -391,13 +391,47 @@ def test_native_eval_config_dispatches_to_diarization_and_preserves_row_fields(d
     assert "/svad30/" in data.jsonl_paths
     assert data.add_task_info.style == "verb"
     assert "add_field" not in data.post_process
-    assert config.rewards.val_diarization.reward_kwargs.prediction_format == "auto"
+    assert data.post_process.verl_format.target_format == "speaker_jsonl"
+    assert config.rewards.val_diarization.reward_kwargs.prediction_format == "speaker_jsonl"
     row = {
         "data_source": "dai_asr_i18n_en_public",
         "reward_model": {"ground_truth": "hello world"},
         "extra_info": reference() | {"svad_bounds": [[0, 1], [1, 2]]},
     }
-    assert score_response(config, row, ["hello", "world"])["score"] == 0.5
+    response = [
+        '{"spk":1,"text":"hello","start":0,"end":100}',
+        '{"spk":2,"text":"world","start":0,"end":100}',
+    ]
+    result = score_response(config, row, response)
+    assert result["der"] == result["wder"] == result["wer"] == 0
+    # Legacy text must not silently become a single-speaker diarization result.
+    invalid = score_response(config, row, ["hello", "world"])
+    assert invalid["der_unavailable"] == invalid["wder_unavailable"] == 1
+    assert invalid["wer"] == 0
+
+    from recipe.phimm.agentic.dataset import ASRDataset
+    from recipe.phimm.data.speaker_jsonl import SPEAKER_JSONL_PROMPT
+
+    # Exercise the native loader and list-audio expansion, including DAI's
+    # start_s/end_s intervals and untimed word labels. No reference enters the prompt.
+    source = {
+        "id": "dai-example",
+        "data_source": row["data_source"],
+        "text": "hello world",
+        "audio_path": ["recording.wav#0:1", "recording.wav#1:2"],
+        **row["extra_info"],
+    }
+    path = tmp_path / manifest
+    path.write_text(json.dumps(source) + "\n")
+    data.jsonl_paths = str(path)
+    config.data.train_data = None
+    processed = ASRDataset(config.data.val_files, None, config.data)[0]
+    for clip, audio_path in zip(processed["asr_segments"], source["audio_path"], strict=True):
+        assert clip["audio_path"] == audio_path
+        assert clip["prompt"] == [{"role": "user", "content": SPEAKER_JSONL_PROMPT}]
+        assert clip["reward_model"]["ground_truth"] == source["text"]
+        for key in ("svad_bounds", "reference_segments", "reference_words"):
+            assert clip["extra_info"][key] == source[key]
 
 
 def test_native_ami_preset_uses_speaker_jsonl_and_reports_all_three_metrics():

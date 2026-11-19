@@ -69,7 +69,7 @@ def _word_segments(words, intervals):
 
 
 def format_speaker_jsonl(row):
-    """Use reference turns or reconstruct them from words and activity intervals."""
+    """Build turns and join adjacent same-speaker entries without filling timed gaps."""
     intervals = row.get("reference_segments") or []
     turns = [item for item in (row.get("reference_turns") or []) if _text(item)]
     if not turns:
@@ -85,7 +85,7 @@ def format_speaker_jsonl(row):
         turns = [{**(intervals[0] if len(intervals) == 1 else {}), "text": text}]
 
     speakers = {}
-    lines = []
+    segments = []
     duration = row.get("duration_s")
     clip_end = round(duration * 100) if _valid_time(duration) else None
     for turn in sorted(turns, key=_time):
@@ -105,8 +105,17 @@ def format_speaker_jsonl(row):
                 end += 1
             if 0 <= start < end:
                 item.update(start=start, end=end)
-        lines.append(json.dumps(item, ensure_ascii=False, separators=(",", ":")))
-    return "\n".join(lines)
+        previous = segments[-1] if segments else {}
+        same_speaker = "spk" in item and previous.get("spk") == item["spk"]
+        same_timing = ("start" in previous) == ("start" in item)
+        if same_speaker and same_timing and ("start" not in item or item["start"] <= previous["end"]):
+            previous["text"] += " " + item["text"]
+            if "start" in item:
+                previous["start"] = min(previous["start"], item["start"])
+                previous["end"] = max(previous["end"], item["end"])
+        else:
+            segments.append(item)
+    return "\n".join(json.dumps(item, ensure_ascii=False, separators=(",", ":")) for item in segments)
 
 
 def is_speaker_segment(fields, *, allow_empty_text=False):

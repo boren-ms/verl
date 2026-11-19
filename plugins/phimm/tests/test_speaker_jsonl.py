@@ -57,6 +57,71 @@ def test_off_grid_boundaries_round_to_ticks_and_short_final_segment_keeps_one_ti
     ]
 
 
+def test_consecutive_untimed_words_join_only_until_speaker_changes():
+    row = {
+        "reference_words": [
+            {"speaker": "A", "text": "Hello"},
+            {"speaker": "B", "text": "Hi"},
+            {"speaker": "B", "text": "how"},
+            {"speaker": "B", "text": "are you"},
+            {"speaker": "A", "text": "I'm"},
+            {"speaker": "A", "text": "good"},
+        ],
+    }
+    original = json.dumps(row)
+    output = format_speaker_jsonl(row)
+    assert list(map(json.loads, output.splitlines())) == [
+        {"spk": 1, "text": "Hello"},
+        {"spk": 2, "text": "Hi how are you"},
+        {"spk": 1, "text": "I'm good"},
+    ]
+    assert is_speaker_jsonl(output)
+    assert json.dumps(row) == original
+
+
+def test_timed_same_speaker_entries_join_without_filling_silence_or_crossing_other_speakers():
+    output = format_speaker_jsonl(
+        {
+            "reference_turns": [
+                {"speaker": "A", "text": "One", "start": 0.0, "end": 0.5},
+                {"speaker": "A", "text": "two", "start": 0.5, "end": 1.0},
+                {"speaker": "A", "text": "three", "start": 0.8, "end": 1.2},
+                {"speaker": "A", "text": "After silence", "start": 2.0, "end": 3.0},
+                {"speaker": "B", "text": "Interruption", "start": 2.5, "end": 3.0},
+                {"speaker": "A", "text": "Again", "start": 3.0, "end": 4.0},
+            ],
+        }
+    )
+    assert list(map(json.loads, output.splitlines())) == [
+        {"spk": 1, "text": "One two three", "start": 0, "end": 120},
+        {"spk": 1, "text": "After silence", "start": 200, "end": 300},
+        {"spk": 2, "text": "Interruption", "start": 250, "end": 300},
+        {"spk": 1, "text": "Again", "start": 300, "end": 400},
+    ]
+    assert is_speaker_jsonl(output)
+
+
+def test_unknown_speakers_and_mixed_timing_are_not_merged():
+    output = format_speaker_jsonl(
+        {
+            "reference_turns": [
+                {"speaker": "A", "text": "Timed", "start": 0.0, "end": 1.0},
+                {"speaker": "A", "text": "Untimed"},
+                {"text": "Unknown one"},
+                {"text": "Unknown two"},
+                {"speaker": "A", "text": "Return"},
+            ],
+        }
+    )
+    assert list(map(json.loads, output.splitlines())) == [
+        {"spk": 1, "text": "Timed", "start": 0, "end": 100},
+        {"spk": 1, "text": "Untimed"},
+        {"text": "Unknown one"},
+        {"text": "Unknown two"},
+        {"spk": 1, "text": "Return"},
+    ]
+
+
 @pytest.mark.parametrize(
     "target",
     [
