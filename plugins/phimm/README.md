@@ -633,7 +633,7 @@ asr:
     filter_common: true
     filter_numbers: true
     filter_fillers: true
-    max_terms: 24
+    max_terms: 2000
     common_words: []
 ```
 
@@ -661,8 +661,9 @@ to `false` to disable each filter independently. Mixed terms like `3M` and
 `1-800-FLOWERS` keep their hyphens in the prompt.
 When common-word filtering is enabled, extend the English filter with
 `asr.context_aware.common_words=[word1,word2]`. Adjust the cap
-with `asr.context_aware.max_terms` (default 24). The cap limits terms, not tokens;
-the existing prompt length check still applies. In the saved
+with `asr.context_aware.max_terms` (default 2000). The cap limits terms, not tokens;
+the complete prompt must still fit its token limit. Bias terms are not automatically
+trimmed to fit that limit. In the saved
 `asr_detail.previous_contexts`, bias modes record the formatted term list
 instead of the transcript.
 

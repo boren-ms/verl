@@ -8,6 +8,7 @@ from itertools import chain
 from recipe.phimm.reward.asr_response import get_hyp_text
 
 DEFAULT_CONTEXT_MODE = "prev_text"
+DEFAULT_MAX_BIAS_TERMS = 2000
 CONTEXT_MODES = {DEFAULT_CONTEXT_MODE, "prev_bias", "full_bias"}
 
 
@@ -120,7 +121,7 @@ class ContextPrompt:
         mode,
         *,
         version=None,
-        max_terms=24,
+        max_terms=DEFAULT_MAX_BIAS_TERMS,
         filter_common=True,
         filter_numbers=True,
         filter_fillers=True,

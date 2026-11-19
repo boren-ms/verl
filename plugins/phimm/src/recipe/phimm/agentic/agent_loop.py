@@ -9,6 +9,7 @@ import ray
 import torch
 from recipe.phimm.agentic.context_prompt import (
     DEFAULT_CONTEXT_MODE,
+    DEFAULT_MAX_BIAS_TERMS,
     ContextPrompt,
     add_context_to_messages,
     context_options,
@@ -84,7 +85,7 @@ class ASRAgentLoop(AgentLoopBase):
             context = ContextPrompt(
                 config.get("mode", DEFAULT_CONTEXT_MODE),
                 version=getattr(self.config.data, "version", None),
-                max_terms=config.get("max_terms", 24),
+                max_terms=config.get("max_terms", DEFAULT_MAX_BIAS_TERMS),
                 filter_common=config.get("filter_common", True),
                 filter_numbers=config.get("filter_numbers", True),
                 filter_fillers=config.get("filter_fillers", True),
