@@ -41,8 +41,9 @@ trainer:
 asr:
   context_aware:
     enable: true
-    mode: full_bias
-    max_terms: 2000
+    mode: bias
+    max_history: 1000
+    max_terms: 1000
     filter_common: true
     filter_numbers: true
     filter_fillers: true

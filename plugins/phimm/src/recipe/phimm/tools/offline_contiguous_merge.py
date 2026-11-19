@@ -6,6 +6,8 @@ preserves the sample count at recording boundaries. No rows are randomized,
 no windows cross recordings, and audio remains an ordered list of paths.
 Use --merge-mode full_recording for one sample containing all available
 utterances per recording, each used exactly once. No audio files are created.
+Use --merge-mode contiguous5 for every unique five-neighbor window. This mode
+produces N - 4 samples per recording and requires at least five utterances.
 """
 
 import argparse
@@ -20,6 +22,7 @@ from copy import deepcopy
 from pathlib import Path
 
 import yaml
+
 from recipe.phimm.data.dataset import jsonl_dataset, process_ds
 from recipe.phimm.tools.random_merge_list import _merge_rows
 
@@ -60,7 +63,8 @@ def contiguous_merge(
 
     In full_recording mode, return one sample per recording, including singletons.
     The default contiguous23 mode returns N distinct windows from N input rows.
-    Groups must contain at least three utterances: two utterances cannot form
+    In contiguous5 mode, return all N - 4 unique five-utterance windows.
+    Default groups must contain at least three utterances: two utterances cannot form
     two distinct windows of length two or three. Recordings retain first-seen
     order; utterances are sorted by their absolute start including part offset,
     or by numeric segment/part IDs for sources without timestamp metadata.
@@ -73,8 +77,8 @@ def contiguous_merge(
         raise ValueError("Contiguous merge requires nonempty input")
     if order_by not in ("timestamp", "segment_id"):
         raise ValueError("order_by must be timestamp or segment_id")
-    if merge_mode not in ("contiguous23", "full_recording"):
-        raise ValueError("merge_mode must be contiguous23 or full_recording")
+    if merge_mode not in ("contiguous23", "contiguous5", "full_recording"):
+        raise ValueError("merge_mode must be contiguous23, contiguous5 or full_recording")
     groups = defaultdict(list)
     positions = {}
     for index, row in enumerate(rows):
@@ -101,8 +105,12 @@ def contiguous_merge(
         size = len(indices)
         if merge_mode == "contiguous23" and size < 3:
             raise ValueError(f"Recording {parent!r} has {size} utterances; at least three are required")
+        if merge_mode == "contiguous5" and size < 5:
+            raise ValueError(f"Recording {parent!r} has {size} utterances; at least five are required")
         if merge_mode == "full_recording":
             windows = [(0, size)]
+        elif merge_mode == "contiguous5":
+            windows = [(start, 5) for start in range(size - 4)]
         else:
             windows = [(start, min(2 + start % 2, size - start)) for start in range(size - 1)]
             # Add the other length near the tail, instead of duplicating a window
@@ -180,6 +188,8 @@ def prepare(
     )
     if merge_mode == "contiguous23":
         assert len(output) == len(rows)
+    elif merge_mode == "contiguous5":
+        assert len(output) == len(rows) - 4 * len({row["merge_parent_audio_path"] for row in output})
     else:
         assert len(output) == len({row["merge_parent_audio_path"] for row in output})
         assert sorted(i for row in output for i in row["source_indices"]) == list(range(len(rows)))
@@ -242,9 +252,9 @@ def main():
     parser.add_argument("--order-by", choices=("timestamp", "segment_id", "auto"), default="timestamp")
     parser.add_argument(
         "--merge-mode",
-        choices=("contiguous23", "full_recording"),
+        choices=("contiguous23", "contiguous5", "full_recording"),
         default="contiguous23",
-        help="Overlapping 2/3-utterance windows, or one ordered audio-path list per complete source recording",
+        help="Unique overlapping 2/3- or 5-utterance windows, or one audio-path list per complete recording",
     )
     parser.add_argument(
         "--duration-cache", type=Path, help="JSON mapping normalized audio paths to durations in seconds"

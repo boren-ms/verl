@@ -6,7 +6,8 @@ defaults:
 asr:
   context_aware:
     enable: true
-    mode: full_bias
+    mode: bias
+    max_history: 1000
     filter_common: true
     filter_numbers: true
     filter_fillers: true

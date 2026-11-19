@@ -237,8 +237,9 @@ reward_map:
 asr:
   context_aware:
     enable: false
-    mode: prev_text  # prev_text | prev_bias | full_bias
-    max_terms: 2000
+    mode: text  # text | bias
+    max_history: 1  # Number of previous response turns used as context in either mode.
+    max_terms: 1000
     filter_common: true
     filter_numbers: true  # Exclude numeric terms; keep mixed names such as 3M.
     filter_fillers: true  # Exclude hesitation sounds such as uh, um, and erm.

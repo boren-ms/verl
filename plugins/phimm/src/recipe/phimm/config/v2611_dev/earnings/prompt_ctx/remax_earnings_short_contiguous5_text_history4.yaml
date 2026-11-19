@@ -1,0 +1,35 @@
+# @package _global_
+# Unique five-neighbor windows, with up to four previous generated transcripts.
+defaults:
+  - remax_earnings_short_contiguous23_bias_history2
+  - /data/train_data/offline_audio/earnings_short_contiguous5@_contiguous_train
+  - _self_
+
+data:
+  # Four responses of up to 768 tokens plus the original 1024-token audio prompt.
+  max_prompt_length: 4096
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, sample: 9272, shuffle: true}
+        - {name: quartr_1st23, sample: 3033, shuffle: true}
+        - {name: quartr_2nd48, sample: 6200, shuffle: true}
+        - {name: quartr_3rd38, sample: 6015, shuffle: true}
+
+actor_rollout_ref:
+  actor:
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
+asr:
+  context_aware:
+    mode: text
+    max_history: 4
+  expected_training_rows: 24520
+  expected_training_steps: 382
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous5_text_history4
+  # floor(24,520 samples / batch128) * 2 epochs = 382 optimizer updates.
+  total_training_steps: 382

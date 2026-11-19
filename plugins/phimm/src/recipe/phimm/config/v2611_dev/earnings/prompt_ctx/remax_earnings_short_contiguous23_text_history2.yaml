@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - remax_earnings_short_contiguous23_full_bias
+  - _self_
+
+asr:
+  context_aware:
+    mode: text
+    max_history: 2
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_text_history2
