@@ -1,5 +1,5 @@
 # @package _global_
-# AMI SFT: one JSONL object per speaker, no timestamps.
+# AMI SFT: one JSONL object per segment with optional speaker and 10 ms timestamps.
 
 defaults:
   - sft_base3a_2611r2

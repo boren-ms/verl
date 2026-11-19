@@ -294,3 +294,15 @@ def test_invalid_lines_keep_raw_text_but_fail_format():
     legacy = "<src=English><tgt=English>\n<TXT>hello</TXT>"
     assert _parse_response([response("hello"), legacy], "hello")["fmt"] == 0.5
     assert _parse_response([response("hello"), "world"], "hello world")["word"] == 1
+
+
+def test_asr_scores_speaker_jsonl_text_and_keeps_language_checks_separate():
+    from recipe.phimm.reward.asr_eval import non_speech_eval, openasr_en_eval
+
+    output = '{"spk":1,"text":"hello","start":0,"end":42}\n{"text":"world"}'
+    assert get_hyp_text(output) == "hello world"
+    assert openasr_en_eval(output, "hello world")["wer"] == 0
+    result = _parse_response(output, "hello world")
+    assert result["word"] == result["fmt"] == 1
+    assert result["lang"] == 0
+    assert non_speech_eval('{"text":""}', "")["n_err"] == 0

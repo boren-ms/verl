@@ -214,6 +214,47 @@ def test_jsonl_transcription_keeps_decoder_boundaries_for_diarization():
     assert result["der"] == result["wder"] == 0.5
 
 
+def test_speaker_jsonl_scores_overlapping_segments_and_ami_reference_fields():
+    info = reference() | {
+        "reference_segments": [
+            {"speaker": "A", "start": 0.0, "end": 1.0},
+            {"speaker": "B", "start": 0.5, "end": 1.25},
+        ],
+    }
+    response = '{"spk":2,"text":"hello","start":0,"end":100}\n{"spk":1,"text":"world","start":50,"end":125}'
+    result = diarization_eval(response, "hello world", extra_info=info, compute_wer=True)
+    assert result["der"] == result["wder"] == result["wer"] == 0
+    assert result["der_n_ref"] == 1.75
+    assert result["single_speaker_baseline"] == 0
+
+
+def test_speaker_jsonl_offsets_ticks_by_decoder_window_before_scoring():
+    info = reference() | {"svad_bounds": [[0, 1], [1, 2]]}
+    outputs = ['{"spk":1,"text":"hello","start":0,"end":100}', '{"spk":2,"text":"world","start":0,"end":100}']
+    result = diarization_eval(outputs, "hello world", extra_info=info, prediction_format="auto", compute_wer=True)
+    assert result["der"] == result["wder"] == result["wer"] == 0
+    assert result["single_speaker_baseline"] == 0
+
+
+@pytest.mark.parametrize(
+    ("response", "wder"),
+    [
+        ('{"spk":1,"text":"hello"}\n{"spk":2,"text":"world"}', 0),
+        ('{"text":"hello","start":0,"end":100}\n{"text":"world","start":100,"end":200}', None),
+        ('{"text":"hello"}\n{"text":"world"}', None),
+        ('{"spk":1,"text":"hello","start":0.0,"end":100}\n{"spk":2,"text":"world","start":100,"end":200}', None),
+    ],
+)
+def test_speaker_jsonl_missing_metadata_does_not_invent_speakers_or_timing(response, wder):
+    result = diarization_eval(
+        response, "hello world", extra_info=reference(), prediction_format="auto", compute_wer=True
+    )
+    assert result["der"] is None
+    assert result["wder"] == wder
+    assert result["wer"] == 0
+    assert result["single_speaker_baseline"] == 0
+
+
 def test_text_single_speaker_example_counts_overlap_confusion_and_silence():
     info = {
         "reference_segments": [segment("A", 0, 2), segment("B", 1, 3)],
@@ -235,10 +276,7 @@ def test_text_prediction_does_not_use_reference_labels_or_reference_times():
         "segments": [segment("speaker_0", 5, 6), segment("speaker_0", 8, 9)],
         "words": words(("speaker_0", "hello"), ("speaker_0", "world")),
     }
-    assert (
-        _text_recording_prediction(["hello", "world"], [[5, 6], [8, 9]], {}, speaker="speaker_0")
-        == result
-    )
+    assert _text_recording_prediction(["hello", "world"], [[5, 6], [8, 9]], {}, speaker="speaker_0") == result
 
 
 def test_text_empty_predictions_remain_available_and_count_missed_speech():
@@ -353,10 +391,32 @@ def test_native_eval_config_dispatches_to_diarization_and_preserves_row_fields(d
     assert "/svad30/" in data.jsonl_paths
     assert data.add_task_info.style == "verb"
     assert "add_field" not in data.post_process
-    assert config.rewards.val_diarization.reward_kwargs.prediction_format == "text"
+    assert config.rewards.val_diarization.reward_kwargs.prediction_format == "auto"
     row = {
         "data_source": "dai_asr_i18n_en_public",
         "reward_model": {"ground_truth": "hello world"},
         "extra_info": reference() | {"svad_bounds": [[0, 1], [1, 2]]},
     }
     assert score_response(config, row, ["hello", "world"])["score"] == 0.5
+
+
+def test_native_ami_preset_uses_speaker_jsonl_and_reports_all_three_metrics():
+    import recipe.phimm
+
+    directory = Path(recipe.phimm.__file__).parent / "config/v2611_dev/eval"
+    verl_configs = Path(__file__).resolve().parents[3] / "verl/trainer/config"
+    with initialize_config_dir(config_dir=str(directory), version_base=None):
+        config = compose(config_name="eval_diarization_ami", overrides=[f"hydra.searchpath=[file://{verl_configs}]"])
+    data = config.data.val_data[0]
+    assert "/manifests/moe_ami_dev/" in data.jsonl_paths
+    assert data.post_process.verl_format.target_format == "speaker_jsonl"
+    assert "reference_words" in data.post_process.verl_format.extra_keys
+    row = {
+        "data_source": "moe_ami_dev",
+        "reward_model": {"ground_truth": "hello world"},
+        "extra_info": reference(),
+    }
+    response = '{"spk":1,"text":"hello","start":0,"end":100}\n{"spk":2,"text":"world","start":100,"end":200}'
+    result = score_response(config, row, response)
+    assert result["der"] == result["wder"] == result["wer"] == 0
+    assert result["n_json_valid"] == result["n_json_total"] == 1

@@ -65,7 +65,7 @@ class ASRSFTDataset(Dataset):
         if target_format == "jsonl" and any(segment["language"] is None for segment in parse_jsonl_response(target)):
             raise ValueError(f"ASR SFT row {index} requires valid JSONL in reward_model.gt_output")
         if target_format == "speaker_jsonl" and not is_speaker_jsonl(target):
-            raise ValueError(f"ASR SFT row {index} requires one JSONL object per speaker in reward_model.gt_output")
+            raise ValueError(f"ASR SFT row {index} requires valid segment JSONL in reward_model.gt_output")
         # Never crop a waveform while retaining the complete supervised target.
         row["asr_full_reference"] = True
         paths = row.get("audio_path")

@@ -1,0 +1,29 @@
+# @package _global_
+# Decode the full AMI dev clips using the SFT speaker JSONL prompt.
+defaults:
+  - eval_base
+  - /data/val_data/diarization@_ami_dev: moe_en_full_ami_dev
+  - /reward/diarization@_global_
+  - _self_
+
+data:
+  val_data:
+    - dataset_name: jsonl
+      jsonl_schema: diarization
+      jsonl_paths: ${_ami_dev.0.jsonl_paths}
+      val_batch_size: ${_ami_dev.0.val_batch_size}
+      post_process:
+        verl_format:
+          target_format: speaker_jsonl
+          extra_keys: ${_ami_dev.0.post_process.verl_format.extra_keys}
+
+rewards:
+  val_diarization:
+    reward_kwargs:
+      prediction_format: speaker_jsonl
+
+reward_map:
+  moe_ami_dev: val_diarization
+
+trainer:
+  experiment_name: eval_diarization_ami

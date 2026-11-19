@@ -1,6 +1,7 @@
 """Recording-level DER/WDER rewards using the same interface as ``asr_eval``.
 
-References live in extra_info on the JSONL row. Responses are JSON objects with
+References live in extra_info on the JSONL row. Responses may be speaker JSONL
+(text, optional spk and start/end in 10 ms ticks), or legacy JSON objects with
 ``segments`` (speaker/start_s/end_s) and/or ``words`` (speaker/text). With SVAD
 audio lists, ``svad_bounds`` maps each response's local clock back to the original
 recording. Speaker IDs must stay consistent across responses: no independent
@@ -14,6 +15,8 @@ import json
 import math
 from collections import Counter, defaultdict
 from collections.abc import Mapping
+
+from recipe.phimm.reward.asr_response import clean_text, get_hyp_text, parse_jsonl_response, parse_response_outputs
 
 
 def _assignment(matrix):
@@ -37,7 +40,8 @@ def _timeline(segments, duration):
     spans = defaultdict(list)
     for segment in segments:
         speaker = _speaker(segment)
-        start, end = segment.get("start_s"), segment.get("end_s")
+        start = segment.get("start_s", segment.get("start"))
+        end = segment.get("end_s", segment.get("end"))
         if any(isinstance(t, bool) or not isinstance(t, int | float) or not math.isfinite(t) for t in (start, end)):
             raise ValueError("Segment timestamps must be finite numbers")
         if start < 0 or end < start:
@@ -199,16 +203,20 @@ def _segment_bounds(info):
     return bounds
 
 
-def _recording_prediction(solution_str, bounds):
+def _recording_prediction(solution_str, bounds, decode=_prediction):
     if bounds is None:
-        return _prediction(solution_str)
+        if isinstance(solution_str, list):
+            if len(solution_str) != 1:
+                raise ValueError("Diarization requires one response per original recording without SVAD bounds")
+            solution_str = solution_str[0]
+        return decode(solution_str)
     responses = solution_str if isinstance(solution_str, list) else [solution_str]
     if len(responses) != len(bounds):
         raise ValueError("SVAD requires exactly one response for each audio_path segment")
     payloads = []
     for response in responses:
         try:
-            payloads.append(_prediction(response))
+            payloads.append(decode(response))
         except (ValueError, TypeError):
             payloads.append({})
     prediction = {}
@@ -227,9 +235,59 @@ def _recording_prediction(solution_str, bounds):
     return prediction
 
 
-def _text_recording_prediction(solution_str, bounds, info, *, speaker):
-    from recipe.phimm.reward.asr_response import get_hyp_text
+def _speaker_jsonl_prediction(response):
+    """Translate a clip's start/end ticks to local seconds, then score per recording."""
+    if not isinstance(response, str):
+        raise ValueError("Diarization requires a JSONL response string")
+    if not response.strip():
+        return {"segments": [], "words": []}
+    lines = parse_jsonl_response(response)
+    if any(line.get("format") != "speaker_jsonl" for line in lines):
+        raise ValueError("Expected speaker JSONL")
+    segments, words = [], []
+    der_available = wder_available = True
+    for line in lines:
+        speaker = str(line["spk"]) if "spk" in line else None
+        text = clean_text(line["text"])
+        if text:
+            if speaker is None:
+                wder_available = False
+            else:
+                words.extend({"speaker": speaker, "text": word} for word in text.split())
+        if speaker is not None and "start" in line:
+            segments.append({"speaker": speaker, "start_s": line["start"] / 100, "end_s": line["end"] / 100})
+        elif text or "start" in line or speaker is not None:
+            der_available = False
+    result = {}
+    if der_available:
+        result["segments"] = segments
+    if wder_available:
+        result["words"] = words
+    return result
 
+
+def _response_format(solution_str, requested):
+    if requested not in {"auto", "structured"}:
+        return requested
+    try:
+        outputs = parse_response_outputs(solution_str)
+    except (ValueError, TypeError):
+        return requested if requested == "structured" else "text"
+    if any(line.get("format") in {"speaker_jsonl", "invalid_speaker_jsonl"} for output in outputs for line in output):
+        return "speaker_jsonl"
+    if requested == "auto":
+        responses = solution_str if isinstance(solution_str, list) else [solution_str]
+        for response in responses:
+            try:
+                if {"segments", "words"} & _prediction(response).keys():
+                    return "structured"
+            except ValueError:
+                continue
+        return "text"
+    return requested
+
+
+def _text_recording_prediction(solution_str, bounds, info, *, speaker):
     _speaker({"speaker": speaker})
     responses = solution_str if isinstance(solution_str, list) else [solution_str]
     if not responses or any(not isinstance(response, str) for response in responses):
@@ -267,10 +325,9 @@ def diarization_eval(solution_str: str | list[str], ground_truth=None, **kwargs)
     if metric not in {"der", "wder"}:
         raise ValueError("reward_metric must be der or wder")
     prediction_format = kwargs.get("prediction_format", "structured")
-    if prediction_format not in {"structured", "text"}:
-        raise ValueError("prediction_format must be structured or text")
-    if kwargs.get("compute_wer", False) and prediction_format != "text":
-        raise ValueError("compute_wer requires prediction_format=text")
+    if prediction_format not in {"auto", "structured", "text", "speaker_jsonl"}:
+        raise ValueError("prediction_format must be auto, structured, text or speaker_jsonl")
+    prediction_format = _response_format(solution_str, prediction_format)
     speaker = kwargs.get("text_speaker", "speaker_0")
     if prediction_format == "text":
         _speaker({"speaker": speaker})
@@ -285,9 +342,11 @@ def diarization_eval(solution_str: str | list[str], ground_truth=None, **kwargs)
     try:
         if prediction_format == "text":
             prediction = _text_recording_prediction(solution_str, bounds, info, speaker=speaker)
+        elif prediction_format == "speaker_jsonl":
+            prediction = _recording_prediction(solution_str, bounds, _speaker_jsonl_prediction)
         else:
             prediction = _recording_prediction(solution_str, bounds)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         prediction = {}
     result = {"der_n_miss": None, "der_n_fa": None, "der_n_confusion": None}
     for name, field, scorer in (
@@ -310,8 +369,15 @@ def diarization_eval(solution_str: str | list[str], ground_truth=None, **kwargs)
     result["single_speaker_baseline"] = int(prediction_format == "text")
     if kwargs.get("compute_wer", False):
         from recipe.phimm.reward.asr_eval import measure_openasr_en_wer
-        from recipe.phimm.reward.asr_response import get_hyp_text
 
-        wer = measure_openasr_en_wer(get_hyp_text(solution_str), ground_truth)
+        if prediction_format == "structured":
+            hyp_text = " ".join(
+                item["text"]
+                for item in prediction.get("words", [])
+                if isinstance(item, Mapping) and isinstance(item.get("text"), str)
+            )
+        else:
+            hyp_text = get_hyp_text(solution_str)
+        wer = measure_openasr_en_wer(hyp_text, ground_truth)
         result.update({key: wer[key] for key in ("wer", "n_err", "n_ref")})
     return result

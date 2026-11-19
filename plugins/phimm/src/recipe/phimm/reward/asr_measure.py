@@ -14,7 +14,7 @@ from numbers import Real
 
 from jiwer import process_characters, process_words
 from recipe.phimm.reward.asr_metrics import measure, normalize_text
-from recipe.phimm.reward.asr_response import get_hyp_text, parse_response_outputs
+from recipe.phimm.reward.asr_response import get_hyp_text, is_jsonl_segment, parse_response_outputs
 from recipe.phimm.utils.languages import LANGUAGES, get_language_code
 
 # ---------------------------------------------------------------------------
@@ -393,7 +393,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
     lang_acc = sum(check_lang(output, tgt_lang)["acc"] for output in task_outputs) / len(task_outputs)
-    fmt = sum(all(segment["language"] is not None for segment in output) for output in task_outputs) / len(task_outputs)
+    fmt = sum(all(is_jsonl_segment(segment) for segment in output) for output in task_outputs) / len(task_outputs)
     char_acc = char_error.accuracy()
     word_acc = word_error.accuracy()
     n_total = max(word_error.n_ref, 1)

@@ -1,6 +1,6 @@
 import re
 
-from recipe.phimm.reward.asr_response import clean_text, get_hyp_text, parse_response_outputs
+from recipe.phimm.reward.asr_response import clean_text, get_hyp_text, is_jsonl_segment, parse_response_outputs
 from recipe.phimm.utils.languages import get_language_code
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
     _HFEnglishTextNormalizer,
@@ -58,7 +58,7 @@ def non_speech_eval(solution_str: str | list[str], ground_truth, **kwargs):
     """Evaluate non-speech audio by requiring an empty cleaned hypothesis."""
     outputs = parse_response_outputs(solution_str)
     n_err = int(
-        any(segment["language"] is None or clean_text(segment["text"]) for output in outputs for segment in output)
+        any(not is_jsonl_segment(segment) or clean_text(segment["text"]) for output in outputs for segment in output)
     )
     return {
         "score": 1.0 - n_err,
@@ -74,7 +74,7 @@ def foreign_language_eval(solution_str: str | list[str], ground_truth=None, **kw
     marker = re.compile(r"</?foreign_language>", re.IGNORECASE)
     accuracy = int(
         all(
-            segment["language"] is not None and (not (text := segment["text"]).strip() or marker.search(text))
+            is_jsonl_segment(segment) and (not (text := segment["text"]).strip() or marker.search(text))
             for output in task_outputs
             for segment in output
         )

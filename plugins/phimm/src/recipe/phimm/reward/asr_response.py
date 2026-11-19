@@ -1,11 +1,17 @@
 import json
 import re
-from typing import TypedDict
+from typing import NotRequired, TypedDict
+
+from recipe.phimm.data.speaker_jsonl import is_speaker_segment
 
 
 class TaskOutputSegment(TypedDict):
     language: str | None
     text: str
+    format: NotRequired[str]
+    spk: NotRequired[int]
+    start: NotRequired[int]
+    end: NotRequired[int]
 
 
 def clean_text(text: str) -> str:
@@ -43,12 +49,24 @@ def _parse_line(line: str) -> TaskOutputSegment:
     except (ValueError, RecursionError):
         return fallback
     fields = dict(pairs)
-    if len(pairs) != 2 or fields.keys() != {"language", "text"}:
+    if len(fields) != len(pairs):
         return fallback
-    language, text = fields["language"], fields["text"]
-    if not isinstance(language, str) or not language.strip() or not isinstance(text, str):
-        return fallback
-    return {"language": language.strip(), "text": text}
+    language, text = fields.get("language"), fields.get("text")
+    if fields.keys() == {"language", "text"} and isinstance(language, str) and language.strip():
+        if isinstance(text, str):
+            return {"language": language.strip(), "text": text}
+    elif is_speaker_segment(fields, allow_empty_text=True):
+        return {"language": None, "format": "speaker_jsonl", **fields}
+    elif isinstance(text, str) and not fields.keys() - {"spk", "text", "start", "end"}:
+        # A bad timestamp must not turn a readable transcript into JSON syntax
+        # for ASR scoring, but the response is not a valid diarization record.
+        return {"language": None, "format": "invalid_speaker_jsonl", "text": text}
+    return fallback
+
+
+def is_jsonl_segment(segment: TaskOutputSegment) -> bool:
+    """Check response syntax independently of language prediction."""
+    return segment["language"] is not None or segment.get("format") == "speaker_jsonl"
 
 
 def parse_jsonl_response(segment_text: str) -> list[TaskOutputSegment]:

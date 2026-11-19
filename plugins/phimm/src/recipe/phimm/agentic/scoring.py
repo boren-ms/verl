@@ -5,7 +5,7 @@ from collections import defaultdict
 from functools import cache
 
 import numpy as np
-from recipe.phimm.reward.asr_response import parse_jsonl_response
+from recipe.phimm.reward.asr_response import is_jsonl_segment, parse_jsonl_response
 
 
 @cache
@@ -33,7 +33,7 @@ def score_response(config, row, response, *, extra_info=None):
     if "n_ref" in result and isinstance(response, (str, list)):
         responses = response if isinstance(response, list) else [response]
         result["n_json_valid"] = sum(
-            all(segment["language"] is not None for segment in parse_jsonl_response(item)) for item in responses
+            all(is_jsonl_segment(segment) for segment in parse_jsonl_response(item)) for item in responses
         )
         result["n_json_total"] = len(responses)
     return result

@@ -274,7 +274,7 @@ def verl_format_ds(ds, **kwargs):
         target = egs.get("gt_output", text)
         if kwargs.get("target_format") == "speaker_jsonl":
             prompt = SPEAKER_JSONL_PROMPT
-            target = format_speaker_jsonl(egs.get("reference_words"))
+            target = format_speaker_jsonl(egs)
         result = {
             prompt_key: to_user_msg(prompt),
             "reward_model": {"ground_truth": text, "gt_output": target},

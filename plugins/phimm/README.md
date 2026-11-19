@@ -116,8 +116,9 @@ The consolidated input JSONL keeps all references on each recording's row:
 {"id":"example","audio_path":"/data/example.wav","text":"Hello world","language":"English","data_source":"dai_asr_i18n_en_public","evaluation_duration_s":2.0,"reference_segments":[{"speaker":"A","start_s":0.0,"end_s":1.0},{"speaker":"B","start_s":1.0,"end_s":2.0}],"reference_words":[{"speaker":"A","text":"Hello"},{"speaker":"B","text":"world"}]}
 ```
 
-The DAI preset accepts ordinary ASR text and uses an explicit single-speaker
-baseline (`prediction_format: text`, `text_speaker: speaker_0`). Every nonempty
+The DAI preset detects the response format (`prediction_format: auto`).
+For ordinary ASR transcription, it uses the single-speaker baseline
+(`text_speaker: speaker_0`). Every nonempty
 decoded segment is marked as speaker_0 over its full decoding interval from
 `svad_bounds`. Empty or `<nonspeech>` outputs produce no speech interval.
 All recognized words receive the same label. The original ASR prompt and
@@ -144,12 +145,25 @@ recording per sample, with an ordered `audio_path` list and matching
 `svad_bounds: [[start_s, end_s], ...]` on the same JSONL row. The agent loop
 returns one response per segment. Words are joined in segment order.
 
-For models that actually emit speaker annotations, set
-`rewards.val_diarization.reward_kwargs.prediction_format=structured` and restore
-a prompt requesting JSON objects with `segments` and `words`. Structured
-timestamps are local to each SVAD segment; scoring clips them to its length and
-adds its start offset. Emitted speaker labels must be consistent across segments;
-they are never remapped independently per segment.
+For models trained with the AMI speaker JSONL prompt, use
+[`eval_diarization_ami`](src/recipe/phimm/config/v2611_dev/eval/eval_diarization_ami.yaml)
+with the exported model path. It evaluates full AMI dev and requests the same
+JSONL as the SFT preset:
+
+```jsonl
+{"spk":1,"text":"Hello.","start":0,"end":75}
+{"spk":2,"text":"Hi.","start":50,"end":100}
+```
+
+`start` and `end` are integer 10 ms ticks relative to the input clip. WER
+uses the `text` fields in output order. WDER requires `spk` for spoken words,
+and DER requires `spk`, `start` and `end` for speech intervals. Missing
+metadata makes the affected metric unavailable without preventing WER. Word
+order across overlapping lines follows the emission order; the scorer does
+not invent word timestamps. The legacy JSON object with `segments` and `words`
+remains supported. For SVAD, each response uses its own clip clock, and the
+scorer adds the clip offset. Speaker IDs must stay consistent across responses
+from the same recording.
 
 Every decoding segment must have one response. Text mode can also use
 `seg_start`/`seg_end` for one segment, or `evaluation_duration_s` for one full
@@ -217,7 +231,7 @@ The scorer returns fractional `der` and `wder` plus sufficient counts:
 Validation logs pooled `val-core/<source>/der_p_err/mean@1` and
 `val-core/<source>/wder_p_err/mean@1`. If any recording lacks valid predicted
 annotations for a metric, its pooled corpus rate is omitted; the other metric
-can still be reported. The DAI preset also enables `compute_wer: true`, reusing
+can still be reported. Both presets enable `compute_wer: true`, reusing
 the existing OpenASR English scorer on the joined transcription. Its `n_err`
 and `n_ref` counts produce the usual pooled `val-core/<source>/p_err/mean@1`
 WER alongside DER/WDER. This does not change the selected diarization reward.

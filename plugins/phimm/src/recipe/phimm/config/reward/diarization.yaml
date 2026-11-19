@@ -1,6 +1,6 @@
 # @package _global_
 # Add alongside reward/asr to keep existing registrations and mappings.
-# DAI ASR emits transcription only: use one speaker and decoder segment bounds.
+# Transcription-only responses use one speaker and decoder segment bounds.
 
 rewards:
   val_diarization:
@@ -9,7 +9,7 @@ rewards:
     reward_kwargs:
       reward_metric: der
       normalization: hf_english
-      prediction_format: text
+      prediction_format: auto
       text_speaker: speaker_0
       compute_wer: true
 

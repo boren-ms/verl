@@ -211,7 +211,7 @@ def test_sft_can_mix_asr_jsonl_and_plain_diarization_targets(local_config, tmp_p
     assert outputs[1] == target
 
 
-def test_ami_speaker_jsonl_preset_uses_only_ami_and_supervises_one_line_per_speaker(tmp_path):
+def test_ami_speaker_jsonl_preset_uses_only_ami_and_supervises_one_line_per_segment(tmp_path):
     root = Path(__file__).resolve().parents[1] / "src/recipe/phimm/config/v2611_dev/sft"
     with initialize_config_dir(config_dir=str(root), version_base=None):
         cfg = compose(config_name="sft_ami_diarization_2611r2")
@@ -229,6 +229,13 @@ def test_ami_speaker_jsonl_preset_uses_only_ami_and_supervises_one_line_per_spea
                     "prompt": "Old prompt.<audio>",
                     "text": "Good morning today.",
                     "gt_output": "speaker1 Good speaker2 morning speaker1 today.",
+                    "source_start_s": 39.79,
+                    "source_end_s": 39.99,
+                    "reference_segments": [
+                        {"speaker": "speaker1", "start": 0.0, "end": 0.06},
+                        {"speaker": "speaker2", "start": 0.04, "end": 0.1},
+                        {"speaker": "speaker1", "start": 0.1, "end": 0.2},
+                    ],
                     "reference_words": [
                         {"speaker": "speaker1", "start": 0.1, "end": 0.2, "text": "today."},
                         {"speaker": "speaker1", "start": 0.0, "end": 0.04, "text": "Good"},
@@ -243,14 +250,15 @@ def test_ami_speaker_jsonl_preset_uses_only_ami_and_supervises_one_line_per_spea
         path = cfg.data.train_files if is_train else cfg.data.val_files
         ds = ASRSFTDataset(path, Tokenizer(), cfg.data, AudioProcessor())
         assert len(ds) == 1
-        assert "one object per speaker" in ds.ds[0]["prompt"][0]["content"]
+        assert "one object per speech segment" in ds.ds[0]["prompt"][0]["content"]
         assert ds.ds[0]["reward_model"]["ground_truth"] == "Good morning today."
         sample = ds[0]
         tokens = sample["input_ids"][sample["loss_mask"].bool()].tolist()
         lines = bytes(tokens).decode().removesuffix("<eot>\n").splitlines()
         assert list(map(json.loads, lines)) == [
-            {"spk": 1, "text": "Good today."},
-            {"spk": 2, "text": "morning"},
+            {"spk": 1, "text": "Good", "start": 0, "end": 6},
+            {"spk": 2, "text": "morning", "start": 4, "end": 10},
+            {"spk": 1, "text": "today.", "start": 10, "end": 20},
         ]
 
 

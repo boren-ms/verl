@@ -201,9 +201,12 @@ other sources in the same mix retain the default JSONL target format.
 
 For AMI-only diarization SFT, use `--sft --config-name sft_ami_diarization_2611r2`.
 This preset trains on full AMI train and uses full AMI dev for teacher-forced
-validation. It groups the prepared reference words by speaker and emits one
-`{"spk":1,"text":"Hello."}` object per line, numbering speakers by first
-appearance in the clip. Each speaker's words stay in chronological order.
+validation. It combines reference words inside each annotated speaker activity
+interval and emits one `{"spk":1,"text":"Hello.","start":0,"end":50}` object
+per line, in start-time order. Speaker IDs follow first appearance and can
+repeat on later lines; overlapping speakers have separate lines. Start and end
+are integer 10 ms ticks relative to the model's input audio. Text is required;
+unknown speaker IDs or timestamp pairs are omitted.
 The same Orange audio paths and manifests serve both target formats.
 
 Use `eval_openfull_zip` for the merged model's full evaluation. It scores the
