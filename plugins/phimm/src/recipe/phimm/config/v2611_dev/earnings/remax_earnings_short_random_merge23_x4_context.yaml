@@ -14,6 +14,7 @@ trainer:
   total_training_steps: 800
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true
   expected_training_rows: 100960
   expected_training_steps: 800

@@ -332,7 +332,7 @@ def test_segments_have_independent_contexts_and_aligned_actor_inputs(multi_turn_
 
 
 @pytest.mark.parametrize("validate", [False, True])
-def test_context_prefills_open_assistant_and_scores_only_new_tokens(multi_turn_loop, validate):
+def test_context_enters_user_prompt_and_scores_only_new_tokens(multi_turn_loop, validate):
     loop, rows, generated = multi_turn_loop
     loop.config.asr = {"context_aware": True}
     loop.rollout_config.prompt_length = 512
@@ -340,7 +340,12 @@ def test_context_prefills_open_assistant_and_scores_only_new_tokens(multi_turn_l
     requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
     for i, request in enumerate(requests):
         prefix = "" if i == 0 else "transcript-900"
-        text = loop.processor.apply_chat_template(rows[i]["prompt"], add_generation_prompt=True) + prefix
+        messages = [{**message} for message in rows[i]["prompt"]]
+        if prefix:
+            messages[-1]["content"] += f"\nPrevious context: {prefix}"
+        text = loop.processor.apply_chat_template(messages, add_generation_prompt=True)
+        assert text.endswith("<|im_start|>assistant\n")
+        assert rows[i]["prompt"][-1]["content"] == "task<audio>"
         assert request["prompt_ids"] == loop.tokenizer.encode(text)
         assert loop.processor.calls[i][0] == [text]
         expected_actor_ids = [
@@ -353,7 +358,7 @@ def test_context_prefills_open_assistant_and_scores_only_new_tokens(multi_turn_l
         assert outputs[i].response_ids == generated[i]
         assert outputs[i].response_mask == [1] * len(generated[i])
         assert outputs[i].response_logprobs == [-float(token) / 1000 for token in generated[i]]
-        assert outputs[i].extra_fields["asr_context_prefix"] == prefix
+        assert outputs[i].extra_fields["asr_previous_context"] == prefix
     assert texts == ["transcript-900", "transcript-902"]
 
 
@@ -368,8 +373,186 @@ def test_context_resets_between_parents_and_uses_only_previous_segment(multi_tur
 
     results = asyncio.run(evaluate())
     for outputs, texts in results:
-        assert [o.extra_fields["asr_context_prefix"] for o in outputs] == ["", "transcript-900", "transcript-902"]
+        assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", "transcript-900", "transcript-902"]
         assert texts == ["transcript-900", "transcript-902", "transcript-900"]
+
+
+@pytest.mark.parametrize(
+    ("mode", "filter_common", "expected"),
+    [
+        ("prev_bias", True, ["", "*Qwen*, *Microsoft Research*, *OpenAI*", "*QWEN*"]),
+        ("full_bias", True, ["", "*Qwen*, *Microsoft Research*, *OpenAI*", "*QWEN*, *Microsoft Research*, *OpenAI*"]),
+        (
+            "prev_bias",
+            False,
+            ["", "*Qwen*, *Microsoft Research*, *and*, *OpenAI*, *the*", "*know*, *you*, *QWEN*, *then*, *And*"],
+        ),
+    ],
+)
+def test_bias_context_reaches_rollout_and_actor(multi_turn_loop, mode, filter_common, expected):
+    loop, rows, generated = multi_turn_loop
+    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_common": filter_common}}
+    loop.rollout_config.prompt_length = 512
+    raw = {
+        900: "<src=English><tgt=English>\n<VERBATIM>the OpenAI and Microsoft Research, uh, Q-wen, Qwen.</VERBATIM>",
+        902: "<src=English><tgt=English>\n<VERBATIM>And then QWEN, you know.</VERBATIM>",
+    }
+    loop.tokenizer.decode = lambda ids, **kwargs: raw[ids[0]]
+    for row in rows:
+        row["prompt"][0]["content"] = "task<audio>\nThe language is English."
+
+    outputs, texts = asyncio.run(loop.generate_segments(rows + rows[:1], {"logprobs": True}, validate=False))
+    assert [out.extra_fields["asr_previous_context"] for out in outputs] == expected
+    assert texts == [raw[900], raw[902], raw[900]]
+    assert [out.response_ids for out in outputs] == generated + generated[:1]
+    for out, row, call, terms in zip(
+        outputs, rows + rows[:1], loop.server_manager.generate.call_args_list, expected, strict=True
+    ):
+        base = row["prompt"][0]["content"]
+        assert base == "task<audio>\nThe language is English."
+        content = base + (f"\nPay extra attention to the following phrases/words: {terms}." if terms else "")
+        text = f"<|im_start|>user\n{content}<|im_end|>\n<|im_start|>assistant\n"
+        request_ids = loop.tokenizer.encode(text)
+        assert call.kwargs["prompt_ids"] == request_ids
+        assert out.prompt_ids == [
+            token for value in request_ids for token in ([248076] * (row["frames"] // 8) if value == 99 else [value])
+        ]
+
+    fresh, _ = asyncio.run(loop.generate_segments(rows[:1], {}, validate=True))
+    assert fresh[0].extra_fields["asr_previous_context"] == ""
+
+
+@pytest.mark.parametrize("mode", ["prev_bias", "full_bias"])
+@pytest.mark.parametrize(
+    ("transcript", "filter_common"),
+    [
+        ("Well, uh, we have the.", True),
+        ("...?!", False),
+        ("2026, 3.14, 1,000, ½.", False),
+        ("Erm, uh-huh, hmm.", False),
+    ],
+)
+def test_bias_without_eligible_terms_keeps_base_prompt(multi_turn_loop, mode, transcript, filter_common):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_common": filter_common}}
+    loop.rollout_config.prompt_length = 512
+    loop.tokenizer.decode = lambda ids, **kwargs: f"<src=English><tgt=English>\n<VERBATIM>{transcript}</VERBATIM>"
+    row = rows[1]
+    base_text = loop.processor.apply_chat_template(row["prompt"], add_generation_prompt=True)
+    base_rollout_ids = loop.tokenizer.encode(base_text)
+    base_actor_ids = loop.processor(text=[base_text], audios=[(row["frames"], 16000)])["input_ids"][0].tolist()
+    loop.processor.calls.clear()
+
+    outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=False))
+
+    assert outputs[1].extra_fields["asr_previous_context"] == ""
+    assert loop.processor.calls[1][0] == [base_text]
+    assert loop.server_manager.generate.call_args_list[1].kwargs["prompt_ids"] == base_rollout_ids
+    assert outputs[1].prompt_ids == base_actor_ids
+
+
+@pytest.mark.parametrize(
+    ("filter_common", "filter_numbers", "expected"),
+    [
+        (True, True, "*GPT-4*, *3M*"),
+        (True, False, "*GPT-4*, *3M*, *2026*, *314*, *1000*"),
+        (False, True, "*GPT-4*, *3M*, *actually*, *usually*, *however*"),
+        (False, False, "*GPT-4*, *3M*, *2026*, *314*, *1000*, *actually*, *usually*, *however*"),
+    ],
+)
+def test_bias_filters_common_words_and_numbers_independently(multi_turn_loop, filter_common, filter_numbers, expected):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {
+        "context_aware": {
+            "enable": True,
+            "mode": "prev_bias",
+            "filter_common": filter_common,
+            "filter_numbers": filter_numbers,
+        }
+    }
+    loop.rollout_config.prompt_length = 512
+    transcript = "however, usually, actually, 1,000, 3.14, 2026, 3M, GPT4, GPT-4."
+    loop.tokenizer.decode = lambda ids, **kwargs: f"<src=English><tgt=English>\n<VERBATIM>{transcript}</VERBATIM>"
+
+    outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=False))
+
+    assert outputs[1].extra_fields["asr_previous_context"] == expected
+
+
+@pytest.mark.parametrize("mode", ["prev_bias", "full_bias"])
+def test_bias_preserves_vanity_phone_spelling(multi_turn_loop, mode):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_numbers": True}}
+    loop.rollout_config.prompt_length = 512
+    loop.tokenizer.decode = lambda ids, **kwargs: "1800flowers, 1-800-FLOWERS, 425-555-0123."
+
+    outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=False))
+
+    assert outputs[1].extra_fields["asr_previous_context"] == "*1-800-FLOWERS*"
+    assert "Pay extra attention to the following phrases/words: *1-800-FLOWERS*." in loop.processor.calls[1][0][0]
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected"), [("prev_bias", "*Qwen*, *uh-huh*, *erm*, *UH*"), ("prev_text", "UH, erm, uh-huh, Qwen.")]
+)
+def test_filler_filter_can_be_disabled_and_does_not_change_previous_text(multi_turn_loop, mode, expected):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_fillers": mode == "prev_text"}}
+    loop.rollout_config.prompt_length = 512
+    transcript = "UH, erm, uh-huh, Qwen."
+    loop.tokenizer.decode = lambda ids, **kwargs: f"<src=English><tgt=English>\n<VERBATIM>{transcript}</VERBATIM>"
+    outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=False))
+    assert outputs[1].extra_fields["asr_previous_context"] == expected
+
+
+@pytest.mark.parametrize(("mode", "after_third"), [("prev_bias", "*NVIDIA*"), ("full_bias", "*NVIDIA*, *Q-wen*")])
+def test_bias_keeps_most_recent_distinct_terms(mode, after_third):
+    from recipe.phimm.agentic.context_prompt import ContextPrompt
+
+    context = ContextPrompt(mode, version=2609, max_terms=2, extra_common_words=["routine"])
+    context.observe("THE and we, uh, don't. Routine.")
+    assert context.context == ""
+    context.observe("OpenAI, Qwen.")
+    assert context.context == "*Qwen*, *OpenAI*"
+    context.observe("OpenAI, Microsoft Research and QWEN, Q-wen.")
+    assert context.context == "*Q-wen*, *Microsoft Research*"
+    context.observe("NVIDIA.")
+    assert context.context == after_third
+
+
+@pytest.mark.parametrize("validate", [False, True])
+@pytest.mark.parametrize(
+    ("raw_response", "transcript"),
+    [
+        ("<src=English><tgt=English>\n<VERBATIM>\nHello there.</VERBATIM>", "Hello there."),
+        (
+            "<src=English><tgt=English>\n<TXT><READABLE>Hello.</READABLE></TXT>\n"
+            "<src=French><tgt=French>\n<LEXICAL>Bonjour.</LEXICAL>",
+            "Hello. Bonjour.",
+        ),
+        ("<src=English><tgt=English>\n<VERBATIM><foreign_language>bonjour</foreign_language>", "bonjour"),
+        ("<nonspeech>", ""),
+        ("<src=English><tgt=English>\n<VERBATIM></VERBATIM>", ""),
+    ],
+)
+def test_context_contains_only_transcript_and_preserves_raw_scoring(
+    multi_turn_loop, validate, raw_response, transcript
+):
+    loop, rows, generated = multi_turn_loop
+    loop.config.asr = {"context_aware": True}
+    loop.rollout_config.prompt_length = 512
+    loop.tokenizer.decode = lambda ids, **kwargs: raw_response if ids[0] == 900 else "current transcript"
+    outputs, texts = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=validate))
+
+    assert texts == [raw_response, "current transcript"]
+    assert outputs[0].response_ids == generated[0]
+    assert outputs[1].extra_fields["asr_previous_context"] == transcript
+    expected_user = "task<audio>" + (f"\nPrevious context: {transcript}" if transcript else "")
+    expected = loop.processor.apply_chat_template(
+        [{"role": "user", "content": expected_user}], add_generation_prompt=True
+    )
+    assert loop.processor.calls[1][0] == [expected]
+    assert rows[1]["prompt"] == [{"role": "user", "content": "task<audio>"}]
 
 
 def test_context_counts_towards_prompt_limit(multi_turn_loop):
@@ -385,7 +568,7 @@ def test_context_counts_towards_prompt_limit(multi_turn_loop):
 @pytest.mark.parametrize("context_enabled", [False, True])
 def test_training_scores_combined_responses_once_and_shares_reward(multi_turn_loop, context_enabled):
     loop, rows, generated = multi_turn_loop
-    loop.config.asr = {"context_aware": context_enabled}
+    loop.config.asr = {"context_aware": {"enable": context_enabled}}
     loop.rollout_config.prompt_length = 512
     score = Mock(return_value={"score": 0.5})
     loop.run.__globals__["score_response"] = score
@@ -410,7 +593,7 @@ def test_training_scores_combined_responses_once_and_shares_reward(multi_turn_lo
 @pytest.mark.parametrize("context_enabled", [False, True])
 def test_greedy_baseline_uses_its_own_segment_context(multi_turn_loop, context_enabled):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": context_enabled}
+    loop.config.asr = {"context_aware": {"enable": context_enabled}}
     loop.rollout_config.prompt_length = 512
     sample = {**rows[0], "asr_segments": rows, "reward_model": {"ground_truth": "combined reference"}}
     score = Mock(return_value={"score": 0, "word": 0.8})
@@ -422,8 +605,9 @@ def test_greedy_baseline_uses_its_own_segment_context(multi_turn_loop, context_e
         assert call.kwargs["sampling_params"]["logprobs"] is False
         assert len(call.kwargs["audio_data"]) == 1
     assert loop.processor.calls[0][0][0].endswith("<|im_start|>assistant\n")
-    suffix = "<|im_start|>assistant\n" + ("transcript-900" if context_enabled else "")
-    assert loop.processor.calls[1][0][0].endswith(suffix)
+    second_text = loop.processor.calls[1][0][0]
+    assert second_text.endswith("<|im_start|>assistant\n")
+    assert ("Previous context: transcript-900<|im_end|>" in second_text) is context_enabled
     score.assert_called_once()
     assert score.call_args.args[1]["reward_model"]["ground_truth"] == "combined reference"
     assert score.call_args.args[2] == ["transcript-900", "transcript-902"]
@@ -435,7 +619,7 @@ def test_greedy_baseline_uses_its_own_segment_context(multi_turn_loop, context_e
 @pytest.mark.parametrize("context_enabled", [False, True])
 def test_training_and_validation_share_history_flag(multi_turn_loop, trajectory, context_enabled):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": context_enabled}
+    loop.config.asr = {"context_aware": {"enable": context_enabled}}
     loop.rollout_config.prompt_length = 512
     if trajectory == "greedy":
         loop.run.__globals__["score_response"] = Mock(return_value={"score": 0.5})
@@ -443,13 +627,14 @@ def test_training_and_validation_share_history_flag(multi_turn_loop, trajectory,
     else:
         validate = trajectory == "validation"
         outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": not validate}, validate=validate))
-        assert [o.extra_fields["asr_context_prefix"] for o in outputs] == [
+        assert [o.extra_fields["asr_previous_context"] for o in outputs] == [
             "",
             "transcript-900" if context_enabled else "",
         ]
     expected_prefix = "transcript-900" if context_enabled else ""
     second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == rows[1]["frames"])
-    assert second_text.endswith("<|im_start|>assistant\n" + expected_prefix)
+    assert second_text.endswith("<|im_start|>assistant\n")
+    assert (f"Previous context: {expected_prefix}<|im_end|>" in second_text) is context_enabled
 
 
 def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
@@ -475,12 +660,14 @@ def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
     (outputs, texts), (greedy, _) = asyncio.run(trajectories())
     assert texts == ["transcript-910", "transcript-911"]
     assert greedy == "transcript-920\ntranscript-921"
-    assert [o.extra_fields["asr_context_prefix"] for o in outputs] == ["", "transcript-910"]
+    assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", "transcript-910"]
     for call in loop.server_manager.generate.call_args_list:
         request = call.kwargs
         if request["audio_data"][0][0] == 8:
             prefix = "transcript-910" if request["sampling_params"]["logprobs"] else "transcript-920"
-            text = loop.processor.apply_chat_template(rows[1]["prompt"], add_generation_prompt=True) + prefix
+            messages = [{**message} for message in rows[1]["prompt"]]
+            messages[-1]["content"] += f"\nPrevious context: {prefix}"
+            text = loop.processor.apply_chat_template(messages, add_generation_prompt=True)
             assert request["prompt_ids"] == loop.tokenizer.encode(text)
     assert all(o.response_mask == [1] and o.response_logprobs == [-0.1] for o in outputs)
 
@@ -524,10 +711,10 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
     ]
     calls = []
 
-    async def generate(row, params, *, validate, assistant_prefix=""):
-        calls.append(assistant_prefix)
+    async def generate(row, params, *, validate, previous_context=""):
+        calls.append(previous_context)
         output = outputs[len(calls) - 1]
-        output.extra_fields["asr_context_prefix"] = assistant_prefix
+        output.extra_fields["asr_previous_context"] = previous_context
         return output
 
     loop.generate_row = generate
@@ -543,7 +730,7 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
     info = output.extra_fields["reward_extra_info"]
     assert info["n_err"] == 0 and info["n_ref"] == 2
     detail = json.loads(info["asr_detail"])
-    assert detail["context_prefixes"] == ["", "hello"]
+    assert detail["previous_contexts"] == ["", "hello"]
     assert detail["segment_outputs"] == ["hello", "world"]
 
 
@@ -574,11 +761,13 @@ def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop,
     loop.generate_segments.__globals__["load_audio"] = lambda row, duration: (frames[row["audio_path"]], 16000)
     outputs, texts = asyncio.run(loop.generate_segments(sample["asr_segments"], {}, validate=validate))
     assert len(outputs) == 2
-    assert [out.extra_fields["asr_context_prefix"] for out in outputs] == ["", texts[0]]
+    assert [out.extra_fields["asr_previous_context"] for out in outputs] == ["", texts[0]]
     requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
     assert [request["audio_data"][0][0] for request in requests] == [frames[path] for path in sample["audio_path"]]
+    messages = [{**message} for message in sample["prompt"]]
+    messages[-1]["content"] += f"\nPrevious context: {texts[0]}"
     assert requests[1]["prompt_ids"] == loop.tokenizer.encode(
-        loop.processor.apply_chat_template(sample["prompt"], add_generation_prompt=True) + texts[0]
+        loop.processor.apply_chat_template(messages, add_generation_prompt=True)
     )
     assert sample["reward_model"]["ground_truth"] == " ".join(
         "reference a" if path == "a.wav" else "reference b" for path in sample["audio_path"]

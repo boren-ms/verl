@@ -13,4 +13,5 @@ trainer:
   experiment_name: remax_earnings_short_random_merge15_x4_context
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true

@@ -1,7 +1,7 @@
 # @package data.val_data
 # U2 default: original full-parent references, one WER alignment per parent.
 # Retains the exact 1,085 legacy audio clips from 8 parents. Decoding can use
-# asr.context_aware independently; only newly generated output is scored.
+# asr.context_aware.enable independently; only newly generated output is scored.
 # Provenance/coverage: manifest_verified.json beside these immutable manifests.
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_all_segments_2parents_fullref_2609r2b_step400_v1/earnings21.jsonl.gz
