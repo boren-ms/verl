@@ -22,16 +22,29 @@ from recipe.phimm.utils.shared import (
 from verl.audio_cache import submit_audio_cache_dataset
 
 
-def jsonl_dataset(jsonl_paths, **kwargs):
+def jsonl_dataset(jsonl_paths, jsonl_schema=None, **kwargs):
     """Load a JSONL dataset from the specified paths.
 
     Supports both plain ``.jsonl`` files and gzip-compressed ``.jsonl.gz`` files.
     """
 
-    parse_options = pjson.ParseOptions(
-        explicit_schema=pa.schema([pa.field("keywords", pa.list_(pa.string()))]),
-        unexpected_field_behavior="infer",
-    )
+    fields = [pa.field("keywords", pa.list_(pa.string()))]
+    if jsonl_schema == "diarization":
+        # A mixed corpus can have many consecutive batches with no word or
+        # turn labels. Keep the absent lists typed so Arrow can read later rows.
+        interval = [("start", pa.float64()), ("end", pa.float64()), ("speaker", pa.string())]
+        labeled = pa.list_(pa.struct([*interval, ("text", pa.string())]))
+        fields.extend(
+            [
+                pa.field("reference_segments", pa.list_(pa.struct(interval))),
+                pa.field("reference_words", labeled),
+                pa.field("reference_turns", labeled),
+                pa.field("speaker_map", pa.list_(pa.struct([("source", pa.string()), ("local", pa.string())]))),
+            ]
+        )
+    elif jsonl_schema is not None:
+        raise ValueError(f"Unknown JSONL schema: {jsonl_schema!r}")
+    parse_options = pjson.ParseOptions(explicit_schema=pa.schema(fields), unexpected_field_behavior="infer")
 
     def load_jsonl(file_path):
         with bf.BlobFile(file_path, "rb") as file_obj:
