@@ -301,6 +301,29 @@ def test_full_diarization_ls_preset_uses_shared_prompt_and_waveform_timing(tmp_p
     assert json.loads(target) == {"spk": 1, "text": "Hello.", "start": 0, "end": 20}
 
 
+def test_speaker_sft_omits_unused_diagnostics_before_arrow_writer_infers_null(tmp_path):
+    cfg = load_config(overrides=("+data.sft_target_format=speaker_jsonl",))
+    cfg.data.mix = None
+    row = {"audio_path": "unused.wav", "prompt": "Old prompt.<audio>", "text": "Hello.", "reference_turns": None}
+    labeled = {**row, "reference_turns": [{"speaker": "A", "text": "Hello.", "start": 0.0, "end": 0.2}]}
+    manifest = tmp_path / "mixed.jsonl"
+    # Cross the default Arrow writer batch: its first 1000 diagnostic values
+    # are null, while the next source contains a populated list of structs.
+    manifest.write_text((json.dumps(row) + "\n") * 1000 + json.dumps(labeled) + "\n")
+    cfg.data.train_data = [
+        {
+            "dataset_name": "jsonl",
+            "jsonl_schema": "diarization",
+            "jsonl_paths": str(manifest),
+            "post_process": {"verl_format": {"prompt_key": "prompt", "extra_keys": ["reference_turns"]}},
+        }
+    ]
+    ds = ASRSFTDataset(cfg.data.train_files, Tokenizer(), cfg.data, AudioProcessor())
+    assert len(ds) == 1001
+    assert "extra_info" not in ds.ds.column_names
+    assert json.loads(ds.ds[-1]["reward_model"]["gt_output"]) == {"spk": 1, "text": "Hello.", "start": 0, "end": 20}
+
+
 def test_jsonl_full_eval_extracts_transcript_and_counts_invalid_responses():
     root = Path(__file__).resolve().parents[1] / "src/recipe/phimm/config/v2611_dev/eval"
     with initialize_config_dir(config_dir=str(root), version_base=None):

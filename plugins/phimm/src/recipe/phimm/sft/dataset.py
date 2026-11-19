@@ -43,7 +43,9 @@ class ASRSFTDataset(Dataset):
             if target_format == "speaker_jsonl":
                 post_process = dict(conf.get("post_process") or {})
                 verl_format = dict(post_process.get("verl_format") or {})
-                post_process["verl_format"] = {**verl_format, "target_format": target_format}
+                # SFT discards diagnostics below. Do not first infer their
+                # nested Arrow schema from an initial source with null labels.
+                post_process["verl_format"] = {**verl_format, "target_format": target_format, "extra_keys": []}
                 conf = {**conf, "post_process": post_process}
             ds = create_audio_dataset(**conf)
             if distinct_formats != {"jsonl"}:
