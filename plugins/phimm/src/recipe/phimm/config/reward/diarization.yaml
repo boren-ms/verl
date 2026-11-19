@@ -1,0 +1,18 @@
+# @package _global_
+# Add alongside reward/asr to keep existing registrations and mappings.
+# DAI ASR emits transcription only: use one speaker and decoder segment bounds.
+
+rewards:
+  val_diarization:
+    path: recipe/phimm/reward/diarization_eval.py
+    name: diarization_eval
+    reward_kwargs:
+      reward_metric: der
+      normalization: hf_english
+      prediction_format: text
+      text_speaker: speaker_0
+      version: 2609
+      compute_wer: true
+
+reward_map:
+  dai_asr_i18n_en_public: val_diarization

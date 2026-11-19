@@ -1,0 +1,10 @@
+# @package _global_
+# Evaluation only: transcription + SVAD bounds form a single-speaker baseline.
+defaults:
+  - eval_base
+  - /data/val_data/diarization: dai_asr_i18n_public_en
+  - /reward/diarization@_global_
+  - _self_
+
+trainer:
+  experiment_name: ???

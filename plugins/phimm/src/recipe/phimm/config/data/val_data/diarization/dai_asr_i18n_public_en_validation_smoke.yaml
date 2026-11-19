@@ -1,0 +1,28 @@
+# @package data.val_data
+# Evaluation only: 3 recordings covering low/medium/high overlap.
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/speech/users/yonzhao/dai-asr-i18n/.artifacts/datasets/public-en-jsonl/svad30/data-validation-smoke.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - language_code
+      - audio_path
+      - duration_s
+      - audio_sha256
+      - evaluation_duration_s
+      - overlap_type
+      - reference_segments
+      - speaker_count_segments
+      - reference_words
+      - svad_source
+      - svad_bounds
+      - svad_parent_duration
+      - svad_method

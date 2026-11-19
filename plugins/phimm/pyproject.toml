@@ -10,6 +10,7 @@ requires-python = ">=3.12"
 dependencies = ["opencc-python-reimplemented==0.1.7", "wetext==0.2.1"]
 
 [project.optional-dependencies]
+diarization = ["scipy>=1.10", "rapidfuzz>=3.0"]
 svad = ["numpy>=1.24", "onnxruntime>=1.17", "soundfile>=0.12", "scipy>=1.10"]
 
 [tool.setuptools.packages.find]

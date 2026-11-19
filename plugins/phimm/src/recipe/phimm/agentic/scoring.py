@@ -34,7 +34,16 @@ def score_response(config, row, response, *, extra_info=None):
 def aggregate_error_rates(data_sources, extra_infos):
     """Use sum(errors)/sum(reference units), never mean(utterance WER)."""
     totals = defaultdict(lambda: defaultdict(float))
-    prefixes = {"n_": "p_", "nb_": "pb_", "nu_": "pu_", "dter_n_": "dter_p_", "eer_n_": "eer_p_", "nc_": "pc_"}
+    prefixes = {
+        "n_": "p_",
+        "nb_": "pb_",
+        "nu_": "pu_",
+        "dter_n_": "dter_p_",
+        "eer_n_": "eer_p_",
+        "nc_": "pc_",
+        "der_n_": "der_p_",
+        "wder_n_": "wder_p_",
+    }
     for i, source in enumerate(data_sources):
         for key, values in extra_infos.items():
             value = values[i]
@@ -43,6 +52,8 @@ def aggregate_error_rates(data_sources, extra_infos):
     metrics = {}
     for source, counts in totals.items():
         for prefix, output_prefix in prefixes.items():
+            if prefix in {"der_n_", "wder_n_"} and counts.get(prefix.removesuffix("n_") + "unavailable", 0):
+                continue
             denominator = counts.get(prefix + "ref", 0)
             if denominator <= 0:
                 continue
