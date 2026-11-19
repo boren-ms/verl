@@ -1,0 +1,35 @@
+# @package _global_
+# Equal sample counts: 25,240 original short utterances, 25,240 offline
+# contiguous 2-3 utterance lists, and 25,240 offline SC (random 1-2 segments).
+# Two full epochs: floor(75,720 / 128) * 2 = 1,182 optimizer updates.
+defaults:
+  - remax_earnings_short_contiguous23_mix_context
+  - /data/train_data/offline_audio/earnings_short_sc@_sc_train
+  - _self_
+
+data:
+  train_data:
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+    - ${_contiguous_train}
+    - ${_sc_train}
+  mix:
+    - shuffle: true
+      datasource:
+        # One complete copy of each data variant within every source.
+        - {name: earn_fy27, sample: 28704, shuffle: true}
+        - {name: quartr_1st23, sample: 9375, shuffle: true}
+        - {name: quartr_2nd48, sample: 19176, shuffle: true}
+        - {name: quartr_3rd38, sample: 18465, shuffle: true}
+
+asr:
+  context_aware: true
+  expected_training_rows: 75720
+  expected_training_steps: 1182
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_sc_mix_context
+  total_epochs: 2
+  total_training_steps: 1182

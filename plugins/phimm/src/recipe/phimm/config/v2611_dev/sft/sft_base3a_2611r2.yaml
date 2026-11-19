@@ -35,7 +35,6 @@ data:
   custom_cls:
     path: pkg://recipe.phimm.sft.dataset
     name: ASRSFTDataset
-  version: 2609
   prompt_key: prompt
   train_batch_size: 128
   micro_batch_size_per_gpu: 4

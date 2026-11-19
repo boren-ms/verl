@@ -5,6 +5,7 @@ from collections import defaultdict
 from functools import cache
 
 import numpy as np
+from recipe.phimm.reward.asr_response import parse_jsonl_response
 
 
 @cache
@@ -23,12 +24,19 @@ def score_response(config, row, response, *, extra_info=None):
         raise ValueError(f"No scorer for {source!r}")
     spec = registrations[name]
     fn = load_score_function(spec["path"], spec["name"])
-    return fn(
+    result = fn(
         solution_str=response,
         ground_truth=row["reward_model"]["ground_truth"],
         extra_info=dict(extra_info if extra_info is not None else row.get("extra_info", {}) or {}),
         **dict(spec.get("reward_kwargs", {})),
     )
+    if "n_ref" in result and isinstance(response, (str, list)):
+        responses = response if isinstance(response, list) else [response]
+        result["n_json_valid"] = sum(
+            all(segment["language"] is not None for segment in parse_jsonl_response(item)) for item in responses
+        )
+        result["n_json_total"] = len(responses)
+    return result
 
 
 def aggregate_error_rates(data_sources, extra_infos):
@@ -51,6 +59,8 @@ def aggregate_error_rates(data_sources, extra_infos):
                 totals[source][key] += value
     metrics = {}
     for source, counts in totals.items():
+        if counts["n_json_total"]:
+            metrics[f"val-aux/{source}/json_valid_rate/mean@1"] = counts["n_json_valid"] / counts["n_json_total"]
         for prefix, output_prefix in prefixes.items():
             if prefix in {"der_n_", "wder_n_"} and counts.get(prefix.removesuffix("n_") + "unavailable", 0):
                 continue

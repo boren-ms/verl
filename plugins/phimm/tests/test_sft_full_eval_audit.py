@@ -217,7 +217,7 @@ def test_real_spawn_parent_scoring_matches_serial_counts_and_coverage(tmp_path):
     path = tmp_path / "parents.jsonl"
     rows = []
     for i, words in enumerate((["hello", "world"], ["hello brave world"], ["hello"], ["hello world"])):
-        outputs = ["<src=English><tgt=English>\n<VERBATIM>\n" + text for text in words]
+        outputs = [json.dumps({"language": "English", "text": text}) for text in words]
         info = {"id":f"parent{i}","language":"English"}
         score = audit.rescore(config,"earnings21",{"gts":"hello world"},outputs,info)
         rows.append({"step":0,"asr_data_source":"earnings21","gts":"hello world", "input":"same prompt",

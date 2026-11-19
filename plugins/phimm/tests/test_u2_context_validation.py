@@ -105,7 +105,7 @@ def test_full_u2_dataset_groups_and_keeps_parent_reference_once(monkeypatch):
         for i in [1, 0]
     ]
     monkeypatch.setattr(dataset, "create_audio_dataset", lambda **kwargs: datasets.Dataset.from_list(rows))
-    config = OmegaConf.create({"train_files": "train", "train_data": [], "val_data": [{}], "version": 2609})
+    config = OmegaConf.create({"train_files": "train", "train_data": [], "val_data": [{}]})
     val = dataset.ASRDataset("val", tokenizer=None, config=config)
     assert len(val) == 1
     assert [r["extra_info"]["seg_start"] for r in val[0]["asr_segments"]] == [0, 1]

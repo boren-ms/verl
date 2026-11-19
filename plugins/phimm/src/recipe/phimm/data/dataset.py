@@ -11,6 +11,7 @@ import pyarrow as pa
 import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
 from recipe.phimm.data.prompts import get_task_output, get_task_prompt, resolve_language
+from recipe.phimm.data.speaker_jsonl import SPEAKER_JSONL_PROMPT, format_speaker_jsonl
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import (
     all_rank_print,
@@ -269,9 +270,14 @@ def verl_format_ds(ds, **kwargs):
 
     def map_fn(egs):
         text = egs.get("text", "")
+        prompt = egs[prompt_key]
+        target = egs.get("gt_output", text)
+        if kwargs.get("target_format") == "speaker_jsonl":
+            prompt = SPEAKER_JSONL_PROMPT
+            target = format_speaker_jsonl(egs.get("reference_words"))
         result = {
-            prompt_key: to_user_msg(egs[prompt_key]),
-            "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
+            prompt_key: to_user_msg(prompt),
+            "reward_model": {"ground_truth": text, "gt_output": target},
             "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
         }
@@ -401,7 +407,7 @@ def mask_foreign_language(ds, *, task_info, **kwargs):
 def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs):
     """Add the prompt, formatted output, and resolved language without changing text."""
 
-    def add_info(row):
+    def format_jsonl_example(row):
         # A merged list can contain multiple spoken languages. The configured
         # source hint filled missing languages before merging; retain the union
         # here when constructing the language hint and formatted reference.
@@ -419,7 +425,7 @@ def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs)
             "language": lang,
         }
 
-    return ds.map(add_info, **pop_map_kwargs(kwargs))
+    return ds.map(format_jsonl_example, **pop_map_kwargs(kwargs))
 
 
 def augment(ds, **kwargs):

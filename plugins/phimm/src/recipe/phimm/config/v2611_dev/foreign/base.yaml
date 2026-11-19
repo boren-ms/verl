@@ -17,7 +17,6 @@ rewards:
   val_foreign_language:
     path: recipe/phimm/reward/asr_eval.py
     name: foreign_language_eval
-    reward_kwargs: {version: 2609}
 
 reward_map:
   foreign_1k: train_librispeech

@@ -19,19 +19,31 @@ from verl.utils.profiler import simple_timer
 
 @register("asr")
 class ASRAgentLoop(AgentLoopBase):
-    async def generate_row(self, row, sampling_params, *, validate, assistant_prefix=""):
+    async def generate_row(self, row, sampling_params, *, validate, previous_text=""):
         """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
+        messages = row[self.config.data.prompt_key]
+        if previous_text:
+            messages = list(messages)
+            # Keep history in the user turn so the new assistant turn can start
+            # with a fresh object. Do not let generated text add audio markers.
+            quoted = json.dumps(previous_text, ensure_ascii=False).replace("<", "\\u003c").replace(">", "\\u003e")
+            for index in range(len(messages) - 1, -1, -1):
+                if messages[index]["role"] == "user":
+                    messages[index] = {
+                        **messages[index],
+                        "content": (
+                            f"Previous segment transcript (context only): {quoted}\n" + messages[index]["content"]
+                        ),
+                    }
+                    break
         text = chat.apply_chat_template(
-            row[self.config.data.prompt_key],
+            messages,
             add_generation_prompt=True,
             tokenize=False,
             **dict(self.config.data.get("apply_chat_template_kwargs", {})),
         )
-        # Continue the open assistant turn. A completed assistant message would
-        # insert an end-of-turn token and give the prefix different semantics.
-        text += assistant_prefix
         inputs = await asyncio.to_thread(self.processor, text=[text], audios=[audio], return_tensors="pt")
         prompt_ids = inputs["input_ids"][0].tolist()
         if len(prompt_ids) > self.rollout_config.prompt_length:
@@ -66,7 +78,7 @@ class ASRAgentLoop(AgentLoopBase):
             multi_modal_data={"multi_modal_inputs": dict(inputs)},
             metrics=metrics,
             num_turns=2,
-            extra_fields={**output.extra_fields, "asr_context_prefix": assistant_prefix},
+            extra_fields={**output.extra_fields, "asr_context_prefix": previous_text},
         )
 
     async def generate_segments(self, rows, sampling_params, *, validate):
@@ -75,16 +87,15 @@ class ASRAgentLoop(AgentLoopBase):
             raise ValueError("ASR requires at least one segment")
         if getattr(self.config, "asr", {}).get("context_aware", False):
             outputs, texts = [], []
-            prefix = ""
+            previous_text = ""
             # Rows are already grouped by source/parent and ordered by start.
             # State belongs to this invocation, so concurrent parents never mix.
             for row in rows:
-                output = await self.generate_row(row, sampling_params, validate=validate, assistant_prefix=prefix)
+                output = await self.generate_row(row, sampling_params, validate=validate, previous_text=previous_text)
                 outputs.append(output)
-                # Only newly generated tokens are scored and carried forward;
-                # the injected prefix is never counted a second time.
-                prefix = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
-                texts.append(prefix)
+                segment_text = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
+                texts.append(segment_text)
+                previous_text = get_hyp_text(segment_text)
             return outputs, texts
         outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
         texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
@@ -137,7 +148,7 @@ class ASRAgentLoop(AgentLoopBase):
         }
         if validate:
             # Aggregate text is only for validation display, after raw scoring.
-            response = get_hyp_text(texts, version=self.config.data.version)
+            response = get_hyp_text(texts)
             output.response_ids = self.tokenizer.encode(response, add_special_tokens=False)
             if not output.response_ids:
                 # TransferQueue attaches the precomputed reward to the last token.

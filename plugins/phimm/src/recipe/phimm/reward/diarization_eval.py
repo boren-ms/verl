@@ -227,14 +227,14 @@ def _recording_prediction(solution_str, bounds):
     return prediction
 
 
-def _text_recording_prediction(solution_str, bounds, info, *, speaker, version):
+def _text_recording_prediction(solution_str, bounds, info, *, speaker):
     from recipe.phimm.reward.asr_response import get_hyp_text
 
     _speaker({"speaker": speaker})
     responses = solution_str if isinstance(solution_str, list) else [solution_str]
     if not responses or any(not isinstance(response, str) for response in responses):
         raise ValueError("Text diarization requires a nonempty ordered list of response strings")
-    texts = [get_hyp_text(response, version=version) for response in responses]
+    texts = [get_hyp_text(response) for response in responses]
     if bounds is None:
         if "seg_start" in info and "seg_end" in info:
             bounds = _segment_bounds({**info, "svad_bounds": [[info["seg_start"], info["seg_end"]]]})
@@ -284,9 +284,7 @@ def diarization_eval(solution_str: str | list[str], ground_truth=None, **kwargs)
     bounds = _segment_bounds(info)
     try:
         if prediction_format == "text":
-            prediction = _text_recording_prediction(
-                solution_str, bounds, info, speaker=speaker, version=kwargs.get("version")
-            )
+            prediction = _text_recording_prediction(solution_str, bounds, info, speaker=speaker)
         else:
             prediction = _recording_prediction(solution_str, bounds)
     except (ValueError, TypeError):
@@ -314,6 +312,6 @@ def diarization_eval(solution_str: str | list[str], ground_truth=None, **kwargs)
         from recipe.phimm.reward.asr_eval import measure_openasr_en_wer
         from recipe.phimm.reward.asr_response import get_hyp_text
 
-        wer = measure_openasr_en_wer(get_hyp_text(solution_str, version=kwargs.get("version")), ground_truth)
+        wer = measure_openasr_en_wer(get_hyp_text(solution_str), ground_truth)
         result.update({key: wer[key] for key in ("wer", "n_err", "n_ref")})
     return result

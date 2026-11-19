@@ -89,12 +89,27 @@ def _align_null_features(data_sets):
 
 
 def _align_source_features(data_sets):
-    """Align scalar/list audio paths and empty optional fields before merging sources."""
-    list_paths = any(hasattr(ds.features.get("audio_path"), "feature") for ds in data_sets)
+    """Align scalar/list audio metadata and empty optional fields before merging sources."""
+    list_audio_fields = {
+        name
+        for ds in data_sets
+        for name, feature in ds.features.items()
+        if name.startswith("audio") and isinstance(getattr(feature, "feature", None), datasets.Value)
+    }
     aligned = []
     for ds in data_sets:
-        if list_paths and "audio_path" in ds.features and not hasattr(ds.features["audio_path"], "feature"):
-            ds = ds.map(lambda row: {"audio_path": [row["audio_path"]] if row["audio_path"] else None})
+        scalar_fields = sorted(name for name in list_audio_fields if isinstance(ds.features.get(name), datasets.Value))
+        if scalar_fields:
+            features = ds.features.copy()
+            for name in scalar_fields:
+                feature = features[name]
+                features[name] = datasets.Sequence(datasets.Value("string") if feature.dtype == "null" else feature)
+            ds = ds.map(
+                lambda row, names=tuple(scalar_fields): {
+                    name: [row[name]] if row[name] is not None else None for name in names
+                },
+                features=features,
+            )
         aligned.append(ds)
     aligned = _align_null_features(aligned)
     # Arrow cannot concatenate nested structs with different child fields.
@@ -275,7 +290,7 @@ class ASRDataset(Dataset):
         set_chunk_load_mode(config.get("chunk_load_mode") or "indexed")
 
         data_confs = _prepare_data_confs(config, is_train=is_train)
-        data_sets = [create_audio_dataset(**{**conf, "version": config.version}) for conf in data_confs]
+        data_sets = [create_audio_dataset(**conf) for conf in data_confs]
         data_sets = _align_source_features(data_sets)
         self.ds = _combine_datasets(data_sets, config, is_train=is_train)
         if max_samples > 0:

@@ -11,7 +11,6 @@ rewards:
       normalization: hf_english
       prediction_format: text
       text_speaker: speaker_0
-      version: 2609
       compute_wer: true
 
 reward_map:

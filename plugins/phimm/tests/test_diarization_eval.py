@@ -195,12 +195,23 @@ def test_text_segments_use_the_same_speaker_and_decoding_bounds():
 def test_text_segments_strip_asr_markup_and_empty_nonspeech_outputs():
     info = reference() | {"svad_bounds": [[0, 1], [1, 2]]}
     outputs = ["<nonspeech>", "<src=English><tgt=English>\n<verbatim>world</verbatim>"]
-    result = diarization_eval(outputs, extra_info=info, prediction_format="text", version=2609)
+    result = diarization_eval(outputs, extra_info=info, prediction_format="text")
     assert result["der_n_miss"] == 1
     assert result["der_n_confusion"] == 0
     assert result["der_n_fa"] == 0
     assert result["wder_n_ref"] == 1
     assert result["wder"] == 0
+
+
+def test_jsonl_transcription_keeps_decoder_boundaries_for_diarization():
+    info = reference() | {"svad_bounds": [[0, 1], [1, 2]]}
+    outputs = [
+        json.dumps({"language": "English", "text": "hello"}),
+        json.dumps({"language": "English", "text": "world"}),
+    ]
+    result = diarization_eval(outputs, "hello world", extra_info=info, prediction_format="text", compute_wer=True)
+    assert result["wer"] == 0
+    assert result["der"] == result["wder"] == 0.5
 
 
 def test_text_single_speaker_example_counts_overlap_confusion_and_silence():
@@ -219,13 +230,13 @@ def test_text_prediction_does_not_use_reference_labels_or_reference_times():
     from recipe.phimm.reward.diarization_eval import _text_recording_prediction
 
     info = reference()
-    result = _text_recording_prediction(["hello", "world"], [[5, 6], [8, 9]], info, speaker="speaker_0", version=2609)
+    result = _text_recording_prediction(["hello", "world"], [[5, 6], [8, 9]], info, speaker="speaker_0")
     assert result == {
         "segments": [segment("speaker_0", 5, 6), segment("speaker_0", 8, 9)],
         "words": words(("speaker_0", "hello"), ("speaker_0", "world")),
     }
     assert (
-        _text_recording_prediction(["hello", "world"], [[5, 6], [8, 9]], {}, speaker="speaker_0", version=2609)
+        _text_recording_prediction(["hello", "world"], [[5, 6], [8, 9]], {}, speaker="speaker_0")
         == result
     )
 

@@ -1,6 +1,7 @@
 """Check ASR feature reuse without starting Ray or importing the GPU runtime."""
 
 import asyncio
+import json
 import re
 import runpy
 import sys
@@ -112,13 +113,13 @@ def test_generation_reuses_features_for_actor(agent_loop, validate):
 @pytest.mark.parametrize("reference", ["", "are you running a business"])
 def test_validation_keeps_empty_hypotheses_and_their_scores(agent_loop, reference):
     loop = agent_loop["ASRAgentLoop"]()
-    loop.config = SimpleNamespace(data=SimpleNamespace(version=2609))
+    loop.config = OmegaConf.create({})
     output = SimpleNamespace(
         response_ids=[9],
         extra_fields={},
         metrics=SimpleNamespace(generate_sequences=1.0),
     )
-    texts = ["<src=English><tgt=English>\n<verbatim></verbatim>"]
+    texts = ['{"language":"English","text":""}']
     loop.generate_segments = AsyncMock(return_value=([output], texts))
     loop.tokenizer = SimpleNamespace(eos_token_id=9, encode=Mock(return_value=[]))
     score = {"score": -1.0, "n_err": 5 if reference else 0, "n_ref": 5 if reference else 1}
@@ -155,7 +156,7 @@ def test_grouped_validation_retains_first_segments_features(agent_loop):
         for index in range(2)
     ]
     loop = agent_loop["ASRAgentLoop"]()
-    loop.config = SimpleNamespace(data=SimpleNamespace(version=2609))
+    loop.config = OmegaConf.create({})
     loop.generate_row = AsyncMock(side_effect=outputs)
     loop.tokenizer = SimpleNamespace(decode=lambda ids, **kwargs: str(ids[0]), encode=lambda text, **kwargs: [30, 31])
     namespace = loop.run.__globals__
@@ -173,10 +174,10 @@ def test_grouped_validation_retains_first_segments_features(agent_loop):
 
 
 @pytest.mark.parametrize("validate", [False, True])
-def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate):
+def test_both_modes_score_raw_json_and_parent_reference(agent_loop, validate):
     from recipe.phimm.agentic.scoring import score_response
 
-    texts = ["<src=English><tgt=English>\n<verbatim>hello</verbatim>", ""]
+    texts = ['{"language":"English","text":"hello"}', ""]
     outputs = [
         SimpleNamespace(
             response_ids=[index],
@@ -188,7 +189,7 @@ def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate)
     loop = agent_loop["ASRAgentLoop"]()
     loop.config = OmegaConf.create(
         {
-            "data": {"version": 2609},
+            "data": {},
             "rewards": {
                 "test": {
                     "path": "recipe.phimm.reward.asr_measure",
@@ -220,6 +221,18 @@ def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate)
         assert output.metrics.generate_sequences == 2
 
 
+def _json_output(text):
+    return json.dumps({"language": "English", "text": text})
+
+
+def _expected_prompt(loop, messages, previous_text):
+    if previous_text:
+        [user] = messages
+        context = f"Previous segment transcript (context only): {json.dumps(previous_text)}\n"
+        messages = [{**user, "content": context + user["content"]}]
+    return loop.processor.apply_chat_template(messages, add_generation_prompt=True)
+
+
 @pytest.fixture
 def multi_turn_loop(agent_loop):
     class Tokenizer:
@@ -236,7 +249,7 @@ def multi_turn_loop(agent_loop):
         def decode(self, tokens, **kwargs):
             # Deliberately non-round-tripping: sampled IDs must never be replaced
             # by encoding this display/reward text.
-            return f"transcript-{tokens[0]}"
+            return _json_output(f"transcript-{tokens[0]}")
 
     class Processor:
         chat_template = "chatml"
@@ -263,9 +276,7 @@ def multi_turn_loop(agent_loop):
             }
 
     loop = agent_loop["ASRAgentLoop"]()
-    loop.config = OmegaConf.create(
-        {"data": {"prompt_key": "prompt", "max_audio_dur": 40, "max_model_length": 2048, "version": 2609}}
-    )
+    loop.config = OmegaConf.create({"data": {"prompt_key": "prompt", "max_audio_dur": 40, "max_model_length": 2048}})
     loop.rollout_config = OmegaConf.create(
         {
             "prompt_length": 128,
@@ -327,12 +338,12 @@ def test_segments_have_independent_contexts_and_aligned_actor_inputs(multi_turn_
         assert features["audio_frames"].tolist() == [rows[index]["frames"]]
         assert features["input_audio_embeds"].shape == (1, rows[index]["frames"], 80)
         assert output.prompt_ids.count(248076) == rows[index]["frames"] // 8
-    assert texts == ["transcript-900", "transcript-902"]
+    assert texts == [_json_output("transcript-900"), _json_output("transcript-902")]
     assert len(loop.processor.calls) == 2
 
 
 @pytest.mark.parametrize("validate", [False, True])
-def test_context_prefills_open_assistant_and_scores_only_new_tokens(multi_turn_loop, validate):
+def test_context_uses_previous_transcript_and_leaves_assistant_turn_empty(multi_turn_loop, validate):
     loop, rows, generated = multi_turn_loop
     loop.config.asr = {"context_aware": True}
     loop.rollout_config.prompt_length = 512
@@ -340,7 +351,7 @@ def test_context_prefills_open_assistant_and_scores_only_new_tokens(multi_turn_l
     requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
     for i, request in enumerate(requests):
         prefix = "" if i == 0 else "transcript-900"
-        text = loop.processor.apply_chat_template(rows[i]["prompt"], add_generation_prompt=True) + prefix
+        text = _expected_prompt(loop, rows[i]["prompt"], prefix)
         assert request["prompt_ids"] == loop.tokenizer.encode(text)
         assert loop.processor.calls[i][0] == [text]
         expected_actor_ids = [
@@ -354,7 +365,7 @@ def test_context_prefills_open_assistant_and_scores_only_new_tokens(multi_turn_l
         assert outputs[i].response_mask == [1] * len(generated[i])
         assert outputs[i].response_logprobs == [-float(token) / 1000 for token in generated[i]]
         assert outputs[i].extra_fields["asr_context_prefix"] == prefix
-    assert texts == ["transcript-900", "transcript-902"]
+    assert texts == [_json_output("transcript-900"), _json_output("transcript-902")]
 
 
 def test_context_resets_between_parents_and_uses_only_previous_segment(multi_turn_loop):
@@ -369,7 +380,7 @@ def test_context_resets_between_parents_and_uses_only_previous_segment(multi_tur
     results = asyncio.run(evaluate())
     for outputs, texts in results:
         assert [o.extra_fields["asr_context_prefix"] for o in outputs] == ["", "transcript-900", "transcript-902"]
-        assert texts == ["transcript-900", "transcript-902", "transcript-900"]
+        assert texts == [_json_output(f"transcript-{token}") for token in (900, 902, 900)]
 
 
 def test_context_counts_towards_prompt_limit(multi_turn_loop):
@@ -396,7 +407,7 @@ def test_training_scores_combined_responses_once_and_shares_reward(multi_turn_lo
     )
     score.assert_called_once()
     assert score.call_args.args[1]["reward_model"] == reference
-    assert score.call_args.args[2] == ["transcript-900", "transcript-902"]
+    assert score.call_args.args[2] == [_json_output("transcript-900"), _json_output("transcript-902")]
     assert score.call_args.kwargs["extra_info"] == baseline
     assert len(outputs) == 2
     for index, output in enumerate(outputs):
@@ -422,12 +433,12 @@ def test_greedy_baseline_uses_its_own_segment_context(multi_turn_loop, context_e
         assert call.kwargs["sampling_params"]["logprobs"] is False
         assert len(call.kwargs["audio_data"]) == 1
     assert loop.processor.calls[0][0][0].endswith("<|im_start|>assistant\n")
-    suffix = "<|im_start|>assistant\n" + ("transcript-900" if context_enabled else "")
-    assert loop.processor.calls[1][0][0].endswith(suffix)
+    previous_text = "transcript-900" if context_enabled else ""
+    assert loop.processor.calls[1][0] == [_expected_prompt(loop, rows[1]["prompt"], previous_text)]
     score.assert_called_once()
     assert score.call_args.args[1]["reward_model"]["ground_truth"] == "combined reference"
-    assert score.call_args.args[2] == ["transcript-900", "transcript-902"]
-    assert text == "transcript-900\ntranscript-902"
+    assert score.call_args.args[2] == [_json_output("transcript-900"), _json_output("transcript-902")]
+    assert text.splitlines() == [_json_output("transcript-900"), _json_output("transcript-902")]
     assert result["word"] == 0.8
 
 
@@ -449,7 +460,7 @@ def test_training_and_validation_share_history_flag(multi_turn_loop, trajectory,
         ]
     expected_prefix = "transcript-900" if context_enabled else ""
     second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == rows[1]["frames"])
-    assert second_text.endswith("<|im_start|>assistant\n" + expected_prefix)
+    assert second_text == _expected_prompt(loop, rows[1]["prompt"], expected_prefix)
 
 
 def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
@@ -473,14 +484,14 @@ def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
         )
 
     (outputs, texts), (greedy, _) = asyncio.run(trajectories())
-    assert texts == ["transcript-910", "transcript-911"]
-    assert greedy == "transcript-920\ntranscript-921"
+    assert texts == [_json_output("transcript-910"), _json_output("transcript-911")]
+    assert greedy.splitlines() == [_json_output("transcript-920"), _json_output("transcript-921")]
     assert [o.extra_fields["asr_context_prefix"] for o in outputs] == ["", "transcript-910"]
     for call in loop.server_manager.generate.call_args_list:
         request = call.kwargs
         if request["audio_data"][0][0] == 8:
             prefix = "transcript-910" if request["sampling_params"]["logprobs"] else "transcript-920"
-            text = loop.processor.apply_chat_template(rows[1]["prompt"], add_generation_prompt=True) + prefix
+            text = _expected_prompt(loop, rows[1]["prompt"], prefix)
             assert request["prompt_ids"] == loop.tokenizer.encode(text)
     assert all(o.response_mask == [1] and o.response_logprobs == [-0.1] for o in outputs)
 
@@ -500,20 +511,18 @@ def test_segments_reject_empty_samples(multi_turn_loop):
 
 
 def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent_loop):
-    import json
-
     from recipe.phimm.agentic.scoring import score_response
 
     loop = agent_loop["ASRAgentLoop"]()
     loop.config = OmegaConf.create(
         {
             "asr": {"context_aware": True},
-            "data": {"version": 2609},
+            "data": {},
             "rewards": {
                 "test": {
                     "path": "recipe.phimm.reward.asr_eval",
                     "name": "openasr_en_eval",
-                    "reward_kwargs": {"version": 2609},
+                    "reward_kwargs": {},
                 }
             },
         }
@@ -524,27 +533,30 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
     ]
     calls = []
 
-    async def generate(row, params, *, validate, assistant_prefix=""):
-        calls.append(assistant_prefix)
+    async def generate(row, params, *, validate, previous_text=""):
+        calls.append(previous_text)
         output = outputs[len(calls) - 1]
-        output.extra_fields["asr_context_prefix"] = assistant_prefix
+        output.extra_fields["asr_context_prefix"] = previous_text
         return output
 
     loop.generate_row = generate
+    replies = ["\n".join(map(_json_output, ("hello", "there"))), _json_output("world")]
     loop.tokenizer = SimpleNamespace(
-        decode=lambda ids, **kwargs: ["hello", "world"][ids[0]], encode=lambda text, **kwargs: [30]
+        decode=lambda ids, **kwargs: replies[ids[0]],
+        encode=lambda text, **kwargs: [30],
     )
     loop.run.__globals__["score_response"] = score_response
     rows = [
-        {"data_source": "test", "reward_model": {"ground_truth": "hello world"}, "extra_info": {}} for _ in range(2)
+        {"data_source": "test", "reward_model": {"ground_truth": "hello there world"}, "extra_info": {}}
+        for _ in range(2)
     ]
     output = asyncio.run(loop.run({}, asr_validate=True, asr_segments=rows))
-    assert calls == ["", "hello"]
+    assert calls == ["", "hello there"]
     info = output.extra_fields["reward_extra_info"]
-    assert info["n_err"] == 0 and info["n_ref"] == 2
+    assert info["n_err"] == 0 and info["n_ref"] == 3
     detail = json.loads(info["asr_detail"])
-    assert detail["context_prefixes"] == ["", "hello"]
-    assert detail["segment_outputs"] == ["hello", "world"]
+    assert detail["context_prefixes"] == ["", "hello there"]
+    assert detail["segment_outputs"] == replies
 
 
 @pytest.mark.parametrize("validate", [False, True])
@@ -574,12 +586,11 @@ def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop,
     loop.generate_segments.__globals__["load_audio"] = lambda row, duration: (frames[row["audio_path"]], 16000)
     outputs, texts = asyncio.run(loop.generate_segments(sample["asr_segments"], {}, validate=validate))
     assert len(outputs) == 2
-    assert [out.extra_fields["asr_context_prefix"] for out in outputs] == ["", texts[0]]
+    previous_text = json.loads(texts[0])["text"]
+    assert [out.extra_fields["asr_context_prefix"] for out in outputs] == ["", previous_text]
     requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
     assert [request["audio_data"][0][0] for request in requests] == [frames[path] for path in sample["audio_path"]]
-    assert requests[1]["prompt_ids"] == loop.tokenizer.encode(
-        loop.processor.apply_chat_template(sample["prompt"], add_generation_prompt=True) + texts[0]
-    )
+    assert requests[1]["prompt_ids"] == loop.tokenizer.encode(_expected_prompt(loop, sample["prompt"], previous_text))
     assert sample["reward_model"]["ground_truth"] == " ".join(
         "reference a" if path == "a.wav" else "reference b" for path in sample["audio_path"]
     )

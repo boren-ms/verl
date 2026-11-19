@@ -1,11 +1,11 @@
-"""Check joint text rewards and independent 2609 response checks."""
+"""Check joint text rewards and independent JSONL response checks."""
 
 import importlib
+import json
 
 import pytest
-
 from recipe.phimm.reward.asr_measure import _parse_response, check_lang, compute_score, lang_score
-from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
+from recipe.phimm.reward.asr_response import get_hyp_text, parse_jsonl_response
 from recipe.phimm.reward.asr_vote import compute_score as vote_score
 
 SCORERS = [
@@ -23,7 +23,7 @@ SCORERS = [
 
 
 def response(text, language="English"):
-    return f"<src={language}><tgt={language}>\n<verbatim>{text}</verbatim>"
+    return json.dumps({"language": language, "text": text})
 
 
 def test_joint_text_metrics_cross_segment_boundaries():
@@ -48,7 +48,7 @@ def test_single_response_list_preserves_string_scores(text):
         (response("world", "French"), 0.5, 1.0),
         ("", 0.5, 0.5),
         ("<verbatim", 0.5, 0.5),
-        ("world", 0.5, 1.0),
+        ("world", 0.5, 0.5),
     ],
 )
 def test_response_boundaries_preserve_invalid_checks(second, language, fmt):
@@ -62,11 +62,12 @@ def test_response_boundaries_preserve_invalid_checks(second, language, fmt):
     assert lang_score(responses)["score"] == language
 
 
-def test_repeated_headers_within_one_response_still_count_as_language_errors():
+def test_multiple_jsonl_lines_in_one_response_are_scored_in_order():
     first = "\n".join([response("hello"), response("there")])
     parsed = _parse_response([first, response("world")], "hello there world")
     assert parsed["word"] == 1
-    assert parsed["lang"] == 0.5
+    assert parsed["fmt"] == 1
+    assert parsed["lang"] == 1
 
 
 @pytest.mark.parametrize("language", ["English_Chinese", "zh_en", "Chinese_English"])
@@ -102,18 +103,17 @@ def test_multilingual_reference_accepts_any_allowed_language_per_response(langua
     )
 
 
-def test_multilingual_reference_checks_every_header_in_a_mixed_response():
+def test_multilingual_reference_checks_every_label_in_a_mixed_response():
     valid = "\n".join([response("hello"), response("world", "Chinese")])
     invalid = "\n".join([response("hello"), response("world", "French")])
-    assert check_lang(parse_task_output(valid), "English_Chinese") == {"acc": 1, "n_err": 0, "n_ref": 2}
-    assert check_lang(parse_task_output(invalid), "English_Chinese") == {"acc": 0.5, "n_err": 1, "n_ref": 2}
-    assert check_lang([], "English_Chinese") == {"acc": 0, "n_err": 1, "n_ref": 1}
+    assert check_lang(parse_jsonl_response(valid), "English_Chinese") == {"acc": 1, "n_err": 0, "n_ref": 2}
+    assert check_lang(parse_jsonl_response(invalid), "English_Chinese") == {"acc": 0.5, "n_err": 1, "n_ref": 2}
+    assert check_lang(parse_jsonl_response(""), "English_Chinese") == {"acc": 0, "n_err": 1, "n_ref": 1}
     assert lang_score([response("hello", "Unknown")], language="Unknown_Unsupported")["score"] == 0
 
 
 def test_format_checks_weight_independent_responses_equally():
-    first = "\n".join([response("hello"), response("there")])
-    assert _parse_response([first, ""], "hello there")["fmt"] == 0.5
+    assert _parse_response([response("hello there"), ""], "hello there")["fmt"] == 0.5
 
 
 def test_segment_order_affects_joint_text_alignment():
@@ -234,11 +234,11 @@ def test_inhouse_validation_scores_parent_text_once(monkeypatch):
     assert result["eer_n_ref"] == 1
 
 
-@pytest.mark.parametrize(("second", "score"), [("<nonspeech>", 1), (response("hello"), 0)])
+@pytest.mark.parametrize(("second", "score"), [(response(""), 1), (response("hello"), 0), ("<nonspeech>", 0)])
 def test_non_speech_validation_checks_all_segments(second, score):
     from recipe.phimm.reward.asr_eval import non_speech_eval
 
-    result = non_speech_eval(["<nonspeech>", second], "")
+    result = non_speech_eval([response(""), second], "")
     assert result["score"] == score
     assert result["n_ref"] == 1
 
@@ -263,7 +263,7 @@ def test_all_scorers_preserve_single_response_and_accept_ordered_lists(module, n
     monkeypatch.setattr(asr_inhouse_measure, "_compute_dter", lambda *args, **kwargs: (0, 2, 0, {}))
     scorer = getattr(importlib.import_module(f"recipe.phimm.reward.{module}"), name)
     language = "French" if module == "openasr_expansion" else "English"
-    options: dict = {"language": language, "version": 2609}
+    options: dict = {"language": language}
     if module in {"asr_measure", "asr_vote"}:
         options["measures"] = {"word": {}, "lang": {}, "fmt": {}}
     single = response("hello world", language)
@@ -288,16 +288,9 @@ def test_invalid_segment_lists_fail_explicitly(value, error):
         get_hyp_text(value)
 
 
-@pytest.mark.parametrize("version", [None, 2609, "2609"])
-def test_only_2609_parser_defaults_and_explicit_version(version):
-    assert get_hyp_text(response("hello"), version=version) == "hello"
-    assert get_hyp_text("<src=English><tgt=English>\n<TXT>hello</TXT>", version=version) == "hello"
-    assert get_hyp_text("<nonspeech>", version=version) == ""
-
-
-@pytest.mark.parametrize("version", [2607, "2607", 1234])
-def test_unsupported_model_versions_fail(version):
-    with pytest.raises(ValueError, match="only model version 2609"):
-        parse_task_output(response("hello"), version=version)
-    with pytest.raises(ValueError, match="only model version 2609"):
-        vote_score([response("hello")], "hello", version=version)
+def test_invalid_lines_keep_raw_text_but_fail_format():
+    assert get_hyp_text(response("hello")) == "hello"
+    assert parse_jsonl_response(" hello ") == [{"language": None, "text": " hello "}]
+    legacy = "<src=English><tgt=English>\n<TXT>hello</TXT>"
+    assert _parse_response([response("hello"), legacy], "hello")["fmt"] == 0.5
+    assert _parse_response([response("hello"), "world"], "hello world")["word"] == 1

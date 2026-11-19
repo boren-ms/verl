@@ -1,6 +1,7 @@
 # @package data.val_data
 - dataset_name: jsonl
   jsonl_schema: diarization
+  sft_target_format: text
   jsonl_paths: az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/pilot_v1/moe_ami_dev/data.jsonl
   post_process:
     verl_format:

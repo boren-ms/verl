@@ -144,7 +144,6 @@ def test_offline_snapshot_keeps_full_reference_and_loads_asr_segments(tmp_path):
             "data": {
                 "train_files": "train",
                 "val_files": "val",
-                "version": 2609,
                 "train_data": [source],
                 "val_data": [source],
             },

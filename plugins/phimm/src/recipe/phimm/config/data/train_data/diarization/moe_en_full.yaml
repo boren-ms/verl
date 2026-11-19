@@ -10,6 +10,7 @@
 # Report: az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/full_v1/statistics/summary.json
 - dataset_name: jsonl
   jsonl_schema: diarization
+  sft_target_format: text
   jsonl_paths:
   - az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/full_v1/manifests/moe_ami_train/part-*.jsonl.gz
   - az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/full_v1/manifests/moe_fisher/part-*.jsonl.gz

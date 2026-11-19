@@ -1,26 +1,17 @@
+import json
 import re
 from typing import TypedDict
 
-_SEGMENT_RE = re.compile(
-    r"(?:\A|\n)<src=(?P<src>[^>\n]+)><tgt=(?P<tgt>[^>\n]+)>[^\S\n]*\n"
-    r"(?P<text>.*?)(?=\n<src=|\Z)",
-    re.DOTALL,
-)
-
 
 class TaskOutputSegment(TypedDict):
-    src: str | None
-    tgt: str | None
-    text: str | None
-
-
-def _segment(src=None, tgt=None, text=None) -> TaskOutputSegment:
-    return {"src": src, "tgt": tgt, "text": text}
+    language: str | None
+    text: str
 
 
 def clean_text(text: str) -> str:
     """Remove model markup, unmatched word-edge brackets, and empty punctuation."""
     cleanup_patterns = (
+        r"(?m)^[ \t]*<src=[^>\n]+><tgt=[^>\n]+>[ \t]*(?:\n|$)",
         r"</?foreign_language>",
         r"<nonspeech>",
         r"</?lexical>",
@@ -43,52 +34,40 @@ def clean_text(text: str) -> str:
     return cleaned
 
 
-def get_asr_text(task_output):
-    """Join parsed ASR text segments without modifying their content."""
-    return " ".join(segment["text"] for segment in task_output if segment["text"] is not None)
+def _parse_line(line: str) -> TaskOutputSegment:
+    fallback: TaskOutputSegment = {"language": None, "text": line}
+    if not line.lstrip(" \t").startswith("{"):
+        return fallback
+    try:
+        pairs = json.loads(line, object_pairs_hook=list)
+    except (ValueError, RecursionError):
+        return fallback
+    fields = dict(pairs)
+    if len(pairs) != 2 or fields.keys() != {"language", "text"}:
+        return fallback
+    language, text = fields["language"], fields["text"]
+    if not isinstance(language, str) or not language.strip() or not isinstance(text, str):
+        return fallback
+    return {"language": language.strip(), "text": text}
 
 
-def parse_task_output(solution_str: str, version=None):
-    """Parse a 2609 response, preserving malformed text for reward checks.
-
-    Complete language headers and optional ``<TXT>`` tags are supported, as
-    is standalone ``<nonspeech>``. An omitted version selects 2609.
-    """
-    if version is not None and str(version) != "2609":
-        raise ValueError(f"ASR reward supports only model version 2609; got {version!r}")
-    output = solution_str.strip()
-    if output.lower() == "<nonspeech>":
-        return [_segment(text="<nonspeech>")]
-    segments = []
-    pos = 0
-    while pos < len(output):
-        match = _SEGMENT_RE.match(output, pos)
-        if not match:
-            segments.append(_segment(text=output[pos:].strip()))
-            break
-        segments.append(
-            _segment(
-                src=match.group("src").strip(),
-                tgt=match.group("tgt").strip(),
-                text=match.group("text").strip(),
-            )
-        )
-        pos = match.end()
-    return segments or [_segment()]
+def parse_jsonl_response(segment_text: str) -> list[TaskOutputSegment]:
+    """Parse JSONL in order, preserving invalid lines as raw text."""
+    return [_parse_line(line) for line in segment_text.removesuffix("\n").split("\n")]
 
 
-def parse_response_outputs(solution_str: str | list[str], version=None) -> list[list[TaskOutputSegment]]:
+def parse_response_outputs(solution_str: str | list[str]) -> list[list[TaskOutputSegment]]:
     """Parse one response or an ordered list, preserving independent boundaries."""
     responses = solution_str if isinstance(solution_str, list) else [solution_str]
     if not responses:
         raise ValueError("ASR reward requires at least one segment response")
     if any(not isinstance(response, str) for response in responses):
         raise TypeError("ASR reward expects a string or a list of strings")
-    return [parse_task_output(response, version=version) for response in responses]
+    return [parse_jsonl_response(segment_text) for segment_text in responses]
 
 
-def get_hyp_text(solution_str: str | list[str], version=None):
+def get_hyp_text(solution_str: str | list[str]):
     """Join cleaned text from one response or ordered independent responses."""
-    task_outputs = parse_response_outputs(solution_str, version=version)
-    cleaned = (clean_text(segment["text"] or "") for output in task_outputs for segment in output)
+    task_outputs = parse_response_outputs(solution_str)
+    cleaned = (clean_text(segment["text"]) for output in task_outputs for segment in output)
     return " ".join(filter(None, cleaned))

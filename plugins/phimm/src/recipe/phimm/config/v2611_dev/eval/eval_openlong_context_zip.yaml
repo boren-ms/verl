@@ -1,5 +1,5 @@
 # @package _global_
-# Previous segment's generated output is the next segment's assistant prefix.
+# The next user prompt includes the previous segment's transcript as context.
 # Context resets for each parent; only the new continuation is scored.
 
 defaults:
