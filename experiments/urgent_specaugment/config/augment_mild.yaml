@@ -1,0 +1,16 @@
+# Offline WAV generation; one independently sampled policy per source audio.
+# No speed, additive noise, RIR, gain normalization, resampling or row filtering.
+global_seed: 42
+source_audio_field: source_audio_path
+specaugment:
+  window_ms: 25.0
+  hop_ms: 10.0
+  # Random anchor, displacement UniformInteger[-20, 20] frames (up to +/-200 ms).
+  time_warp_param: 20
+  # Width UniformInteger[0, 8] bins; start uniform among legal positions.
+  freq_mask_param: 8
+  num_freq_masks: 1
+  # Width UniformInteger[0, min(10, floor(0.02 * num_frames))].
+  time_mask_param: 10
+  num_time_masks: 1
+  time_mask_max_ratio: 0.02

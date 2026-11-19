@@ -1,0 +1,15 @@
+# Exact retained 20,424-row LS cohort, regenerated from original dry FLACs.
+dataset_name: jsonl
+jsonl_paths: az://orngwus2cresco/data/boren/data/verl/gen_cached/ls_raw_rp_edge_nodigits_specaug_mild_w20_f8_t10_p002_v1_20261119/data.jsonl
+# Preserve the historical baseline's prompt and data-source mapping.
+add_task_info:
+  task: lang_asr_verb
+  language: English
+  prefix_prob: 0.0
+  lang_hint: true
+post_process:
+  add_field:
+    fields:
+      data_source: noisy_ls
+  verl_format:
+    prompt_key: prompt
