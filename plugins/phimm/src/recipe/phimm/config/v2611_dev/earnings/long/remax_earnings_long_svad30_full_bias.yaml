@@ -8,6 +8,10 @@ defaults:
   - _self_
 
 actor_rollout_ref:
+  rollout:
+    # Bound vLLM profiling and prefill memory independently of context capacity.
+    # Chunked prefill still supports the full 17152-token model length.
+    max_num_batched_tokens: 8192
   actor:
     ppo_max_token_len_per_gpu: ${data.max_model_length}
   ref:
