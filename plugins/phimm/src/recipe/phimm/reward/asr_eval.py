@@ -9,6 +9,33 @@ from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import (
 _hf_english_normalizer = _HFEnglishTextNormalizer()
 
 
+def dai_en_eval(solution_str: str | list[str], ground_truth, **kwargs):
+    """Score separate English channels with the official DAI toolkit.
+
+    Install the pinned benchmark toolkit and its English dependencies on every
+    evaluator. Counts retain the true denominator, including empty references.
+    HF compound-aware counts are supplementary for comparison with older runs.
+    """
+    from dai_asr_i18n.scoring import score_pair
+
+    hypothesis = get_hyp_text(solution_str)
+    result = score_pair(ground_truth, hypothesis, language="en", metric="wer")
+    previous = measure_openasr_en_wer(hypothesis, ground_truth)
+    counts = result.counts
+    return {
+        "score": 1.0 - result.value,
+        "wer": result.value,
+        "n_err": counts.numerator,
+        "n_ref": counts.denominator,
+        "n_sub": counts.substitutions,
+        "n_del": counts.deletions,
+        "n_ins": counts.insertions,
+        "hf_wer": previous["wer"],
+        "hf_n_err": previous["n_err"],
+        "hf_n_ref": previous["n_ref"],
+    }
+
+
 def measure_openasr_en_wer(hyp_text, ground_truth):
     """Measure English WER with the normalization used by ``openasr_en_eval``."""
     from kaldialign import batch_error_rate

@@ -1,0 +1,18 @@
+# @package _global_
+defaults:
+  - eval_base
+  - /data/val_data/diarization: dai_asr_i18n_public_en_separated
+  - _self_
+
+rewards:
+  val_dai_en:
+    path: recipe/phimm/reward/asr_eval.py
+    name: dai_en_eval
+
+reward_map:
+  dai_asr_i18n_en_public_separated: val_dai_en
+
+trainer:
+  experiment_name: ???
+  nnodes: 1
+  n_gpus_per_node: 8

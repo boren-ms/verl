@@ -44,6 +44,7 @@ def aggregate_error_rates(data_sources, extra_infos):
     totals = defaultdict(lambda: defaultdict(float))
     prefixes = {
         "n_": "p_",
+        "hf_n_": "hf_p_",
         "nb_": "pb_",
         "nu_": "pu_",
         "dter_n_": "dter_p_",
