@@ -1,12 +1,20 @@
 # @package _global_
 # One parent per recording, using ordered lists of existing short audio segments.
-# No history for sampled training, ReMax greedy baseline, or validation.
+# Full-session bias context for sampled training, ReMax greedy baseline, and validation.
 defaults:
-  - base_earning
+  - /v2611_dev/earnings/base_earning
   - /data/train_data/offline_audio/earnings_contiguous_full@_contiguous_full_train
   - _self_
 
+actor_rollout_ref:
+  actor:
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
 data:
+  # Reserve space for up to 2000 accumulated bias terms plus audio tokens.
+  max_prompt_length: 16384
   train_data: ${_contiguous_full_train}
   train_batch_size: 2
   max_audio_dur: null
@@ -19,7 +27,7 @@ data:
         - {name: quartr_3rd38, sample: 35, shuffle: true}
 
 trainer:
-  experiment_name: remax_earnings_short_contiguous_full_no_context
+  experiment_name: remax_earnings_short_contiguous_full_full_bias
   # 180 full-recording parents / batch2 = 90 updates per epoch, 360 total.
   total_training_steps: null
   total_epochs: 4
@@ -28,6 +36,11 @@ trainer:
 
 asr:
   context_aware:
-    enable: false
+    enable: true
+    mode: full_bias
+    max_terms: 2000
+    filter_common: true
+    filter_numbers: true
+    filter_fillers: true
   expected_training_rows: 180
   expected_training_steps: 360

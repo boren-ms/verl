@@ -84,7 +84,7 @@ class ASRAgentLoop(AgentLoopBase):
             context = ContextPrompt(
                 config.get("mode", DEFAULT_CONTEXT_MODE),
                 version=getattr(self.config.data, "version", None),
-                max_terms=config.get("max_terms", 24),
+                max_terms=config.get("max_terms", 2000),
                 filter_common=config.get("filter_common", True),
                 filter_numbers=config.get("filter_numbers", True),
                 filter_fillers=config.get("filter_fillers", True),

@@ -238,7 +238,7 @@ asr:
   context_aware:
     enable: false
     mode: prev_text  # prev_text | prev_bias | full_bias
-    max_terms: 24
+    max_terms: 2000
     filter_common: true
     filter_numbers: true  # Exclude numeric terms; keep mixed names such as 3M.
     filter_fillers: true  # Exclude hesitation sounds such as uh, um, and erm.

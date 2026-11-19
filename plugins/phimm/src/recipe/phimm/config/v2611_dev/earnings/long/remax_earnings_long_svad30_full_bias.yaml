@@ -1,13 +1,21 @@
 # @package _global_
 # Compare against the COMPLETED earnings-short-rm23-no-context-20261117 @394.
-# No history for sampled training, ReMax greedy baseline, or validation.
+# Full-session bias context for sampled training, ReMax greedy baseline, and validation.
 # Batch 4 for two epochs; batch size, update budget and exposure differ from RM2-3.
 defaults:
-  - base_earning
+  - /v2611_dev/earnings/base_earning
   - /data/train_data/offline_audio/earnings_long_svad30@_svad30_long_train
   - _self_
 
+actor_rollout_ref:
+  actor:
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
 data:
+  # Reserve space for up to 2000 accumulated bias terms plus audio tokens.
+  max_prompt_length: 16384
   train_data: ${_svad30_long_train}
   train_batch_size: 4
   max_audio_dur: null
@@ -28,7 +36,7 @@ reward_map:
   quartr_3rd38_long: train_librispeech
 
 trainer:
-  experiment_name: remax_earnings_long_svad30_no_context
+  experiment_name: remax_earnings_long_svad30_full_bias
   # 739 parents / batch4 = 184 full batches per epoch, 368 updates total.
   total_training_steps: null
   total_epochs: 2
@@ -37,6 +45,11 @@ trainer:
 
 asr:
   context_aware:
-    enable: false
+    enable: true
+    mode: full_bias
+    max_terms: 2000
+    filter_common: true
+    filter_numbers: true
+    filter_fillers: true
   expected_training_rows: 739
   expected_training_steps: 368

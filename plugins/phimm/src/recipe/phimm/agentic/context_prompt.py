@@ -120,7 +120,7 @@ class ContextPrompt:
         mode,
         *,
         version=None,
-        max_terms=24,
+        max_terms=2000,
         filter_common=True,
         filter_numbers=True,
         filter_fillers=True,
