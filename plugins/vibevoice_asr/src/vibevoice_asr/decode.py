@@ -42,8 +42,20 @@ def read_manifest(pattern):
     return rows, paths
 
 
-def load_waveform(row):
+def load_waveform(row, *, audio_loader="native"):
     import numpy as np
+
+    if audio_loader == "official":
+        import librosa
+        from vibevoice.processor.audio_utils import load_audio_use_ffmpeg
+
+        # Match the official processor's file-input path. Normalization remains
+        # in the processor, so it is applied exactly once after resampling.
+        waveform, sr = load_audio_use_ffmpeg(row["audio_path"], resample=False)
+        if sr != 24000:
+            waveform = librosa.resample(waveform, orig_sr=sr, target_sr=24000)
+        return np.asarray(waveform, dtype=np.float32)
+
     from recipe.phimm.utils.audio import load_raw_audio
     from scipy.signal import resample_poly
 
@@ -108,6 +120,11 @@ class Decoder:
             os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
             from vllm import LLM
 
+            options = {}
+            if args.vllm_attention_backend:
+                options["attention_config"] = {"backend": args.vllm_attention_backend}
+            if args.max_num_batched_tokens:
+                options["max_num_batched_tokens"] = args.max_num_batched_tokens
             self.model = LLM(
                 model=args.model,
                 trust_remote_code=False,
@@ -120,6 +137,7 @@ class Decoder:
                 enforce_eager=args.enforce_eager,
                 limit_mm_per_prompt={"audio": {"count": 1, "length": int(args.max_audio_seconds * 24000)}},
                 seed=args.seed,
+                **options,
             )
 
     def decode(self, waves):
@@ -192,6 +210,7 @@ def main():
     parser.add_argument("--rescore-from", type=Path, help="Score complete saved generations without model inference")
     parser.add_argument("--batch-size", type=int, default=1)
     parser.add_argument("--audio-workers", type=int, default=8)
+    parser.add_argument("--audio-loader", choices=("native", "official"), default="native")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--shard-index", type=int, default=0)
     parser.add_argument("--num-shards", type=int, default=1)
@@ -202,6 +221,8 @@ def main():
     parser.add_argument("--gpu-memory-utilization", type=float, default=0.8)
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--attention", default="sdpa")
+    parser.add_argument("--vllm-attention-backend", help="Explicit vLLM attention backend, e.g. FLASH_ATTN")
+    parser.add_argument("--max-num-batched-tokens", type=int, help="vLLM encoder/prefill scheduling budget")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--enforce-eager", action=argparse.BooleanOptionalAction, default=True)
     args = parser.parse_args()
@@ -271,7 +292,9 @@ def main():
         for offset in range(0, len(rows), args.batch_size):
             samples = rows[offset : offset + args.batch_size]
             if saved is None:
-                waves = list(pool.map(load_waveform, samples))
+                from functools import partial
+
+                waves = list(pool.map(partial(load_waveform, audio_loader=args.audio_loader), samples))
                 predictions = decoder.decode(waves)
             else:
                 predictions = [

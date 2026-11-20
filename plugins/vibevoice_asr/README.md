@@ -120,7 +120,8 @@ data was identified from chat `01a1f184-b30b-77d1-934d-c5525b904174` and its
 `moe_en_full_ami_dev.yaml` validation config.
 
 All 2,070 raw responses were retained unchanged and all rows scored. Two
-generations reached the 4,096-token cap with repeated speech; delimiter-only
+generations reached the 4,096-token cap: one repeated speech and one repeated
+`[Door]` events; delimiter-only
 JSON closure retained every emitted word for WER. One excluded silence event
 had inverted times (16.00 to 15.97 seconds), preserved and flagged. No retries,
 repetition penalties or sample exclusions were applied. This is text WER on
@@ -194,3 +195,39 @@ existing short clips. Full meetings require explicitly increased audio and
 context bounds, a sufficient output-token allowance, and separate memory and
 runtime validation; concatenating independently decoded clips does not
 reproduce full-recording inference.
+
+A controlled full-meeting evaluation uses the standard **16-meeting
+full-corpus-ASR test split** from `pyannote/AMI-diarization-setup`, pinned at
+`67c2d539286e89f68952d5dcf83912bd9f01dfae`. Its words-only RTTM references
+and published UEM files are used unchanged. Audio is the official AMI
+`Mix-Headset.wav` for IHM and `Array1-01.wav` for SDM, approximately 9.062 hours
+per condition. These split and mixing choices are explicit assumptions because
+the authors have not confirmed them as the paper protocol.
+
+For full meetings, use the official FFmpeg/librosa file-loading path, preserve
+one full-context decode per recording, and explicitly configure the bounds:
+
+```bash
+python -m vibevoice_asr.decode \
+  --backend vllm --model /path/to/official-offline-model \
+  --manifest /path/to/ihm.jsonl --output-dir /path/to/ihm-results \
+  --audio-loader official --audio-workers 1 --batch-size 1 \
+  --max-audio-seconds 3000 --max-model-len 65536 \
+  --max-new-tokens 32768 --max-num-batched-tokens 32768 \
+  --vllm-attention-backend FLASH_ATTN --gpu-memory-utilization 0.9
+
+# Requires meeteval==0.4.3 and its md-eval-22.pl dependency.
+python -m vibevoice_asr.der \
+  --details /path/to/ihm-results/details.jsonl \
+  --reference /path/to/references/test.rttm \
+  --uem /path/to/references/test.uem --output-dir /path/to/ihm-der
+```
+
+The DER command scores both 0 s and 0.25 s collars, with overlap included and
+speaker mapping per meeting. The aggregate divides summed error speaker-seconds
+by summed reference speaker-seconds. It rejects missing/duplicate meetings,
+truncated generations, unparsed outputs and speech lacking real speaker labels.
+This prevents MeetEval's RTTM-ID intersection from silently shrinking coverage.
+The 0.25 s collar is a sensitivity result, not a setting selected to match the
+paper. The author confirmed Flash Attention in issue #237; exact kernel version
+and inference backend remain undisclosed.
