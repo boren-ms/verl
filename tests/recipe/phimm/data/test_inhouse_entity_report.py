@@ -107,3 +107,88 @@ def test_text_context_is_rejected_by_default_independent_audit():
     expected, row, _ = text_history_fixture()
     with pytest.raises(ValueError, match="Unexpected decoding context"):
         audit_rows([row], expected)
+
+
+def test_ter_only_audit_does_not_require_entity_counts():
+    expected, row, _ = result_fixture()
+    del row["eer_n_err"], row["eer_n_ref"]
+    counts = audit_rows([row], expected, include_eer=False)
+    assert counts == dict(parents=1, segments=2, dter_n_err=2, dter_n_ref=10)
+
+
+@pytest.mark.parametrize("suite", ["eer", "ter"])
+def test_report_uses_selected_suite_and_equal_dataset_weight(tmp_path, monkeypatch, suite):
+    import sys
+
+    from recipe.phimm.data.inhouse_dtest_enus import DATA_SOURCES, SUITES
+    from recipe.phimm.tools import inhouse_entity_report as report
+
+    manifests = tmp_path / "manifests"
+    results = tmp_path / "results"
+    output = tmp_path / "report"
+    manifests.mkdir()
+    results.mkdir()
+    metrics = {}
+    for i, domain in enumerate(SUITES[suite], start=1):
+        expected, row, detail = result_fixture()
+        source = DATA_SOURCES[suite][domain]
+        expected[0]["data_source"] = row["asr_data_source"] = source
+        if suite == "eer":
+            row["eer_n_ref"] = i
+            metrics[f"val-core/{source}/eer_p_err/mean@1"] = 1 / i
+        else:
+            del row["eer_n_err"], row["eer_n_ref"]
+            row["dter_n_err"], row["dter_n_ref"] = 1, i
+        metrics[f"val-core/{source}/dter_p_err/mean@1"] = row["dter_n_err"] / row["dter_n_ref"]
+        (manifests / (domain + ".jsonl")).write_text(json.dumps(expected[0]) + "\n")
+        (results / source).mkdir()
+        (results / source / "0.jsonl").write_text(json.dumps(row) + "\n")
+    (results / "0.metrics.json").write_text(json.dumps({"metrics": metrics}))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "report",
+            "--suite",
+            suite,
+            "--manifest-root",
+            str(manifests),
+            "--result-root",
+            str(results),
+            "--output-dir",
+            str(output),
+        ],
+    )
+    report.main()
+    summary = json.loads((output / "summary.json").read_text())
+    metric = "eer" if suite == "eer" else "dter"
+    assert summary["primary_" + metric] == pytest.approx(sum(1 / i for i in range(1, 6)) / 5)
+    assert summary["total"][metric] == pytest.approx(5 / 15)
+    assert len(summary["datasets"]) == 5
+    assert (output / "report.md").exists() and (output / "datasets.csv").exists()
+    if suite == "ter":
+        assert "eer" not in summary["total"]
+
+
+def test_language_hint_audits_every_segment_base_prompt():
+    expected, row, detail = result_fixture()
+    from recipe.phimm.data.prompts import get_task_prompt
+
+    prompt = get_task_prompt(style="display", language="English", lang_hint=True)
+    for segment in detail["segment_rows"]:
+        segment["prompt"] = [{"role": "user", "content": prompt}]
+    row["asr_detail"] = json.dumps(detail)
+    assert audit_rows([row], expected, expected_prompt=prompt)["segments"] == 2
+
+
+@pytest.mark.parametrize("bad_prompt", [None, "Transcribe the audio clip into text.<audio>", "The language is German."])
+def test_missing_or_changed_language_hint_is_rejected(bad_prompt):
+    expected, row, detail = result_fixture()
+    from recipe.phimm.data.prompts import get_task_prompt
+
+    prompt = get_task_prompt(style="display", language="English", lang_hint=True)
+    detail["segment_rows"][0]["prompt"] = [{"role": "user", "content": prompt}]
+    detail["segment_rows"][1]["prompt"] = [{"role": "user", "content": bad_prompt}]
+    row["asr_detail"] = json.dumps(detail)
+    with pytest.raises(ValueError, match="base prompt/language hint"):
+        audit_rows([row], expected, expected_prompt=prompt)

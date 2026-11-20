@@ -1,7 +1,7 @@
 # @package _global_
 # Same Prompt-context checkpoint and inhouse clips; decode with no preceding context.
 defaults:
-  - eval_prompt_s800_inhouse_entity_text_h1
+  - eval_enus_eer_prompt_h1
   - _self_
 
 asr:
@@ -9,4 +9,4 @@ asr:
     enable: false
 
 trainer:
-  experiment_name: eval_prompt_s800_inhouse_entity_no_context
+  experiment_name: eval_enus_eer_prompt_off

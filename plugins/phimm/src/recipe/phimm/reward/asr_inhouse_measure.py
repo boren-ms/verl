@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import csv
+import fcntl
+import importlib.metadata
 import json
 import logging
 import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 from pathlib import Path
@@ -81,19 +85,22 @@ def _clean_hyp(text: str) -> str:
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_PACK_DIR = "/root/data/packages/SpeechInsight"
-DEFAULT_REMOTE_PACK_ROOT = "az://orngwus2cresco/data/speech/users/ruchaofan/packages"
-TER_WHEEL_NAME = "ter-2.10.0-py3-none-any.whl"
+SPEECHINSIGHT_VERSION = "2.28.4"
+TER_VERSION = "2.20.0"
+DEFAULT_PACK_DIR = "/root/data/packages/SpeechInsight_2_28_4"
+DEFAULT_REMOTE_PACK_ROOT = "az://orngwus2cresco/data/speech/users/boren/eval_packages/inhouse_eer_workbook_20261120"
+DOTNET_REMOTE_ROOT = "az://orngwus2cresco/data/speech/users/ruchaofan/packages"
+TER_WHEEL_NAME = "ter-2.20.0-py3-none-any.whl"
 DOTNET_TAR_NAME = "dotnet-runtime-8.0.0-linux-x64.tar.gz"
 _SETUP_DONE: set[str] = set()
 
 
 def _metric_bin(pack_dir: Path) -> Path:
-    return pack_dir / "speechinsight_tools" / "linux-x64" / "framework-dependent" / "GetMetrics"
+    return _lib_path(pack_dir) / "GetMetrics"
 
 
 def _lib_path(pack_dir: Path) -> Path:
-    return pack_dir / "speechinsight_tools" / "linux-x64" / "framework-dependent"
+    return pack_dir / "speechinsight_tools_latest" / "linux-x64" / "framework-dependent"
 
 
 def _dotnet_dir(pack_dir: Path) -> Path:
@@ -101,123 +108,78 @@ def _dotnet_dir(pack_dir: Path) -> Path:
 
 
 def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = None) -> Path:
-    """Ensure SpeechInsight runtime + dotnet + ter wheel are installed.
+    """Install the MoE SpeechInsight 2.28.4 / TER 2.20.0 tools or fail.
 
-    Pulls from ruchaofan's package mirror on blob (the same files the MoE
-    eval script uses). Best effort: on failure we log and let scoring fall
-    back to zero metrics rather than crashing the eval.
+    Node-local setup is locked across reward workers. TER is installed into an
+    isolated target so the selected wheel, rather than a system installation,
+    supplies dfmetrics. There is only one supported scoring-tool version.
     """
-    pack = Path(pack_dir or DEFAULT_PACK_DIR)
+    pack = Path(pack_dir or DEFAULT_PACK_DIR).resolve()
     key = str(pack)
     if key in _SETUP_DONE:
         return pack
-
     remote_root = (remote_pack_root or DEFAULT_REMOTE_PACK_ROOT).rstrip("/")
-    has_bbb = bool(shutil.which("bbb"))
     pack.mkdir(parents=True, exist_ok=True)
-
-    si_dir = pack / "speechinsight_tools"
+    si_dir = pack / "speechinsight_tools_latest"
     metric_bin = _metric_bin(pack)
-    if not metric_bin.exists():
-        if has_bbb:
-            try:
-                logger.info("Syncing SpeechInsight tools from %s/speechinsight_tools/", remote_root)
-                subprocess.run(
-                    [
-                        "bbb",
-                        "sync",
-                        "-q",
-                        "--concurrency",
-                        "64",
-                        f"{remote_root}/speechinsight_tools/",
-                        str(si_dir),
-                    ],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
-            except Exception as e:
-                logger.warning("SpeechInsight sync failed: %s", e)
-        else:
-            logger.warning("Cannot sync SpeechInsight: `bbb` not found in PATH")
-
-    dotnet_tar = pack / DOTNET_TAR_NAME
     dotnet_dir = _dotnet_dir(pack)
-    dotnet_marker = dotnet_dir / "dotnet"
-    if not dotnet_marker.exists():
-        if not dotnet_tar.exists() and has_bbb:
-            try:
-                subprocess.run(
-                    [
-                        "bbb",
-                        "cp",
-                        f"{remote_root}/{DOTNET_TAR_NAME}",
-                        str(dotnet_tar),
-                    ],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
-            except Exception as e:
-                logger.warning("dotnet runtime download failed: %s", e)
-        if dotnet_tar.exists():
-            try:
-                dotnet_dir.mkdir(parents=True, exist_ok=True)
-                subprocess.run(
-                    ["tar", "-xzf", str(dotnet_tar), "-C", str(dotnet_dir)],
-                    check=False,
-                    capture_output=True,
-                    text=True,
-                )
-            except Exception as e:
-                logger.warning("dotnet runtime extract failed: %s", e)
+    target = pack / "ter_python_2_20_0"
 
-    ter_whl = pack / TER_WHEEL_NAME
-    if not ter_whl.exists() and has_bbb:
-        try:
+    def download(*args):
+        if not shutil.which("bbb"):
+            raise RuntimeError(f"Cannot install SpeechInsight {SPEECHINSIGHT_VERSION}: bbb is unavailable")
+        subprocess.run(["bbb", *args], check=True, capture_output=True, text=True)
+
+    with (pack / ".setup.lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        ter_whl = si_dir / TER_WHEEL_NAME
+        if not metric_bin.is_file() or not ter_whl.is_file():
+            download("sync", "-q", "--concurrency", "64", f"{remote_root}/speechinsight_tools_latest/", str(si_dir))
+        if not metric_bin.is_file() or not ter_whl.is_file():
+            raise RuntimeError(
+                f"Missing SpeechInsight {SPEECHINSIGHT_VERSION} binary or TER {TER_VERSION} wheel: {pack}"
+            )
+        metadata = _lib_path(pack) / "GetMetrics.deps.json"
+        libraries = json.loads(metadata.read_text())["libraries"]
+        expected = f"Microsoft.Speech.ASR.Metrics.Metrics.NetCore.AnyCPU/{SPEECHINSIGHT_VERSION}.0"
+        if expected not in libraries:
+            raise RuntimeError(f"Expected SpeechInsight {SPEECHINSIGHT_VERSION} in {metadata}")
+        if not (dotnet_dir / "dotnet").is_file():
+            dotnet_tar = pack / DOTNET_TAR_NAME
+            if not dotnet_tar.is_file():
+                download("cp", f"{DOTNET_REMOTE_ROOT}/{DOTNET_TAR_NAME}", str(dotnet_tar))
+            dotnet_dir.mkdir(parents=True, exist_ok=True)
             subprocess.run(
-                [
-                    "bbb",
-                    "cp",
-                    f"{remote_root}/{TER_WHEEL_NAME}",
-                    str(ter_whl),
-                ],
-                check=False,
+                ["tar", "-xzf", str(dotnet_tar), "-C", str(dotnet_dir)], check=True, capture_output=True, text=True
+            )
+        if not (dotnet_dir / "dotnet").is_file():
+            raise RuntimeError(f"Missing dotnet runtime: {dotnet_dir}")
+        installed = target / ".installed"
+        if not installed.is_file() or installed.read_text().strip() != TER_WHEEL_NAME:
+            subprocess.run(
+                ["uv", "pip", "install", "--no-deps", "--target", str(target), str(ter_whl)],
+                check=True,
                 capture_output=True,
                 text=True,
             )
-        except Exception as e:
-            logger.warning("ter wheel download failed: %s", e)
-    marker = pack / ".ter_installed"
-    if ter_whl.exists() and not marker.exists():
-        try:
-            subprocess.run(
-                ["pip", "install", "--no-deps", str(ter_whl)],
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            marker.write_text("ok\n", encoding="utf-8")
-        except Exception as e:
-            logger.warning("ter wheel install failed: %s", e)
-
-    try:
+            installed.write_text(TER_WHEEL_NAME + "\n")
         metric_bin.chmod(0o755)
-    except Exception:
-        pass
 
-    # Export to process env so the dfmetrics TER python API (which internally
-    # shells out to fstalign and needs `dotnet` on PATH) works without each
-    # caller having to set it.
-    dotnet_path = str(_dotnet_dir(pack))
+    if str(target) not in sys.path:
+        sys.path.insert(0, str(target))
+    # Reject an older dfmetrics module already loaded by this process.
+    import dfmetrics.ter as ter
+
+    if importlib.metadata.version("ter") != TER_VERSION or not Path(ter.__file__).is_relative_to(target):
+        raise RuntimeError(f"Expected isolated TER {TER_VERSION} in {target}; loaded {ter.__file__}")
+    dotnet_path = str(dotnet_dir)
     if dotnet_path not in os.environ.get("PATH", "").split(os.pathsep):
         os.environ["PATH"] = f"{dotnet_path}{os.pathsep}{os.environ.get('PATH', '')}"
-    os.environ.setdefault("DOTNET_ROOT", dotnet_path)
-    os.environ.setdefault("DOTNET_SYSTEM_GLOBALIZATION_INVARIANT", "false")
+    os.environ["DOTNET_ROOT"] = dotnet_path
+    os.environ["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"] = "false"
     lib_path = str(_lib_path(pack))
     if lib_path not in os.environ.get("LD_LIBRARY_PATH", "").split(os.pathsep):
         os.environ["LD_LIBRARY_PATH"] = f"{lib_path}{os.pathsep}{os.environ.get('LD_LIBRARY_PATH', '')}"
-
     _SETUP_DONE.add(key)
     return pack
 
@@ -285,11 +247,9 @@ def _compute_dter(ref: str, hyp: str, locale: str = "en-us") -> tuple[int, int, 
     n_ref = int(info.get("number_of_tokens") or 0)
     if ref and n_ref <= 0:
         raise RuntimeError("DTER backend returned zero reference tokens for a nonempty reference")
-    raw = float(info.get("display_ter") or 0.0)
-    # dfmetrics returns display_ter as a percentage (e.g. 42.85), normalize to fraction.
-    dter = raw / 100.0 if raw > 1.5 else raw
-    if n_ref > 0 and (n_err > 0 and dter == 0.0):
-        dter = n_err / n_ref
+    # Counts are authoritative, including low nonzero percentages (<1.5%).
+    # Inferring units from display_ter's magnitude turns 1% into 100%.
+    dter = n_err / n_ref if n_ref else 0.0
 
     sent_details = result.get("sent_details") or []
     sd = sent_details[0] if sent_details else {}
@@ -301,7 +261,7 @@ def _compute_dter(ref: str, hyp: str, locale: str = "en-us") -> tuple[int, int, 
     return n_err, n_ref, dter, detail
 
 
-def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None = None):
+def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None = None, locale=None):
     output_dir = Path(tempfile.gettempdir()) / "get_metrics" / str(uuid.uuid4())
     pack = ensure_pack_dir(pack_dir)
     metric_bin = _metric_bin(pack)
@@ -314,7 +274,28 @@ def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None =
     env["PATH"] = f"{dotnet_dir}:{env.get('PATH', '')}"
     env["DOTNET_SYSTEM_GLOBALIZATION_INVARIANT"] = "false"
 
-    cmd = [str(metric_bin), "-t", trans, "-r", reco, "-o", str(output_dir)]
+    # Use MoE's TSV contract; full recordings can exceed the OS argv limit.
+    output_dir.mkdir(parents=True, exist_ok=True)
+    tsv = output_dir / "input.tsv"
+    with tsv.open("w", encoding="utf-8", newline="") as stream:
+        csv.writer(stream, delimiter="\t", lineterminator="\n").writerow(
+            ["recording", _clean_hyp(reco), _clean_ref(trans)]
+        )
+    cmd = [
+        str(metric_bin),
+        "-t",
+        str(tsv),
+        "-o",
+        str(output_dir),
+        "--idcol",
+        "0",
+        "--recocol",
+        "1",
+        "--transcol",
+        "2",
+    ]
+    if locale:
+        cmd += ["-l", locale]
     cmd += list(args)
 
     try:
@@ -347,7 +328,7 @@ def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None =
 
 
 def _compute_eer(
-    ref: str, hyp: str, pack_dir: str | Path | None = None, *, strict: bool = False
+    ref: str, hyp: str, pack_dir: str | Path | None = None, *, strict: bool = False, mode="verbatim", locale=None
 ) -> tuple[int, int, float]:
     """Return (n_err, n_ref, eer) by calling SpeechInsight GetMetrics.
 
@@ -355,7 +336,9 @@ def _compute_eer(
     first ``EntityInfo`` block in ``UtteranceResults.json``. Returns zeros when
     GetMetrics fails or the utterance has no annotated entities.
     """
-    record = get_metrics(ref, hyp, "--verbatim", pack_dir=pack_dir)
+    if mode not in {"verbatim", "nondisfluency"}:
+        raise ValueError(f"Unknown EER normalization: {mode}")
+    record = get_metrics(ref, hyp, "--" + mode, pack_dir=pack_dir, locale=locale)
     if not record:
         if strict:
             raise RuntimeError("SpeechInsight EER scoring failed")
@@ -383,7 +366,14 @@ def _compute_eer(
     return n_err, n_ref, n_err / n_ref
 
 
-def eval_score(solution_str: str | list[str], ground_truth: str, **kwargs):
+def eval_score(
+    solution_str: str | list[str],
+    ground_truth: str,
+    *,
+    pack_dir: str | Path | None = DEFAULT_PACK_DIR,
+    speechinsight_package_root: str | None = DEFAULT_REMOTE_PACK_ROOT,
+    **kwargs,
+):
     """Inhouse DTER/EER scorer for eval_asr.py.
 
     Reports only DisfluencyTolerant TER (DTER, via dfmetrics Python backend)
@@ -391,17 +381,16 @@ def eval_score(solution_str: str | list[str], ground_truth: str, **kwargs):
     ``dter_p_err`` is the reporting alias used by the 2609 benchmark pipeline.
     ``score = 1 - dter`` is exposed for the trainer's reward aggregation.
     """
-    pack_dir = kwargs.get("pack_dir", DEFAULT_PACK_DIR)
     compute_eer = kwargs.get("compute_eer", False)
     extra_info = kwargs.get("extra_info") or {}
     locale = _resolve_locale(kwargs.get("locale"), extra_info.get("language", kwargs.get("language")))
-    hyp_text = _clean_hyp(get_hyp_text(solution_str, version=kwargs.get("version")))
+    hyp_text = _clean_hyp(get_hyp_text(solution_str))
     ref_text = _clean_ref(ground_truth)
     # The dfmetrics TER backend used by `_compute_dter` shells out to `dotnet`
     # (via fstalign), so the SpeechInsight pack must be installed and its dotnet
     # runtime exported onto PATH/DOTNET_ROOT *before* DTER runs. `_compute_eer`
     # also relies on this, but it runs after DTER, so set it up up-front here.
-    ensure_pack_dir(pack_dir)
+    ensure_pack_dir(pack_dir, speechinsight_package_root)
 
     dter_n_err, dter_n_ref, dter, dter_detail = _compute_dter(ref_text, hyp_text, locale=locale)
 
@@ -415,11 +404,21 @@ def eval_score(solution_str: str | list[str], ground_truth: str, **kwargs):
     }
     result.update(_category_edits((dter_detail or {}).get("ter_category_info")))
     if compute_eer:
-        # Display-form TER and verbatim entity evaluation have different source
-        # references. Keep the original tagged Transcription for entity scoring.
-        entity_ref = _clean_ref(extra_info.get("entity_transcription", ground_truth))
+        # Display scoring uses ground_truth; transcription scoring uses the
+        # original tagged Transcription carried through extra_info.
+        reference = kwargs.get("eer_reference", "transcription")
+        if reference not in {"transcription", "display"}:
+            raise ValueError(f"Unknown EER reference: {reference}")
+        entity_ref = _clean_ref(
+            ground_truth if reference == "display" else extra_info.get("entity_transcription", ground_truth)
+        )
         eer_n_err, eer_n_ref, eer = _compute_eer(
-            entity_ref, hyp_text, pack_dir=pack_dir, strict=kwargs.get("strict_eer", False)
+            entity_ref,
+            hyp_text,
+            pack_dir=pack_dir,
+            strict=kwargs.get("strict_eer", False),
+            mode=kwargs.get("eer_mode", "verbatim"),
+            locale=locale,
         )
         result["eer"] = eer
         result["eer_n_err"] = eer_n_err

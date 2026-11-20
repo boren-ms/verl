@@ -1,9 +1,9 @@
 # @package data.val_data
+# Historical 31-domain entity-v3 suite. Active MoE EN-US EER/TER use {eer,ter}.yaml.
 # Original en-US-entity-v3 VAD clips; one row per complete recording.
 # Dataset inventory and counting definitions: english_entity_presegment.md
 # Prepare with python -m recipe.phimm.data.inhouse_entity --cache-dir ... --publish
 - dataset_name: jsonl
-  val_batch_size: -1
   jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/InhouseASR_EWER_en_US_entity_v3_presegment_v1/*.jsonl
   add_task_info:
     style: verb
