@@ -130,3 +130,6 @@ logs
 log
 outputs
 .history
+
+# Local research notes and paper reading artifacts
+/paper_notes/

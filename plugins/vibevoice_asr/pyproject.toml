@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=77.0.3", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "verl-vibevoice-asr"
+version = "0.1.0"
+description = "Offline VibeVoice-ASR Hugging Face and vLLM integration"
+requires-python = ">=3.12"
+dependencies = [
+    "vibevoice @ git+https://github.com/microsoft/VibeVoice.git@16fb2cb1217c9934a886e1948ffb06120caa2df5",
+]
+
+[project.entry-points."vllm.general_plugins"]
+vibevoice_asr = "vllm_vibevoice_asr:register"
+
+[project.scripts]
+vibevoice-asr-decode = "vibevoice_asr.decode:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
