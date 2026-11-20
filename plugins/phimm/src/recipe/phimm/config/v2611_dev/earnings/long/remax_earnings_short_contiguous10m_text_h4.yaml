@@ -1,6 +1,6 @@
 # @package _global_
 # Consecutive short clips within each recording, at most 600 s per parent.
-# Full-session bias context for sampled training, ReMax greedy baseline, and validation.
+# Up to four previous generated transcripts for sampled training, greedy baseline, and validation.
 defaults:
   - /v2611_dev/earnings/base_earning
   - /data/train_data/offline_audio/earnings_contiguous10m@_contiguous10m_train
@@ -8,8 +8,11 @@ defaults:
 
 actor_rollout_ref:
   rollout:
+    # A null limit uses the model's native context length in the current server.
+    max_model_len: ${data.max_model_length}
+    enable_chunked_prefill: true
     # Bound vLLM profiling and prefill memory independently of context capacity.
-    # Chunked prefill still supports the full 17152-token model length.
+    # Chunked prefill supports the configured prompt plus response length.
     max_num_batched_tokens: 8192
   actor:
     ppo_max_token_len_per_gpu: ${data.max_model_length}
@@ -17,8 +20,8 @@ actor_rollout_ref:
     log_prob_max_token_len_per_gpu: ${data.max_model_length}
 
 data:
-  # Reserve space for up to 2000 accumulated bias terms plus audio tokens.
-  max_prompt_length: 16384
+  # Four responses of up to 768 tokens plus the original 1024-token audio prompt.
+  max_prompt_length: 4096
   train_data: ${_contiguous10m_train}
   train_batch_size: 4
   max_audio_dur: null
@@ -31,7 +34,7 @@ data:
         - {name: quartr_3rd38, sample: 228, shuffle: true}
 
 trainer:
-  experiment_name: remax_earnings_short_contiguous10m_full_bias
+  experiment_name: remax_earnings_short_contiguous10m_text_h4
   # 806 parents / batch4 = 201 full batches per epoch, 402 updates total.
   total_training_steps: null
   total_epochs: 2
@@ -41,11 +44,7 @@ trainer:
 asr:
   context_aware:
     enable: true
-    mode: bias
-    max_history: 1000
-    max_terms: 1000
-    filter_common: true
-    filter_numbers: true
-    filter_fillers: true
+    mode: text
+    max_history: 4
   expected_training_rows: 806
   expected_training_steps: 402

@@ -69,21 +69,21 @@ def test_five_segment_text_preset_matches_unique_window_budget(compose_recipe):
 
 
 @pytest.mark.parametrize(
-    ("name", "max_history"),
+    ("name", "mode", "max_history"),
     [
-        ("prompt_ctx/remax_earnings_short_random_merge23_prev_bias", 1),
-        ("prompt_ctx/remax_earnings_short_random_merge23_prev_bias_unfiltered", 1),
-        ("prompt_ctx/remax_earnings_short_random_merge23_full_bias", 1000),
-        ("prompt_ctx/remax_earnings_short_contiguous23_full_bias", 1000),
-        ("long/remax_earnings_short_contiguous10m_full_bias", 1000),
-        ("long/remax_earnings_short_contiguous_full_full_bias", 1000),
-        ("long/remax_earnings_long_svad30_full_bias", 1000),
+        ("prompt_ctx/remax_earnings_short_random_merge23_prev_bias", "bias", 1),
+        ("prompt_ctx/remax_earnings_short_random_merge23_prev_bias_unfiltered", "bias", 1),
+        ("prompt_ctx/remax_earnings_short_random_merge23_full_bias", "bias", 1000),
+        ("prompt_ctx/remax_earnings_short_contiguous23_full_bias", "bias", 1000),
+        ("long/remax_earnings_short_contiguous10m_text_h4", "text", 4),
+        ("long/remax_earnings_short_contiguous_full_text_h4", "text", 4),
+        ("long/remax_earnings_long_svad30_text_h4", "text", 4),
     ],
 )
-def test_bias_presets_use_explicit_response_windows(compose_recipe, name, max_history):
+def test_context_presets_use_explicit_response_windows(compose_recipe, name, mode, max_history):
     config = compose_recipe(kind="earnings", name=name)
     assert config.asr.context_aware.enable
-    assert config.asr.context_aware.mode == "bias"
+    assert config.asr.context_aware.mode == mode
     assert config.asr.context_aware.max_history == max_history
 
 

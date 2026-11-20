@@ -180,25 +180,55 @@ def test_mutually_exclusive_offline_plans(tmp_path):
         materialize(OmegaConf.create({"offline_data": {"svad_segment": {}, "random_segment": {}}}), tmp_path / "out")
 
 
-def test_long_svad_recipe_uses_earnings_base_without_history():
+@pytest.mark.parametrize("direct", [False, True], ids=["earnings", "long"])
+@pytest.mark.parametrize(
+    "preset, dataset, rows, batch, epochs, steps",
+    [
+        ("remax_earnings_long_svad30_text_h4", "earnings_long_svad30", 739, 4, 2, 368),
+        ("remax_earnings_short_contiguous10m_text_h4", "earnings_contiguous10m", 806, 4, 2, 402),
+        ("remax_earnings_short_contiguous_full_text_h4", "earnings_contiguous_full", 180, 2, 4, 360),
+    ],
+)
+def test_long_recipes_preserve_earnings_controls_and_use_text_history4(
+    direct, preset, dataset, rows, batch, epochs, steps
+):
     from pathlib import Path
 
     from hydra import compose, initialize_config_dir
+    from recipe.phimm.agentic.context_prompt import ContextPrompt
     from recipe.phimm.utils.offline_data import active_audio_transforms
 
     directory = Path(__file__).resolve().parents[1] / "src/recipe/phimm/config/v2611_dev/earnings"
     OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)
     with initialize_config_dir(config_dir=str(directory), version_base=None):
-        candidate = compose(config_name="remax_earnings_long_svad30_no_context")
         baseline = compose(config_name="base_earning")
-    assert candidate.asr.context_aware.enable is False
+        reference = compose(config_name="prompt_ctx/remax_earnings_short_contiguous5_text_history4")
+    with initialize_config_dir(config_dir=str(directory / "long" if direct else directory), version_base=None):
+        candidate = compose(config_name=preset if direct else f"long/{preset}")
+    OmegaConf.resolve(candidate)
+    assert candidate.trainer.experiment_name == preset
+    assert candidate.asr.context_aware.enable is True
+    assert candidate.asr.context_aware == reference.asr.context_aware
+    assert candidate.asr.context_aware.mode == "text"
+    assert candidate.asr.context_aware.max_history == 4
+    options = candidate.asr.context_aware
+    context = ContextPrompt(
+        options.mode,
+        max_history=options.max_history,
+        max_terms=options.max_terms,
+        filter_common=options.filter_common,
+        filter_numbers=options.filter_numbers,
+        filter_fillers=options.filter_fillers,
+        extra_common_words=options.common_words,
+    )
+    for text in ("OpenAI.", "NVIDIA.", "Microsoft.", "Qwen.", "Anthropic."):
+        context.observe(text)
+    assert context.context == "NVIDIA.\nMicrosoft.\nQwen.\nAnthropic."
     for key in (
         "actor_rollout_ref.model",
         "algorithm",
         "rewards",
         "data.val_data",
-        "data.max_prompt_length",
-        "data.max_model_length",
         "actor_rollout_ref.rollout.n",
         "actor_rollout_ref.rollout.temperature",
         "actor_rollout_ref.rollout.val_kwargs",
@@ -206,19 +236,32 @@ def test_long_svad_recipe_uses_earnings_base_without_history():
         assert OmegaConf.select(candidate, key) == OmegaConf.select(baseline, key), key
     actor = OmegaConf.to_container(candidate.actor_rollout_ref.actor, resolve=True)
     baseline_actor = OmegaConf.to_container(baseline.actor_rollout_ref.actor, resolve=True)
-    assert actor.pop("ppo_mini_batch_size") == 4
+    assert actor.pop("ppo_mini_batch_size") == batch
     baseline_actor.pop("ppo_mini_batch_size")
+    assert actor.pop("ppo_max_token_len_per_gpu") == candidate.data.max_model_length
+    baseline_actor.pop("ppo_max_token_len_per_gpu")
     assert actor == baseline_actor
-    assert candidate.data.train_batch_size == candidate.data.gen_batch_size == 4
-    assert candidate.asr.expected_training_rows == 739
+    rollout = candidate.actor_rollout_ref.rollout
+    assert rollout.prompt_length == candidate.data.max_prompt_length == reference.data.max_prompt_length == 4096
+    assert rollout.max_model_len == candidate.data.max_model_length == reference.data.max_model_length == 4864
+    assert rollout.max_model_len == rollout.prompt_length + rollout.response_length
+    assert rollout.enable_chunked_prefill is True
+    assert rollout.max_num_batched_tokens == 8192
+    assert candidate.actor_rollout_ref.ref.log_prob_max_token_len_per_gpu == rollout.max_model_len
+    assert candidate.data.train_batch_size == candidate.data.gen_batch_size == batch
+    assert candidate.asr.expected_training_rows == rows
+    assert sum(source.sample for group in candidate.data.mix for source in group.datasource) == rows
     assert candidate.trainer.total_training_steps is None
-    assert candidate.trainer.total_epochs == 2
+    assert candidate.trainer.total_epochs == epochs
+    assert candidate.trainer.resume_mode == "disable" and candidate.trainer.resume_from_path is None
+    assert candidate.trainer.nnodes == 2 and candidate.trainer.n_gpus_per_node == 8
+    assert batch * rollout.n % (candidate.trainer.nnodes * candidate.trainer.n_gpus_per_node) == 0
     batches = candidate.asr.expected_training_rows // candidate.data.train_batch_size
-    assert batches * candidate.trainer.total_epochs == candidate.asr.expected_training_steps == 368
+    assert batches * candidate.trainer.total_epochs == candidate.asr.expected_training_steps == steps
     assert active_audio_transforms(candidate) == {}
     assert len(candidate.data.train_data) == 5
     for source in candidate.data.train_data:
         assert "pre_process" not in source
-        assert "earnings_long_svad30_20261117_v1/" in source.jsonl_paths
+        assert f"{dataset}_20261117_v1/" in source.jsonl_paths
         name = source.post_process.add_field.fields.data_source
         assert candidate.reward_map[name] == "train_librispeech"
