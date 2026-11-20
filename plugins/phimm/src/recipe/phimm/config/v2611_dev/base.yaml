@@ -239,7 +239,7 @@ asr:
     enable: false
     mode: text  # text | bias
     max_history: 1  # Number of previous response turns used as context in either mode.
-    max_terms: 1000
+    max_terms: -1  # No cap; positive T keeps last T words (text) or recent T distinct terms (bias).
     filter_common: true
     filter_numbers: true  # Exclude numeric terms; keep mixed names such as 3M.
     filter_fillers: true  # Exclude hesitation sounds such as uh, um, and erm.

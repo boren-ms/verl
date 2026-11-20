@@ -649,7 +649,7 @@ asr:
     filter_common: true
     filter_numbers: true
     filter_fillers: true
-    max_terms: 2000
+    max_terms: -1  # Unlimited; set a positive integer to cap words/terms.
     common_words: []
 ```
 
@@ -658,7 +658,7 @@ A legacy boolean `asr.context_aware` is still accepted and uses the default
 
 | `asr.context_aware.mode` | Context placed in the user prompt |
 |---|---|
-| `text` (default) | Cleaned transcripts of the selected previous responses, oldest to newest, separated by newlines. |
+| `text` (default) | Cleaned transcripts of the selected previous responses, oldest to newest, separated by newlines; a positive `max_terms` keeps only the last T words. |
 | `bias` | Words and short capitalized phrases extracted from the selected previous responses. |
 
 `max_history` sets the response window for **both** modes. Use `1`
@@ -670,6 +670,14 @@ For example, `mode: text` with `max_history: 3` includes the latest
 three cleaned responses; `mode: bias` with `max_history: 1000`
 builds a bias list from up to 1,000 earlier responses.
 
+`max_terms` defaults to `-1`, which leaves words and terms
+uncapped in both modes. Set a positive integer T to enable a cap. In
+`text` mode, it keeps the last T whitespace-delimited words after
+combining the response window. Repeated words count separately; punctuation
+and whitespace within the retained suffix are preserved. This can trim part
+of the oldest retained response. In `bias` mode, it caps distinct extracted
+terms instead.
+
 The default window is one response. Only `text` and `bias` modes are supported.
 The previous-bias presets use `mode: bias` with `max_history: 1`; the full-bias
 presets use `mode: bias` with `max_history: 1000`.
@@ -680,8 +688,9 @@ The line is appended after the existing audio marker and any language hint.
 The builder preserves internal hyphens and version dots in the displayed terms,
 deduplicates case-insensitively and ignores punctuation when deduplicating,
 and omits the line when no terms remain. Bias terms are ordered by their most
-recent occurrence, including within a segment, and keep up to `max_terms`
-distinct terms. Common English words, numeric terms, and hesitation sounds
+recent occurrence, including within a segment. A positive `max_terms` limits
+the number of distinct terms; `-1` keeps all eligible distinct terms in the
+response window. Common English words, numeric terms, and hesitation sounds
 such as `uh`, `um`, `erm`, and `uh-huh` are filtered by default. Set
 `filter_common`, `filter_numbers`, or `filter_fillers` under `asr.context_aware`
 to `false` to disable each filter independently. Mixed terms like `3M` and
@@ -689,11 +698,11 @@ to `false` to disable each filter independently. Mixed terms like `3M` and
 `1-800-FLOWERS` keep their hyphens in the prompt.
 When common-word filtering is enabled, extend the English filter with
 `asr.context_aware.common_words=[word1,word2]`. Adjust the cap
-with `asr.context_aware.max_terms` (default 1000). This cap is independent of
-`max_history`: it limits distinct terms after combining the selected
-responses, not the response count or token count;
-the complete prompt must still fit its token limit. Bias terms are not automatically
-trimmed to fit that limit. In the saved
+with `asr.context_aware.max_terms` (default `-1`, no cap). This cap is independent of
+`max_history`: in bias mode it limits distinct terms after combining the selected
+responses, not the response count or token count.
+In both modes, the complete prompt must still fit its token limit; context is
+not automatically trimmed to fit that limit. In the saved
 `asr_detail.previous_contexts`, bias mode records the formatted term list
 instead of the transcript.
 

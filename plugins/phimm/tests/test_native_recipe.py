@@ -36,7 +36,7 @@ def test_context_defaults_to_one_previous_text_response(compose_recipe):
     config = compose_recipe()
     assert config.asr.context_aware.mode == "text"
     assert config.asr.context_aware.max_history == 1
-    assert config.asr.context_aware.max_terms == 1000
+    assert config.asr.context_aware.max_terms == -1
 
 
 @pytest.mark.parametrize("mode", ["text", "bias"])

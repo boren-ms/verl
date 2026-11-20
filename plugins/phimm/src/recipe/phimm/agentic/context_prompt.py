@@ -9,7 +9,7 @@ from itertools import chain
 from recipe.phimm.reward.asr_response import get_hyp_text
 
 DEFAULT_CONTEXT_MODE = "text"
-DEFAULT_MAX_BIAS_TERMS = 1000
+DEFAULT_MAX_BIAS_TERMS = -1
 CONTEXT_MODES = {DEFAULT_CONTEXT_MODE, "bias"}
 
 
@@ -133,10 +133,8 @@ class ContextPrompt:
             raise ValueError(f"Unknown ASR context mode {mode!r}; expected one of {sorted(CONTEXT_MODES)}")
         if not isinstance(max_history, int) or isinstance(max_history, bool) or max_history < 1:
             raise ValueError("asr.context_aware.max_history must be a positive integer")
-        if mode != DEFAULT_CONTEXT_MODE and (
-            not isinstance(max_terms, int) or isinstance(max_terms, bool) or max_terms < 1
-        ):
-            raise ValueError("asr.context_aware.max_terms must be a positive integer")
+        if not isinstance(max_terms, int) or isinstance(max_terms, bool) or (max_terms != -1 and max_terms < 1):
+            raise ValueError("asr.context_aware.max_terms must be -1 or a positive integer")
         self.mode = mode
         self.version = version
         self.max_history = max_history
@@ -162,6 +160,12 @@ class ContextPrompt:
         if self.mode == DEFAULT_CONTEXT_MODE:
             self.responses.append(transcript)
             self.history = "\n".join(text for text in self.responses if text)
+            # Cap the combined window by whitespace-delimited words while
+            # preserving punctuation and spacing within the retained suffix.
+            if self.max_terms != -1:
+                words = list(re.finditer(r"\S+", self.history))
+                if len(words) > self.max_terms:
+                    self.history = self.history[words[-self.max_terms].start() :]
             return
 
         # Rank by last occurrence: later terms in this segment precede earlier
