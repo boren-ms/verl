@@ -209,12 +209,11 @@ one full-context decode per recording, and explicitly configure the bounds:
 
 ```bash
 python -m vibevoice_asr.decode \
-  --backend vllm --model /path/to/official-offline-model \
+  --backend hf --model /path/to/official-offline-model \
   --manifest /path/to/ihm.jsonl --output-dir /path/to/ihm-results \
-  --audio-loader official --audio-workers 1 --batch-size 1 \
-  --max-audio-seconds 3000 --max-model-len 65536 \
-  --max-new-tokens 32768 --max-num-batched-tokens 32768 \
-  --vllm-attention-backend FLASH_ATTN --gpu-memory-utilization 0.9
+  --audio-loader official --audio-workers 1 --batch-size 4 \
+  --max-audio-seconds 3000 --max-new-tokens 32768 \
+  --attention flash_attention_2
 
 # Requires meeteval==0.4.3 and its md-eval-22.pl dependency.
 python -m vibevoice_asr.der \
@@ -247,3 +246,74 @@ MeetEval's `collar=0.25` passes `-c 0.25` to md-eval, excluding **±0.25 s**
 around each reference boundary. In pyannote.metrics 4.2.0 the equivalent
 argument is `collar=0.5`, because that package defines collar as the total width.
 The real-meeting smoke test agreed between scorers at matched collar widths.
+
+
+### Full-meeting results: 2026-11-20
+
+The pinned official HF model decoded all 16 meetings in each condition with
+FlashAttention-2, BF16, batch size 4, greedy decoding, seed 0 and a 32,768-token
+output limit. Each condition contains approximately 9.062 hours. All full UEM
+regions were scored, including failures and missing tails.
+
+| Scoring setting | IHM DER | SDM DER |
+| --- | ---: | ---: |
+| Paper (exact protocol undisclosed) | 11.92% | 13.43% |
+| Zero collar, overlap included | 28.4170% | 36.3033% |
+| ±0.25 s collar, overlap included | 19.3916% | 27.7416% |
+| Zero collar, overlap excluded | 17.5777% | 26.6550% |
+| ±0.25 s collar, overlap excluded | 11.1487% | 20.2341% |
+
+IHM is numerically close under one common protocol, while SDM remains 6.8041
+percentage points above its paper result under that same protocol. This does
+not establish exact paper reproduction: the authors have not confirmed the
+split, IHM construction, reference preparation, collar or overlap policy.
+All four settings are reported without selecting model parameters by test DER.
+
+IHM `EN2002c` repeated near the end and truncated at the token limit, with a
+maximum emitted end of 2921.51 s for 2972.256 s of audio. SDM `EN2002c` also
+truncated (2950.22/2972.256 s); SDM `EN2002d` repeated much earlier
+(1321.69/2209.899 s). These outputs remain in the full-reference scores.
+All four settings in both conditions were independently checked with
+pyannote.metrics 4.2.0: reference speaker-time, miss, false alarm and confusion
+counts agree with MeetEval at matching collar widths.
+There were 26 unassigned speech intervals in IHM and 29 in SDM, scored as
+abstentions using the explicit failure-inclusive options above.
+
+The original generation driver returned a parsing error for 13 IHM and 11 SDM
+rows because the strict parser rejected speech events without speaker labels.
+All 32 raw generations were saved. The separate DER reparse scores every
+meeting, preserving raw responses and reporting missing speakers and
+truncations. The overlap-excluded sensitivity uses exactly the same hypothesis
+RTTM, reference and UEM; it can be reproduced with MeetEval directly:
+
+```python
+import meeteval.der
+
+scores = meeteval.der.md_eval_22(
+    "/path/to/references/test.rttm",
+    "/path/to/ihm-der/hypothesis.rttm",
+    uem="/path/to/references/test.uem",
+    collar=0.25,
+    regions="nooverlap",
+)
+print(sum(scores.values()))  # Corpus aggregate; not a mean of meeting DERs.
+```
+
+HF uses the checkpoint's 131,072-token context configuration; the runner's
+`--max-model-len` option applies only to vLLM. HF's saved batched
+`generated_tokens` counts include padding after EOS and must not be used as
+emitted-token or throughput measurements. DER uses only emitted intervals.
+The earlier vLLM full-meeting attempt was stopped after repetition; those
+outputs are preserved separately and are not mixed with the HF evaluation.
+
+Full raw results, scoring inputs/hashes, four-setting scores, independent
+verification, configs, logs and reproduction report are retained at:
+
+```text
+az://orngwus2cresco/data/boren/data/verl/vibevoice_asr/paper-ami/
+  results/full-ihm-hf-fa2-b4-r1/details.jsonl
+  results/full-sdm-hf-fa2-b4-r1/details.jsonl
+  scores/{ihm,sdm}/der.json
+  scores/{ihm,sdm}/overlap-sensitivity.json
+  metadata/reproduction-report.md
+```
