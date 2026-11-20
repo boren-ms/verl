@@ -1,0 +1,15 @@
+# hc_clean_v0 training only: 7,261 utterances / 8,609 annotated targets.
+# References are the released display, never historical ASR transcription.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/pname/hc_clean_v0/train.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_clean_v0_train
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [audio_length, source_audio_path, wav_sha256, target_occurrences, split]

@@ -1,0 +1,31 @@
+# @package _global_
+# hc_clean_v0: 7,261 training utterances and 7,533 entity-matched validation utterances.
+# Inherit shared ReMax defaults directly; the data bundle selects pname training and validation.
+# Batch 128 gives 56 full batches per epoch; four epochs allow a 200-update budget.
+defaults:
+  - ../base@_global_
+  - /data/pname/hc_clean_v0@_global_
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    ppo_epochs: 2
+    optim:
+      lr: 1.2e-06  # 2x the shared base learning rate of 6e-07.
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+
+data:
+  train_batch_size: 128
+
+trainer:
+  experiment_name: remax_hc_clean_v0
+  total_epochs: 4
+  total_training_steps: 200
+  val_only: false
+  resume_mode: auto
+  resume_from_path: null
+
+asr:
+  expected_training_rows: 7261
+  expected_training_steps: 200

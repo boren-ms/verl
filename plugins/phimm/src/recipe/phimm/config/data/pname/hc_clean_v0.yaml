@@ -1,0 +1,19 @@
+# @package _global_
+# Data-only bundle: add after the experiment's base defaults.
+defaults:
+  - /data/train_data/pname/hc_clean_v0@_pname_train
+  - /data/val_data/pname/hc_clean_v0@_pname_val
+  - _self_
+
+data:
+  train_data: ${_pname_train}
+  val_data: ${_pname_val}
+  max_audio_dur: null
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: hc_clean_v0_train, sample: 7261, shuffle: true}
+
+reward_map:
+  hc_clean_v0_train: train_librispeech
+  hc_clean_v0_entity_matched: val_openasr_en
