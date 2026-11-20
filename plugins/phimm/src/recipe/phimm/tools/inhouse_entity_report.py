@@ -20,7 +20,7 @@ def read_json(uri):
         return json.load(stream)
 
 
-def audit_rows(rows, expected, *, context_mode="independent", include_eer=True, expected_prompt=None):
+def audit_rows(rows, expected, *, context_mode="independent", include_eer=True, expected_prompt=None, prefix=None):
     """Check every original parent/clip/reference before aggregating counts."""
     if context_mode not in ("independent", "text_h1"):
         raise ValueError(f"Unsupported context audit mode: {context_mode}")
@@ -49,9 +49,13 @@ def audit_rows(rows, expected, *, context_mode="independent", include_eer=True, 
                 raise ValueError(f"Changed or missing base prompt/language hint: {uid}")
         contexts = [""] * len(paths)
         if context_mode == "text_h1":
-            from recipe.phimm.reward.asr_response import get_hyp_text
+            from recipe.phimm.agentic.context_prompt import ContextPrompt
 
-            contexts[1:] = [get_hyp_text(text, version=2609) for text in detail["segment_outputs"][:-1]]
+            context = ContextPrompt("text", prefix=prefix, max_history=1)
+            contexts = []
+            for text in detail["segment_outputs"]:
+                contexts.append(context.prompt)
+                context.observe(text)
         if detail["previous_contexts"] != contexts:
             raise ValueError(f"Unexpected decoding context: {uid}")
         seen.add(uid)
@@ -84,6 +88,7 @@ def main():
     parser.add_argument("--suite", choices=("eer", "ter", "legacy_entity_v3"), default="eer")
     parser.add_argument("--step", type=int, default=0)
     parser.add_argument("--context-mode", choices=("independent", "text_h1"), default="independent")
+    parser.add_argument("--context-prefix", help="Custom context instruction; omitted uses the default text prefix")
     parser.add_argument("--model-label", default="2611 V1")
     parser.add_argument("--prompt-style", choices=("verb", "lex", "display"), default="display")
     parser.add_argument("--language-hint", choices=("English", "none"), help="Audit every segment's saved base prompt")
@@ -116,6 +121,7 @@ def main():
                 context_mode=args.context_mode,
                 include_eer=include_eer,
                 expected_prompt=expected_prompt,
+                prefix=args.context_prefix,
             )
         values = ratios(counts)
         for metric in metric_names:
@@ -139,6 +145,7 @@ def main():
         "model_label": args.model_label,
         "suite": args.suite,
         "context_mode": args.context_mode,
+        "context_prefix": args.context_prefix,
         "language_hint": args.language_hint,
         "prompt_style": args.prompt_style,
         "datasets": result,

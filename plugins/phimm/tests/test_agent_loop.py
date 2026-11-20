@@ -17,9 +17,9 @@ from omegaconf import OmegaConf
 @pytest.fixture
 def agent_loop(monkeypatch):
     import ray
+    import recipe.phimm.utils.audio  # Import TransferQueue before replacing ray.remote below.
 
     import recipe.phimm
-    import recipe.phimm.utils.audio  # Import TransferQueue before replacing ray.remote below.
 
     class Output(SimpleNamespace):
         def __init__(self, **kwargs):
@@ -359,7 +359,7 @@ def test_context_enters_user_prompt_and_scores_only_new_tokens(multi_turn_loop, 
         assert outputs[i].response_ids == generated[i]
         assert outputs[i].response_mask == [1] * len(generated[i])
         assert outputs[i].response_logprobs == [-float(token) / 1000 for token in generated[i]]
-        assert outputs[i].extra_fields["asr_previous_context"] == prefix
+        assert outputs[i].extra_fields["asr_previous_context"] == (f"Previous context: {prefix}" if prefix else "")
     assert texts == ["transcript-900", "transcript-902"]
 
 
@@ -374,7 +374,11 @@ def test_context_resets_between_parents_and_uses_only_previous_segment(multi_tur
 
     results = asyncio.run(evaluate())
     for outputs, texts in results:
-        assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", "transcript-900", "transcript-902"]
+        assert [o.extra_fields["asr_previous_context"] for o in outputs] == [
+            "",
+            "Previous context: transcript-900",
+            "Previous context: transcript-902",
+        ]
         assert texts == ["transcript-900", "transcript-902", "transcript-900"]
 
 
@@ -405,7 +409,9 @@ def test_bias_context_reaches_rollout_and_actor(multi_turn_loop, max_history, fi
         row["prompt"][0]["content"] = "task<audio>\nThe language is English."
 
     outputs, texts = asyncio.run(loop.generate_segments(rows + rows[:1], {"logprobs": True}, validate=False))
-    assert [out.extra_fields["asr_previous_context"] for out in outputs] == expected
+    assert [out.extra_fields["asr_previous_context"] for out in outputs] == [
+        f"Pay extra attention to the following phrases/words: {terms}." if terms else "" for terms in expected
+    ]
     assert texts == [raw[900], raw[902], raw[900]]
     assert [out.response_ids for out in outputs] == generated + generated[:1]
     for out, row, call, terms in zip(
@@ -481,7 +487,10 @@ def test_bias_filters_common_words_and_numbers_independently(multi_turn_loop, fi
 
     outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=False))
 
-    assert outputs[1].extra_fields["asr_previous_context"] == expected
+    assert (
+        outputs[1].extra_fields["asr_previous_context"]
+        == f"Pay extra attention to the following phrases/words: {expected}."
+    )
 
 
 @pytest.mark.parametrize("max_history", [1, 1000])
@@ -495,7 +504,10 @@ def test_bias_preserves_vanity_phone_spelling(multi_turn_loop, max_history):
 
     outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=False))
 
-    assert outputs[1].extra_fields["asr_previous_context"] == "*1-800-FLOWERS*"
+    assert (
+        outputs[1].extra_fields["asr_previous_context"]
+        == "Pay extra attention to the following phrases/words: *1-800-FLOWERS*."
+    )
     assert "Pay extra attention to the following phrases/words: *1-800-FLOWERS*." in loop.processor.calls[1][0][0]
 
 
@@ -509,7 +521,11 @@ def test_filler_filter_can_be_disabled_and_does_not_change_previous_text(multi_t
     transcript = "UH, erm, uh-huh, Qwen."
     loop.tokenizer.decode = lambda ids, **kwargs: f"<src=English><tgt=English>\n<VERBATIM>{transcript}</VERBATIM>"
     outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=False))
-    assert outputs[1].extra_fields["asr_previous_context"] == expected
+    assert outputs[1].extra_fields["asr_previous_context"] == (
+        f"Previous context: {expected}"
+        if mode == "text"
+        else f"Pay extra attention to the following phrases/words: {expected}."
+    )
 
 
 @pytest.mark.parametrize("validate", [False, True])
@@ -526,7 +542,16 @@ def test_response_window_reaches_prompts_and_resets_per_trajectory(multi_turn_lo
         if mode == "text"
         else ["", "*Alpha*", "*Beta*, *Alpha*", "*Gamma*, *Beta*"]
     )
-    assert [output.extra_fields["asr_previous_context"] for output in outputs] == expected
+    assert [output.extra_fields["asr_previous_context"] for output in outputs] == [
+        (
+            f"Previous context: {value}"
+            if mode == "text"
+            else f"Pay extra attention to the following phrases/words: {value}."
+        )
+        if value
+        else ""
+        for value in expected
+    ]
     for index, context in enumerate(expected[1:], start=1):
         assert context in loop.processor.calls[index][0][0]
     loop.tokenizer.decode = lambda ids, **kwargs: "Fresh."
@@ -538,7 +563,7 @@ def test_response_window_reaches_prompts_and_resets_per_trajectory(multi_turn_lo
 def test_bias_keeps_most_recent_distinct_terms(max_history, after_third):
     from recipe.phimm.agentic.context_prompt import ContextPrompt
 
-    context = ContextPrompt("bias", version=2609, max_history=max_history, max_terms=2, extra_common_words=["routine"])
+    context = ContextPrompt("bias", max_history=max_history, max_terms=2, extra_common_words=["routine"])
     context.observe("THE and we, uh, don't. Routine.")
     assert context.context == ""
     context.observe("OpenAI, Qwen.")
@@ -575,13 +600,31 @@ def test_context_contains_only_transcript_and_preserves_raw_scoring(
 
     assert texts == [raw_response, "current transcript"]
     assert outputs[0].response_ids == generated[0]
-    assert outputs[1].extra_fields["asr_previous_context"] == transcript
+    assert outputs[1].extra_fields["asr_previous_context"] == (f"Previous context: {transcript}" if transcript else "")
     expected_user = "task<audio>" + (f"\nPrevious context: {transcript}" if transcript else "")
     expected = loop.processor.apply_chat_template(
         [{"role": "user", "content": expected_user}], add_generation_prompt=True
     )
     assert loop.processor.calls[1][0] == [expected]
     assert rows[1]["prompt"] == [{"role": "user", "content": "task<audio>"}]
+
+
+@pytest.mark.parametrize("validate", [False, True])
+def test_prefix_reaches_model(multi_turn_loop, validate):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {
+        "context_aware": {
+            "enable": True,
+            "mode": "text",
+            "prefix": "Previous segment transcript (for context):",
+        }
+    }
+    loop.rollout_config.prompt_length = 512
+    loop.tokenizer.decode = lambda ids, **kwargs: "Alpha." if ids[0] == 900 else "Beta."
+    outputs, _ = asyncio.run(loop.generate_segments(rows, {}, validate=validate))
+    assert "Previous segment transcript" not in loop.processor.calls[0][0][0]
+    assert "Previous segment transcript (for context): Alpha." in loop.processor.calls[1][0][0]
+    assert outputs[1].extra_fields["asr_previous_context"] == "Previous segment transcript (for context): Alpha."
 
 
 def test_context_counts_towards_prompt_limit(multi_turn_loop):
@@ -658,7 +701,7 @@ def test_training_and_validation_share_history_flag(multi_turn_loop, trajectory,
         outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": not validate}, validate=validate))
         assert [o.extra_fields["asr_previous_context"] for o in outputs] == [
             "",
-            "transcript-900" if context_enabled else "",
+            "Previous context: transcript-900" if context_enabled else "",
         ]
     expected_prefix = "transcript-900" if context_enabled else ""
     second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == rows[1]["frames"])
@@ -689,7 +732,7 @@ def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
     (outputs, texts), (greedy, _) = asyncio.run(trajectories())
     assert texts == ["transcript-910", "transcript-911"]
     assert greedy == "transcript-920\ntranscript-921"
-    assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", "transcript-910"]
+    assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", "Previous context: transcript-910"]
     for call in loop.server_manager.generate.call_args_list:
         request = call.kwargs
         if request["audio_data"][0][0] == 8:
@@ -755,18 +798,17 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
         {"data_source": "test", "reward_model": {"ground_truth": "hello world"}, "extra_info": {}} for _ in range(2)
     ]
     output = asyncio.run(loop.run({}, asr_validate=True, asr_segments=rows))
-    assert calls == ["", "hello"]
+    assert calls == ["", "Previous context: hello"]
     info = output.extra_fields["reward_extra_info"]
     assert info["n_err"] == 0 and info["n_ref"] == 2
     detail = json.loads(info["asr_detail"])
-    assert detail["previous_contexts"] == ["", "hello"]
+    assert detail["previous_contexts"] == ["", "Previous context: hello"]
     assert detail["segment_outputs"] == ["hello", "world"]
 
 
 @pytest.mark.parametrize("validate", [False, True])
 def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop, validate):
     import datasets
-
     from recipe.phimm.agentic.dataset import ASRDataset
     from recipe.phimm.data.dataset import augment
     from recipe.phimm.tools.random_merge_list import random_merge
@@ -791,7 +833,7 @@ def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop,
     loop.generate_segments.__globals__["load_audio"] = lambda row, duration: (frames[row["audio_path"]], 16000)
     outputs, texts = asyncio.run(loop.generate_segments(sample["asr_segments"], {}, validate=validate))
     assert len(outputs) == 2
-    assert [out.extra_fields["asr_previous_context"] for out in outputs] == ["", texts[0]]
+    assert [out.extra_fields["asr_previous_context"] for out in outputs] == ["", f"Previous context: {texts[0]}"]
     requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
     assert [request["audio_data"][0][0] for request in requests] == [frames[path] for path in sample["audio_path"]]
     messages = [{**message} for message in sample["prompt"]]

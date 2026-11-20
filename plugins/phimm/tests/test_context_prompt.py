@@ -1,7 +1,7 @@
 """Response-window boundaries for transcript and bias context."""
 
 import pytest
-from recipe.phimm.agentic.context_prompt import ContextPrompt, add_context_to_messages
+from recipe.phimm.agentic.context_prompt import ContextPrompt
 
 
 def test_text_window_cleans_orders_and_expires_empty_responses():
@@ -117,8 +117,42 @@ def test_unsupported_modes_are_rejected(mode):
         ContextPrompt(mode)
 
 
-def test_text_window_is_appended_without_changing_original_messages():
-    messages = [{"role": "user", "content": "task<audio>"}]
-    result = add_context_to_messages(messages, "Alpha.\nBeta.", "text")
-    assert result[0]["content"] == "task<audio>\nPrevious context: Alpha.\nBeta."
-    assert messages[0]["content"] == "task<audio>"
+def test_text_window_renders_instruction_without_changing_raw_context():
+    context = ContextPrompt("text", max_history=2)
+    context.observe("Alpha.")
+    context.observe("Beta.")
+    assert context.prompt == "Previous context: Alpha.\nBeta."
+    assert context.context == "Alpha.\nBeta."
+
+
+@pytest.mark.parametrize("mode", ["text", "bias"])
+@pytest.mark.parametrize(
+    ("prefix", "expected"),
+    [
+        ("Previous segment transcript (for context):", "Previous segment transcript (for context): Alpha."),
+        ("  Context:\n ", "Context: Alpha."),
+        ("", "Alpha."),
+    ],
+)
+def test_custom_prefix_replaces_mode_instruction(mode, prefix, expected):
+    context = ContextPrompt(mode, prefix=prefix)
+    context.observe("Alpha.")
+    if mode == "bias":
+        expected = expected.replace("Alpha.", "*Alpha*")
+    assert context.prompt == expected
+
+
+def test_custom_prefix_is_omitted_without_context():
+    assert ContextPrompt("text", prefix="Context:").prompt == ""
+
+
+@pytest.mark.parametrize("prefix", [True, 123, [], {}])
+def test_invalid_prefix_is_rejected(prefix):
+    with pytest.raises(ValueError, match="prefix must be a string or null"):
+        ContextPrompt("text", prefix=prefix)
+
+
+def test_default_bias_instruction_is_preserved():
+    context = ContextPrompt("bias")
+    context.observe("OpenAI.")
+    assert context.prompt == "Pay extra attention to the following phrases/words: *OpenAI*."

@@ -1,6 +1,5 @@
 """Build ASR context prompts from the current trajectory's generated text."""
 
-import copy
 import re
 import unicodedata
 from collections import deque
@@ -121,7 +120,7 @@ class ContextPrompt:
         self,
         mode,
         *,
-        version=None,
+        prefix=None,
         max_history=1,
         max_terms=DEFAULT_MAX_BIAS_TERMS,
         filter_common=True,
@@ -131,12 +130,14 @@ class ContextPrompt:
     ):
         if mode not in CONTEXT_MODES:
             raise ValueError(f"Unknown ASR context mode {mode!r}; expected one of {sorted(CONTEXT_MODES)}")
+        if prefix is not None and not isinstance(prefix, str):
+            raise ValueError("asr.context_aware.prefix must be a string or null")
         if not isinstance(max_history, int) or isinstance(max_history, bool) or max_history < 1:
             raise ValueError("asr.context_aware.max_history must be a positive integer")
         if not isinstance(max_terms, int) or isinstance(max_terms, bool) or (max_terms != -1 and max_terms < 1):
             raise ValueError("asr.context_aware.max_terms must be -1 or a positive integer")
         self.mode = mode
-        self.version = version
+        self.prefix = prefix.strip() if prefix is not None else None
         self.max_history = max_history
         self.responses = deque(maxlen=max_history)
         self.max_terms = max_terms
@@ -155,8 +156,20 @@ class ContextPrompt:
             return self.history
         return ", ".join(f"*{term}*" for term in self.terms)
 
+    @property
+    def prompt(self):
+        """Render the instruction and context for appending to a user prompt."""
+        context = self.context
+        if not context:
+            return ""
+        if self.prefix is not None:
+            return f"{self.prefix} {context}".strip()
+        if self.mode == DEFAULT_CONTEXT_MODE:
+            return f"Previous context: {context}"
+        return f"Pay extra attention to the following phrases/words: {context}."
+
     def observe(self, response):
-        transcript = get_hyp_text(response, version=self.version)
+        transcript = get_hyp_text(response)
         if self.mode == DEFAULT_CONTEXT_MODE:
             self.responses.append(transcript)
             self.history = "\n".join(text for text in self.responses if text)
@@ -186,19 +199,3 @@ class ContextPrompt:
             if len(selected) == self.max_terms:
                 break
         self.terms = tuple(selected.values())
-
-
-def add_context_to_messages(messages, context, mode=DEFAULT_CONTEXT_MODE):
-    """Append context inside the final user turn, before applying the chat template."""
-    if not context:
-        return messages
-    if mode == DEFAULT_CONTEXT_MODE:
-        line = f"Previous context: {context}"
-    else:
-        line = f"Pay extra attention to the following phrases/words: {context}."
-    messages = copy.deepcopy(messages)
-    for message in reversed(messages):
-        if message["role"] == "user":
-            message["content"] += f"\n{line}"
-            return messages
-    raise ValueError("ASR previous context requires a user prompt")

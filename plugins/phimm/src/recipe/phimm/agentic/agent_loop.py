@@ -7,18 +7,17 @@ from uuid import uuid4
 
 import ray
 import torch
-
 from recipe.phimm.agentic.context_prompt import (
     DEFAULT_CONTEXT_MODE,
     DEFAULT_MAX_BIAS_TERMS,
     ContextPrompt,
-    add_context_to_messages,
     context_options,
 )
 from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.audio import load_audio
+
 from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, DictConfigWrap, register
 from verl.trainer.ppo.v1.agent_loop_tq import AgentLoopManagerTQ, AgentLoopWorkerTQBase
 from verl.utils.profiler import simple_timer
@@ -30,8 +29,15 @@ class ASRAgentLoop(AgentLoopBase):
         """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
-        mode = context_options(getattr(self.config, "asr", {})).get("mode", DEFAULT_CONTEXT_MODE)
-        messages = add_context_to_messages(row[self.config.data.prompt_key], previous_context, mode)
+        messages = row[self.config.data.prompt_key]
+        if previous_context:
+            messages = copy.deepcopy(messages)
+            for message in reversed(messages):
+                if message["role"] == "user":
+                    message["content"] += f"\n{previous_context}"
+                    break
+            else:
+                raise ValueError("ASR previous context requires a user prompt")
         text = chat.apply_chat_template(
             messages,
             add_generation_prompt=True,
@@ -84,7 +90,7 @@ class ASRAgentLoop(AgentLoopBase):
             outputs, texts = [], []
             context = ContextPrompt(
                 config.get("mode", DEFAULT_CONTEXT_MODE),
-                version=getattr(self.config.data, "version", None),
+                prefix=config.get("prefix"),
                 max_history=config.get("max_history", 1),
                 max_terms=config.get("max_terms", DEFAULT_MAX_BIAS_TERMS),
                 filter_common=config.get("filter_common", True),
@@ -95,7 +101,7 @@ class ASRAgentLoop(AgentLoopBase):
             # Use the supplied segment order. Each invocation has its own context.
             for row in rows:
                 output = await self.generate_row(
-                    row, sampling_params, validate=validate, previous_context=context.context
+                    row, sampling_params, validate=validate, previous_context=context.prompt
                 )
                 outputs.append(output)
                 # Score raw new responses; the context builder consumes cleaned text.

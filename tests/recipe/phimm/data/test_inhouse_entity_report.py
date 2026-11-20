@@ -76,7 +76,7 @@ def text_history_fixture():
         "<nonspeech>",
         "new output",
     ]
-    detail["previous_contexts"] = ["", "First segment.", ""]
+    detail["previous_contexts"] = ["", "Previous context: First segment.", ""]
     row["asr_detail"] = json.dumps(detail)
     return expected, row, detail
 
@@ -89,15 +89,33 @@ def test_text_h1_audits_cleaned_previous_output_and_empty_turn_reset():
 @pytest.mark.parametrize(
     "contexts",
     [
-        ["leaked recording", "First segment.", ""],
+        ["leaked recording", "Previous context: First segment.", ""],
         ["", "wrong text", ""],
-        ["", "First segment.", "First segment."],
-        ["", "First segment."],
+        ["", "Previous context: First segment.", "Previous context: First segment."],
+        ["", "Previous context: First segment."],
     ],
 )
 def test_text_h1_rejects_leaked_changed_stale_or_missing_context(contexts):
     expected, row, detail = text_history_fixture()
     detail["previous_contexts"] = contexts
+    row["asr_detail"] = json.dumps(detail)
+    with pytest.raises(ValueError, match="Unexpected decoding context"):
+        audit_rows([row], expected, context_mode="text_h1")
+
+
+@pytest.mark.parametrize("prefix", ["Previous segment transcript (for context):", "", "  Custom context:  "])
+def test_text_h1_audits_custom_prefix(prefix):
+    expected, row, detail = text_history_fixture()
+    detail["previous_contexts"][1] = f"{prefix.strip()} First segment.".strip()
+    row["asr_detail"] = json.dumps(detail)
+    assert audit_rows([row], expected, context_mode="text_h1", prefix=prefix)["segments"] == 3
+    with pytest.raises(ValueError, match="Unexpected decoding context"):
+        audit_rows([row], expected, context_mode="text_h1")
+
+
+def test_text_h1_rejects_raw_context_without_instruction():
+    expected, row, detail = text_history_fixture()
+    detail["previous_contexts"][1] = "First segment."
     row["asr_detail"] = json.dumps(detail)
     with pytest.raises(ValueError, match="Unexpected decoding context"):
         audit_rows([row], expected, context_mode="text_h1")

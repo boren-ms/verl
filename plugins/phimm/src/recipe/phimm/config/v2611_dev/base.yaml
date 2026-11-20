@@ -238,6 +238,7 @@ asr:
   context_aware:
     enable: false
     mode: text  # text | bias
+    prefix: null  # Override the text before context; null keeps the mode's default instruction.
     max_history: 1  # Number of previous response turns used as context in either mode.
     max_terms: -1  # No cap; positive T keeps last T words (text) or recent T distinct terms (bias).
     filter_common: true
