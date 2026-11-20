@@ -1,0 +1,15 @@
+# @package _global_
+# Group E: isolate two PPO epochs with the baseline learning rate.
+# Based on group A; retain its data, model, context OFF and training budget.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_no_context_a
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 6e-7
+    ppo_epochs: 2
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_no_context_e
