@@ -231,3 +231,19 @@ This prevents MeetEval's RTTM-ID intersection from silently shrinking coverage.
 The 0.25 s collar is a sensitivity result, not a setting selected to match the
 paper. The author confirmed Flash Attention in issue #237; exact kernel version
 and inference backend remain undisclosed.
+
+For explicit failure-inclusive scoring, `--reparse-raw
+--allow-unassigned-speech --allow-truncated` can be added to the DER command.
+These options preserve the saved raw response, list every truncated recording
+and every speech interval without a speaker, and continue scoring the full
+reference UEM. An unassigned speech event such as `[Speech]` emits no hypothesis
+speaker activity and is therefore an abstention; no speaker identity is
+invented and no reference speech is removed. Truncated outputs retain their
+emitted intervals and incur errors for the missing remainder. The strict
+behavior remains the default. A reparse writes a separate
+`reparsed_details.jsonl`, leaving the original inference details unchanged.
+
+MeetEval's `collar=0.25` passes `-c 0.25` to md-eval, excluding **±0.25 s**
+around each reference boundary. In pyannote.metrics 4.2.0 the equivalent
+argument is `collar=0.5`, because that package defines collar as the total width.
+The real-meeting smoke test agreed between scorers at matched collar widths.

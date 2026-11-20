@@ -108,3 +108,11 @@ def test_placeholder_expansion_round_trip_keeps_prompt_boundaries():
 def test_unexpected_audio_prompt_layout_fails_closed():
     with pytest.raises(ValueError):
         collapse_audio_tokens([10, 100, 102, 101, 20], start_id=100, end_id=101, audio_id=200)
+
+
+def test_unassigned_speech_requires_explicit_auditable_opt_in():
+    raw = '[{"Start": 1, "End": 2, "Content": "[Speech]"}]'
+    with pytest.raises(ValueError, match="Speaker"):
+        parse_transcription(raw)
+    segments = parse_transcription(raw, allow_unassigned_speech=True)
+    assert segments == [{"start_s": 1.0, "end_s": 2.0, "speaker": None, "text": "[Speech]"}]

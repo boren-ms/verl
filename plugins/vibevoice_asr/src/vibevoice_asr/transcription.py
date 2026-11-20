@@ -4,7 +4,7 @@ import json
 import math
 
 
-def parse_transcription(text, *, allow_invalid_event_times=False):
+def parse_transcription(text, *, allow_invalid_event_times=False, allow_unassigned_speech=False):
     """Return canonical segments from the two official field-name variants.
 
     Invalid/truncated output raises instead of silently reporting a WER on a
@@ -34,7 +34,9 @@ def parse_transcription(text, *, allow_invalid_event_times=False):
         if not isinstance(content, str):
             raise ValueError("Missing or invalid Content")
         non_speech = content.strip().lower() in NON_SPEECH_TAGS
-        if (speaker is None and not non_speech) or isinstance(speaker, (dict, list, bool)):
+        if (speaker is None and not non_speech and not allow_unassigned_speech) or isinstance(
+            speaker, (dict, list, bool)
+        ):
             raise ValueError("Missing or invalid Speaker")
         finite_times = not any(
             isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in (start, end)
