@@ -1,0 +1,72 @@
+# @package _global_
+# mix10 counts the ten training-data imports below.
+# Keep the 83,916-row Earnings short/contiguous/SC + Quartr FL mixture,
+# and add the existing text h4 data: 24,520 unique five-neighbor windows.
+# Two epochs: floor(108,436 / 128) * 2 = 1,694 training steps.
+# Use up to four previous transcripts, twice the base LR, and two PPO epochs.
+defaults:
+  - /v2611_dev/earnings/base_earning
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/train_data/quartr_3rd38@_quartr_third38_train
+  - /data/train_data/offline_audio/earnings_short_contiguous23@_contiguous_train
+  - /data/train_data/offline_audio/earnings_short_sc@_sc_train
+  - /data/train_data/foreign/quartr_fl_segments@_quartr_fl_short_train
+  - /data/train_data/offline_audio/quartr_fl_segments_random_segment23@_quartr_fl_rs_train
+  - /data/train_data/offline_audio/quartr_fl_segments_contiguous23@_quartr_fl_contiguous_train
+  - /data/train_data/offline_audio/earnings_short_contiguous5@_contiguous5_train
+  - _self_
+
+data:
+  # Four responses of up to 768 tokens plus the original 1024-token audio prompt.
+  max_prompt_length: 4096
+  train_data:
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+    - ${_contiguous_train}
+    - ${_sc_train}
+    - ${_quartr_fl_short_train}
+    - ${_quartr_fl_rs_train}
+    - ${_quartr_fl_contiguous_train}
+    - ${_contiguous5_train}
+  mix:
+    - shuffle: true
+      datasource:
+        # Preserve every existing row and include one full five-segment copy.
+        - {name: earn_fy27, sample: 37976, shuffle: true}
+        - {name: quartr_1st23, sample: 12408, shuffle: true}
+        - {name: quartr_2nd48, sample: 25376, shuffle: true}
+        - {name: quartr_3rd38, sample: 24480, shuffle: true}
+        - {name: quartr_fl_segments, sample: 8196, shuffle: true}
+
+reward_map:
+  quartr_fl_segments: train_librispeech
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1.2e-06
+    ppo_epochs: 2
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
+asr:
+  expected_training_rows: 108436
+  expected_training_steps: 1694
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 4
+    max_terms: 1000
+    filter_common: true
+    filter_numbers: true
+    filter_fillers: true
+    common_words: []
+
+trainer:
+  experiment_name: remax_mix10_text_h4_lr2x_ppo2
+  total_training_steps: 1694
