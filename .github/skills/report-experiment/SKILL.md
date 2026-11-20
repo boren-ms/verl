@@ -219,11 +219,15 @@ datasets.
 ### Full evaluation: default Excel comparison and table image
 
 When a report includes completed OpenASR/full evaluation results, generate the
-comparison workbook and its full table image by default, without waiting for a
+comparison workbook and a table image covering the requested evaluation scope, without waiting for a
 separate request. Use [openasr-report](../openasr-report/SKILL.md) with the exact
 reference chosen for this comparison, and follow
 [evaluation comparison tables](references/evaluation-comparison-table.md) for
-rendering, verification and delivery. Keep training trajectories and exact-step
+rendering, verification and delivery. For an OpenLong-focused comparison, use
+experiments as rows, dataset WERs as columns, then average WER and WERR versus
+the selected baseline; hide other evaluation suites in the displayed table.
+Keep measured results from stopped experiments, with their status/provenance.
+Keep training trajectories and exact-step
 tables separate from checkpoint-endpoint evaluation tables. A training-only
 report does not require an evaluation workbook or a new evaluation run.
 

@@ -1,8 +1,8 @@
 # Excel comparison table for full evaluation
 
 Apply when the report includes completed OpenASR/full evaluation results.
-Deliver both the editable workbook and an image of its complete comparison
-table by default. This is report generation from existing results; it never
+Deliver both the editable workbook and an image covering the requested comparison
+scope by default. This is report generation from existing results; it never
 requires launching or rerunning evaluation.
 
 ## Workbook and source identity
@@ -13,11 +13,41 @@ chosen reference and model order. Explicitly override the workbook builder's
 default baseline when the requested reference is another experiment. Record
 checkpoint steps, code/scoring identities and coverage in the evidence.
 
-Keep the canonical dataset order and OpenEN, OpenML and OpenLong sections,
+Keep the canonical dataset order and OpenEN, OpenML and OpenLong sections in the source workbook,
 including language means and group means. Preserve supplementary results in a
 separate table/image and data file; do not insert them into canonical means.
 Keep Chinese CER separate from WER. A missing result stays missing; do not fill
 it from a baseline or infer completion from an existing workbook cell.
+
+## OpenLong-focused experiment view
+
+For OpenASR Long / OpenLong comparisons, use this presentation in Chat, the
+PDF evaluation section, Markdown and note/homepage table embeds:
+
+| Experiment / checkpoint | Earnings21 WER | Earnings22 WER | CORAAL WER | Average WER | WERR vs Baseline |
+| --- | ---: | ---: | ---: | ---: | ---: |
+
+- Each experiment/checkpoint is one row; each dataset is one column. Preserve
+  experiment order, LR/PPO identity, checkpoint step and the selected baseline.
+  Show only these three OpenLong datasets and the two summary columns; omit
+  OpenEN, OpenML, OpenExt and auxiliary datasets from this view.
+- Average WER is the equal arithmetic mean of the three unrounded full-dataset
+  WERs. WERR is `1 - experiment_average_WER / baseline_average_WER`, formatted
+  as a percentage: positive means improvement, negative means regression.
+  This is the ratio of averages, not the average of dataset-level WERRs.
+- Require matching three-dataset coverage for the summary comparison. Leave
+  pending values and incomplete averages/WERR blank; never use zero, substitute
+  another checkpoint or backfill from the baseline. Baseline WERR may be 0%.
+- Stopping execution does not remove measured historical results. Retain their
+  rows, mark stopped/provisional status and distinguish audited output artifacts
+  from an unverified native job terminal state. Keep new unmeasured rows pending.
+- Include an editable `openlong_comparison` view with the same orientation and
+  formula cells, alongside the canonical source sheets. Save the exact rendering
+  values and coverage/provenance in `data/`. Other suites may remain in raw
+  artifacts without being displayed. Reuse this focused view in each delivery.
+
+The focused view overrides the dataset-row rendering below; the canonical
+worksheet contract remains the source-data format for broader full-suite reports.
 
 ## Render the table
 
@@ -25,8 +55,8 @@ it from a baseline or infer completion from an existing workbook cell.
   parts), and workbook-derived rendering values under `data/` as JSON or CSV.
 - Render dataset names, exact model/checkpoint headers, per-model percentages
   and one baseline-relative WERR column per target. Include every canonical
-  dataset, language-average row and group-average row; a selected-row summary
-  is not the full table view.
+  dataset, language-average row and group-average row for broader full-suite
+  reports; use the focused view above when the scope is OpenLong.
 - Follow the workbook's layout: blue headers/sections, yellow language means,
   green group means, aligned numeric columns, positive WERR green, negative
   WERR red and zero/missing neutral. Use enough precision to expose small
