@@ -65,3 +65,45 @@ def test_incomplete_or_mismatched_results_rejected(corruption):
     row["asr_detail"] = json.dumps(detail)
     with pytest.raises(ValueError):
         audit_rows(rows, expected)
+
+
+def text_history_fixture():
+    expected, row, detail = result_fixture()
+    expected[0]["audio_path"] = ["a", "b", "c"]
+    detail["segment_rows"] = [{"audio_path": path} for path in expected[0]["audio_path"]]
+    detail["segment_outputs"] = [
+        "<src=English><tgt=English>\n<TXT>First segment.</TXT>",
+        "<nonspeech>",
+        "new output",
+    ]
+    detail["previous_contexts"] = ["", "First segment.", ""]
+    row["asr_detail"] = json.dumps(detail)
+    return expected, row, detail
+
+
+def test_text_h1_audits_cleaned_previous_output_and_empty_turn_reset():
+    expected, row, _ = text_history_fixture()
+    assert audit_rows([row], expected, context_mode="text_h1")["segments"] == 3
+
+
+@pytest.mark.parametrize(
+    "contexts",
+    [
+        ["leaked recording", "First segment.", ""],
+        ["", "wrong text", ""],
+        ["", "First segment.", "First segment."],
+        ["", "First segment."],
+    ],
+)
+def test_text_h1_rejects_leaked_changed_stale_or_missing_context(contexts):
+    expected, row, detail = text_history_fixture()
+    detail["previous_contexts"] = contexts
+    row["asr_detail"] = json.dumps(detail)
+    with pytest.raises(ValueError, match="Unexpected decoding context"):
+        audit_rows([row], expected, context_mode="text_h1")
+
+
+def test_text_context_is_rejected_by_default_independent_audit():
+    expected, row, _ = text_history_fixture()
+    with pytest.raises(ValueError, match="Unexpected decoding context"):
+        audit_rows([row], expected)

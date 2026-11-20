@@ -19,8 +19,10 @@ def read_json(uri):
         return json.load(stream)
 
 
-def audit_rows(rows, expected):
+def audit_rows(rows, expected, *, context_mode="independent"):
     """Check every original parent/clip/reference before aggregating counts."""
+    if context_mode not in ("independent", "text_h1"):
+        raise ValueError(f"Unsupported context audit mode: {context_mode}")
     expected = {row["id"]: row for row in expected}
     seen = set()
     counts = dict.fromkeys(("parents", "segments", "eer_n_err", "eer_n_ref", "dter_n_err", "dter_n_ref"), 0)
@@ -38,7 +40,12 @@ def audit_rows(rows, expected):
         paths = [segment["audio_path"] for segment in detail["segment_rows"]]
         if paths != source["audio_path"] or len(detail["segment_outputs"]) != len(paths):
             raise ValueError(f"Incomplete or reordered decoded clips: {uid}")
-        if len(detail["previous_contexts"]) != len(paths) or any(detail["previous_contexts"]):
+        contexts = [""] * len(paths)
+        if context_mode == "text_h1":
+            from recipe.phimm.reward.asr_response import get_hyp_text
+
+            contexts[1:] = [get_hyp_text(text, version=2609) for text in detail["segment_outputs"][:-1]]
+        if detail["previous_contexts"] != contexts:
             raise ValueError(f"Unexpected decoding context: {uid}")
         seen.add(uid)
         counts["parents"] += 1
@@ -67,6 +74,8 @@ def main():
     parser.add_argument("--result-root", required=True, help="Run's val_data_gen directory (local or Blob)")
     parser.add_argument("--manifest-root", default=OUTPUT_ROOT)
     parser.add_argument("--step", type=int, default=0)
+    parser.add_argument("--context-mode", choices=("independent", "text_h1"), default="independent")
+    parser.add_argument("--model-label", default="2611 V1")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     metrics = read_json(f"{args.result_root}/{args.step}.metrics.json")["metrics"]
@@ -78,13 +87,16 @@ def main():
         source = expected[0]["data_source"]
         uri = f"{args.result_root}/{source}/{args.step}.jsonl"
         with bf.BlobFile(uri, "r") as stream:
-            counts = audit_rows((json.loads(line) for line in stream if line.strip()), expected)
+            counts = audit_rows(
+                (json.loads(line) for line in stream if line.strip()), expected, context_mode=args.context_mode
+            )
         values = ratios(counts)
         for metric in ("eer", "dter"):
             saved = metrics[f"val-core/{source}/{metric}_p_err/mean@1"]
             if values[metric] is None or not math.isclose(values[metric], saved, abs_tol=1e-12):
                 raise ValueError(f"Persisted metrics differ from detail counts: {source}/{metric}")
         result.append({"dataset": source, **counts, **values, "detail_path": uri, "manifest": path})
+        print(f"Audited {source}: {counts['parents']} recordings / {counts['segments']} clips", flush=True)
         if totals is None:
             totals = dict.fromkeys(counts, 0)
         for key, value in counts.items():
@@ -94,10 +106,20 @@ def main():
     summary = {
         "result_root": args.result_root,
         "step": args.step,
+        "model_label": args.model_label,
+        "context_mode": args.context_mode,
         "datasets": result,
         "total": {**totals, **ratios(totals)},
         "macro": {metric: sum(row[metric] for row in result) / len(result) for metric in ("eer", "dter")},
-        "audit": "755 original references, ordered 25978 clips, empty previous contexts, saved metric agreement",
+        "audit": (
+            "755 original references, ordered 25978 clips, "
+            + (
+                "empty previous contexts"
+                if args.context_mode == "independent"
+                else "exact previous-output text h1 contexts"
+            )
+            + ", saved metric agreement"
+        ),
     }
     args.output_dir.mkdir(parents=True, exist_ok=True)
     (args.output_dir / "summary.json").write_text(json.dumps(summary, indent=2))
@@ -106,9 +128,14 @@ def main():
         writer.writeheader()
         writer.writerows(result)
     lines = [
-        "# 2611 V1 — Inhouse en-US-entity-v3 longform evaluation",
+        f"# {args.model_label} — Inhouse en-US-entity-v3 longform evaluation",
         "",
-        "Uses the existing VAD audio clips and concatenates independent segment outputs in recording order.",
+        "Uses the existing VAD audio clips and concatenates segment outputs in recording order.",
+        (
+            "Clips decode independently with empty preceding contexts."
+            if args.context_mode == "independent"
+            else "Text context uses only the preceding clip's cleaned generated output; history resets per recording."
+        ),
         "Official SpeechInsight verbatim EER uses original tagged Transcription; DTER uses DisplayTranscription.",
         "Corpus rates divide summed errors by summed reference units; macro rates weight the 31 subsets equally.",
         "",

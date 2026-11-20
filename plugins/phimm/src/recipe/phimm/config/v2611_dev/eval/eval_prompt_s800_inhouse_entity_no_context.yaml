@@ -1,0 +1,12 @@
+# @package _global_
+# Same Prompt-context checkpoint and inhouse clips; decode with no preceding context.
+defaults:
+  - eval_prompt_s800_inhouse_entity_text_h1
+  - _self_
+
+asr:
+  context_aware:
+    enable: false
+
+trainer:
+  experiment_name: eval_prompt_s800_inhouse_entity_no_context

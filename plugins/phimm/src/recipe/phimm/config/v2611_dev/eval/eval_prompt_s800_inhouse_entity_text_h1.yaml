@@ -1,0 +1,20 @@
+# @package _global_
+# Prompt-context RM2-3 checkpoint800; complete inhouse recordings from existing VAD clips.
+defaults:
+  - eval_2611v1_inhouse_entity_longform
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2611/earnings-short-rm23-prompt-context-20261118/global_step_800/hf_export
+    lora_rank: 0
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 1
+    max_terms: -1
+
+trainer:
+  experiment_name: eval_prompt_s800_inhouse_entity_text_h1
