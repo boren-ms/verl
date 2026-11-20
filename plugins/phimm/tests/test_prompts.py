@@ -10,13 +10,16 @@ from recipe.phimm.reward.asr_response import get_hyp_text
     [
         ("verb", "VERBATIM", "Transcribe verbatim, including all filler words and disfluencies."),
         ("lex", "LEXICAL", "Output must be in lexical format."),
-        ("display", "READABLE", "Output must be in display format."),
+        ("display", "READABLE", ""),
     ],
 )
 def test_style_and_language(style, tag, instruction):
     prompt = get_task_prompt(style, "en")
     assert prompt.count("<audio>") == 1
-    assert prompt.startswith(f"Transcribe the audio clip into text. {instruction}")
+    expected = "Transcribe the audio clip into text."
+    if instruction:
+        expected += f" {instruction}"
+    assert prompt == f"{expected}<audio>\nThe language is English."
     assert "Only include" not in prompt
     assert "Omit speech" not in prompt
     assert prompt.endswith("The language is English.")

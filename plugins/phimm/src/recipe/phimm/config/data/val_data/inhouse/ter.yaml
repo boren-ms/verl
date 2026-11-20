@@ -1,0 +1,112 @@
+# @package data.val_data
+# Five separate EN-US TER datasets. See adjacent Markdown for full source names.
+
+# Conversation
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/dtest_enus_ter_v1/Conversation_DTEST_FY21Q1_en-US.jsonl
+  add_task_info:
+    style: display
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: conversation
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - audio_path
+        - parent_audio_path
+        - entity_transcription
+        - n_segments
+        - reference_scope
+        - source_manifest
+        - reference_manifest
+
+# Meetings
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/dtest_enus_ter_v1/Conversation_OnlineMeetings_DTEST_FY25Q3_en-US_DTEST_OfflineDataCollection.jsonl
+  add_task_info:
+    style: display
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: meetings
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - audio_path
+        - parent_audio_path
+        - entity_transcription
+        - n_segments
+        - reference_scope
+        - source_manifest
+        - reference_manifest
+
+# Product
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/dtest_enus_ter_v1/OnlineMeetings_CS_Product_FY22_en-US_DTEST.jsonl
+  add_task_info:
+    style: display
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: product
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - audio_path
+        - parent_audio_path
+        - entity_transcription
+        - n_segments
+        - reference_scope
+        - source_manifest
+        - reference_manifest
+
+# Shiproom
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/dtest_enus_ter_v1/OnlineMeetings_CS_Shiproom_FY22_en-US_DTEST.jsonl
+  add_task_info:
+    style: display
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: shiproom
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - audio_path
+        - parent_audio_path
+        - entity_transcription
+        - n_segments
+        - reference_scope
+        - source_manifest
+        - reference_manifest
+
+# Dictation
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/dtest_enus_ter_v1/Dictation_Commonset_OfficeOffline_FY24Q3_en-US_DTEST_OfflineDataCollection.jsonl
+  add_task_info:
+    style: display
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: dictation
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - audio_path
+        - parent_audio_path
+        - entity_transcription
+        - n_segments
+        - reference_scope
+        - source_manifest
+        - reference_manifest

@@ -624,7 +624,29 @@ can run concurrently. Only newly generated tokens are scored, with raw response
 formatting preserved for reward checks. By default, only the immediately previous
 response's text is carried forward. Set `asr.context_aware.max_history`
 to include more responses. Saved
-`asr_detail.previous_contexts` aligns with `segment_outputs` for auditing.
+`asr_detail.previous_contexts` saves the complete appended instructions, including
+their prefixes, aligned with `segment_outputs` for auditing.
+Override the instruction before the generated context with
+`asr.context_aware.prefix`, passed to `ContextPrompt(..., prefix=None)`.
+The object owns both context history and construction of the appended instruction.
+For example, to match the original Prompt @800 training wording:
+
+```yaml
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 1
+    prefix: "Previous segment transcript (for context):"
+```
+
+This appends `Previous segment transcript (for context): <generated transcript>`
+to the final user turn. The prefix is stripped and joined to the context with one
+space. `null` retains the default instruction for the selected mode; an empty
+string appends the context alone. The override also applies to bias
+mode, preserving its extracted terms. No instruction is appended when context
+is empty, including the first segment of each recording.
+
 The preset reserves 2048 prompt tokens for audio and context together and raises
 an error on overflow.
 
@@ -703,8 +725,8 @@ with `asr.context_aware.max_terms` (default `-1`, no cap). This cap is independe
 responses, not the response count or token count.
 In both modes, the complete prompt must still fit its token limit; context is
 not automatically trimmed to fit that limit. In the saved
-`asr_detail.previous_contexts`, bias mode records the formatted term list
-instead of the transcript.
+`asr_detail.previous_contexts`, bias mode records the instruction and formatted
+term list.
 
 For Earnings Short SC1, select
 `--config-path config/v2611_dev/earnings --config-name remax_earnings_short_context_aware`.
