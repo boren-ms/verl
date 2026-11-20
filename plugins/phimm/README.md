@@ -411,7 +411,7 @@ and `asr.context_aware.mode` to select how that context is built.
 
 For the same RM23 data and training budget with bias terms, use
 `prompt_ctx/remax_earnings_short_random_merge23_prev_bias` for the preceding segment or
-`prompt_ctx/remax_earnings_short_random_merge23_full_bias` for all earlier segments in the
+`prompt_ctx/remax_earnings_short_random_merge23_full_bias` for up to 1,000 earlier segments in the
 trajectory. Each preset has its own experiment name and enables the common-word,
 number, and filler filters. Use
 `prompt_ctx/remax_earnings_short_random_merge23_prev_bias_unfiltered` to compare
@@ -466,7 +466,21 @@ The paired multi-segment ReMax presets are
 `remax_earnings_short_contiguous23_context` and
 `remax_earnings_short_contiguous23_no_context` under `config/v2611_dev/earnings/`.
 Use `prompt_ctx/remax_earnings_short_contiguous23_full_bias` for Contiguous23
-with full-session bias terms and all three filters enabled.
+with bias terms from up to 1,000 previous responses and all three filters enabled.
+For `max_history: 2`, use `prompt_ctx/remax_earnings_short_contiguous23_text_history2`
+for transcript context or `prompt_ctx/remax_earnings_short_contiguous23_bias_history2`
+for bias terms. These inherit the full-bias preset and have distinct experiment names.
+Use `prompt_ctx/remax_earnings_short_contiguous5_text_history4` for exactly five
+adjacent segments per sample and text from up to four previous responses. Its
+datasource is `data/train_data/offline_audio/earnings_short_contiguous5.yaml`.
+It uses all 24,520 unique five-segment windows from the same 25,240 utterances
+and 180 recordings, with no repeated boundary windows. The per-source sampling
+budgets match those window counts, giving 382 updates over two epochs at batch
+size 128. It reserves 4096 prompt tokens for the audio and transcript history.
+Rebuild the windows with `offline_contiguous_merge --merge-mode contiguous5`;
+this mode requires at least five utterances per recording and keeps every
+consecutive five-utterance window once. The manifests and preparation audit are
+under `az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/`.
 They share all five prepared sources and the same ReMax recipe (`n=8`), and set
 `asr.context_aware.enable` to true/false across sampled rollout, greedy baseline and
 validation. Both retain ordered 2/3-utterance lists and full-parent U2 scoring;
@@ -607,8 +621,9 @@ Language headers, ASR formatting tags, and nonspeech markers are removed using
 the standard transcript extractor. The assistant turn starts empty. The first
 segment has no context line; context resets between recordings, and recordings
 can run concurrently. Only newly generated tokens are scored, with raw response
-formatting preserved for reward checks. Only the immediately previous segment's
-text is carried forward; history is not accumulated. Saved
+formatting preserved for reward checks. By default, only the immediately previous
+response's text is carried forward. Set `asr.context_aware.max_history`
+to include more responses. Saved
 `asr_detail.previous_contexts` aligns with `segment_outputs` for auditing.
 The preset reserves 2048 prompt tokens for audio and context together and raises
 an error on overflow.
@@ -629,7 +644,8 @@ Context settings live in one mapping:
 asr:
   context_aware:
     enable: true
-    mode: prev_bias
+    mode: bias
+    max_history: 1
     filter_common: true
     filter_numbers: true
     filter_fillers: true
@@ -638,20 +654,32 @@ asr:
 ```
 
 A legacy boolean `asr.context_aware` is still accepted and uses the default
-`prev_text` mode when enabled. With `asr.context_aware.enable=true`, choose:
+`text` mode when enabled. With `asr.context_aware.enable=true`, choose:
 
 | `asr.context_aware.mode` | Context placed in the user prompt |
 |---|---|
-| `prev_text` (default) | Cleaned transcript of the immediately previous segment. |
-| `prev_bias` | Words and short capitalized phrases from the immediately previous segment. |
-| `full_bias` | Words and short capitalized phrases from all earlier segments in the same trajectory. |
+| `text` (default) | Cleaned transcripts of the selected previous responses, oldest to newest, separated by newlines. |
+| `bias` | Words and short capitalized phrases extracted from the selected previous responses. |
 
-Both bias modes use the MoE format:
+`max_history` sets the response window for **both** modes. Use `1`
+for the immediately previous response, `3` for the latest three, or `1000` for
+up to the latest 1,000. It must be a positive integer when specified. Empty,
+nonspeech, and fully filtered responses still count toward the window and
+evict older responses. History resets for each recording or training sample.
+For example, `mode: text` with `max_history: 3` includes the latest
+three cleaned responses; `mode: bias` with `max_history: 1000`
+builds a bias list from up to 1,000 earlier responses.
+
+The default window is one response. Only `text` and `bias` modes are supported.
+The previous-bias presets use `mode: bias` with `max_history: 1`; the full-bias
+presets use `mode: bias` with `max_history: 1000`.
+
+Bias mode uses the MoE format:
 `Pay extra attention to the following phrases/words: *OpenAI*, *Qwen*, *Microsoft Research*.`
 The line is appended after the existing audio marker and any language hint.
 The builder preserves internal hyphens and version dots in the displayed terms,
 deduplicates case-insensitively and ignores punctuation when deduplicating,
-and omits the line when no terms remain. Both modes order terms by their most
+and omits the line when no terms remain. Bias terms are ordered by their most
 recent occurrence, including within a segment, and keep up to `max_terms`
 distinct terms. Common English words, numeric terms, and hesitation sounds
 such as `uh`, `um`, `erm`, and `uh-huh` are filtered by default. Set
@@ -661,10 +689,12 @@ to `false` to disable each filter independently. Mixed terms like `3M` and
 `1-800-FLOWERS` keep their hyphens in the prompt.
 When common-word filtering is enabled, extend the English filter with
 `asr.context_aware.common_words=[word1,word2]`. Adjust the cap
-with `asr.context_aware.max_terms` (default 2000). The cap limits terms, not tokens;
+with `asr.context_aware.max_terms` (default 1000). This cap is independent of
+`max_history`: it limits distinct terms after combining the selected
+responses, not the response count or token count;
 the complete prompt must still fit its token limit. Bias terms are not automatically
 trimmed to fit that limit. In the saved
-`asr_detail.previous_contexts`, bias modes record the formatted term list
+`asr_detail.previous_contexts`, bias mode records the formatted term list
 instead of the transcript.
 
 For Earnings Short SC1, select

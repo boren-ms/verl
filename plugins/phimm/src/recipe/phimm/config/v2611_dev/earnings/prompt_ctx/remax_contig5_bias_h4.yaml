@@ -1,0 +1,12 @@
+# @package _global_
+# Same unique five-segment data as text h4, using extracted bias terms.
+defaults:
+  - remax_earnings_short_contiguous5_text_history4
+  - _self_
+
+asr:
+  context_aware:
+    mode: bias
+
+trainer:
+  experiment_name: remax_contig5_bias_h4

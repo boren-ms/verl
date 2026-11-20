@@ -24,6 +24,69 @@ def compose_recipe():
     return load
 
 
+@pytest.mark.parametrize("mode", ["text", "bias"])
+@pytest.mark.parametrize("window", [1, 3, 1000])
+def test_context_response_window_supports_native_overrides(compose_recipe, mode, window):
+    config = compose_recipe(overrides=[f"asr.context_aware.mode={mode}", f"asr.context_aware.max_history={window}"])
+    assert config.asr.context_aware.mode == mode
+    assert config.asr.context_aware.max_history == window
+
+
+def test_context_defaults_to_one_previous_text_response(compose_recipe):
+    config = compose_recipe()
+    assert config.asr.context_aware.mode == "text"
+    assert config.asr.context_aware.max_history == 1
+    assert config.asr.context_aware.max_terms == 1000
+
+
+@pytest.mark.parametrize("mode", ["text", "bias"])
+def test_two_response_presets_preserve_contiguous23_training(compose_recipe, mode):
+    base = compose_recipe(kind="earnings", name="prompt_ctx/remax_earnings_short_contiguous23_full_bias")
+    name = f"remax_earnings_short_contiguous23_{mode}_history2"
+    config = compose_recipe(kind="earnings", name=f"prompt_ctx/{name}")
+    assert config.data == base.data
+    assert config.asr.context_aware.mode == mode
+    assert config.asr.context_aware.max_history == 2
+    assert config.trainer.experiment_name == name
+
+
+def test_five_segment_text_preset_matches_unique_window_budget(compose_recipe):
+    name = "remax_earnings_short_contiguous5_text_history4"
+    config = compose_recipe(kind="earnings", name=f"prompt_ctx/{name}")
+    OmegaConf.resolve(config)
+    assert config.asr.context_aware.enable
+    assert config.asr.context_aware.mode == "text"
+    assert config.asr.context_aware.max_history == 4
+    assert config.trainer.experiment_name == name
+    assert all("earnings_short_contiguous5_" in source.jsonl_paths for source in config.data.train_data)
+    samples = sum(source.sample for source in config.data.mix[0].datasource)
+    assert samples == config.asr.expected_training_rows == 24520
+    steps = samples // config.data.train_batch_size * config.trainer.total_epochs
+    assert steps == config.trainer.total_training_steps == config.asr.expected_training_steps == 382
+    assert config.data.max_prompt_length == 4096
+    assert config.actor_rollout_ref.actor.ppo_max_token_len_per_gpu == config.data.max_model_length
+    assert config.actor_rollout_ref.ref.log_prob_max_token_len_per_gpu == config.data.max_model_length
+
+
+@pytest.mark.parametrize(
+    ("name", "max_history"),
+    [
+        ("prompt_ctx/remax_earnings_short_random_merge23_prev_bias", 1),
+        ("prompt_ctx/remax_earnings_short_random_merge23_prev_bias_unfiltered", 1),
+        ("prompt_ctx/remax_earnings_short_random_merge23_full_bias", 1000),
+        ("prompt_ctx/remax_earnings_short_contiguous23_full_bias", 1000),
+        ("long/remax_earnings_short_contiguous10m_full_bias", 1000),
+        ("long/remax_earnings_short_contiguous_full_full_bias", 1000),
+        ("long/remax_earnings_long_svad30_full_bias", 1000),
+    ],
+)
+def test_bias_presets_use_explicit_response_windows(compose_recipe, name, max_history):
+    config = compose_recipe(kind="earnings", name=name)
+    assert config.asr.context_aware.enable
+    assert config.asr.context_aware.mode == "bias"
+    assert config.asr.context_aware.max_history == max_history
+
+
 @pytest.mark.parametrize("context", [True, False])
 def test_fl_earnings_training_sources_have_registered_scorers(compose_recipe, context):
     suffix = "context" if context else "no_context"
@@ -207,6 +270,7 @@ def test_evaluation_requires_explicit_model_and_experiment(compose_recipe):
 
 def test_raw_dataset_mixes_without_loading_audio_or_tokenizing(monkeypatch):
     import datasets
+
     from recipe.phimm.agentic import dataset
 
     sources = {
@@ -312,6 +376,7 @@ def test_incomplete_eval_fails_before_initializing_gpu_workers(compose_recipe):
 
 def test_removed_transform_is_rejected():
     import datasets
+
     from recipe.phimm.data.dataset import process_ds
 
     with pytest.raises(ValueError, match="Unsupported Base3a data transforms"):
@@ -326,6 +391,7 @@ def test_entrypoint_sends_resolved_config_to_fresh_worker(compose_recipe, monkey
     from types import ModuleType
 
     import ray
+
     from recipe.phimm.main_asr_remax import main
 
     received = []
@@ -416,6 +482,7 @@ def test_sampling_applies_configured_no_repeat_window(compose_recipe, validate, 
 
 def test_jsonl_loading_reads_updated_manifest_without_dataset_disk_cache(tmp_path, monkeypatch):
     import datasets
+
     from recipe.phimm.data.dataset import create_audio_dataset
 
     def forbidden(*args, **kwargs):

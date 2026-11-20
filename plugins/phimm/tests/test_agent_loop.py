@@ -17,6 +17,7 @@ from omegaconf import OmegaConf
 @pytest.fixture
 def agent_loop(monkeypatch):
     import ray
+
     import recipe.phimm
     import recipe.phimm.utils.audio  # Import TransferQueue before replacing ray.remote below.
 
@@ -378,20 +379,22 @@ def test_context_resets_between_parents_and_uses_only_previous_segment(multi_tur
 
 
 @pytest.mark.parametrize(
-    ("mode", "filter_common", "expected"),
+    ("max_history", "filter_common", "expected"),
     [
-        ("prev_bias", True, ["", "*Qwen*, *Microsoft Research*, *OpenAI*", "*QWEN*"]),
-        ("full_bias", True, ["", "*Qwen*, *Microsoft Research*, *OpenAI*", "*QWEN*, *Microsoft Research*, *OpenAI*"]),
+        (1, True, ["", "*Qwen*, *Microsoft Research*, *OpenAI*", "*QWEN*"]),
+        (1000, True, ["", "*Qwen*, *Microsoft Research*, *OpenAI*", "*QWEN*, *Microsoft Research*, *OpenAI*"]),
         (
-            "prev_bias",
+            1,
             False,
             ["", "*Qwen*, *Microsoft Research*, *and*, *OpenAI*, *the*", "*know*, *you*, *QWEN*, *then*, *And*"],
         ),
     ],
 )
-def test_bias_context_reaches_rollout_and_actor(multi_turn_loop, mode, filter_common, expected):
+def test_bias_context_reaches_rollout_and_actor(multi_turn_loop, max_history, filter_common, expected):
     loop, rows, generated = multi_turn_loop
-    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_common": filter_common}}
+    loop.config.asr = {
+        "context_aware": {"enable": True, "mode": "bias", "max_history": max_history, "filter_common": filter_common}
+    }
     loop.rollout_config.prompt_length = 512
     raw = {
         900: "<src=English><tgt=English>\n<VERBATIM>the OpenAI and Microsoft Research, uh, Q-wen, Qwen.</VERBATIM>",
@@ -422,7 +425,7 @@ def test_bias_context_reaches_rollout_and_actor(multi_turn_loop, mode, filter_co
     assert fresh[0].extra_fields["asr_previous_context"] == ""
 
 
-@pytest.mark.parametrize("mode", ["prev_bias", "full_bias"])
+@pytest.mark.parametrize("max_history", [1, 1000])
 @pytest.mark.parametrize(
     ("transcript", "filter_common"),
     [
@@ -432,9 +435,11 @@ def test_bias_context_reaches_rollout_and_actor(multi_turn_loop, mode, filter_co
         ("Erm, uh-huh, hmm.", False),
     ],
 )
-def test_bias_without_eligible_terms_keeps_base_prompt(multi_turn_loop, mode, transcript, filter_common):
+def test_bias_without_eligible_terms_keeps_base_prompt(multi_turn_loop, max_history, transcript, filter_common):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_common": filter_common}}
+    loop.config.asr = {
+        "context_aware": {"enable": True, "mode": "bias", "max_history": max_history, "filter_common": filter_common}
+    }
     loop.rollout_config.prompt_length = 512
     loop.tokenizer.decode = lambda ids, **kwargs: f"<src=English><tgt=English>\n<VERBATIM>{transcript}</VERBATIM>"
     row = rows[1]
@@ -465,7 +470,7 @@ def test_bias_filters_common_words_and_numbers_independently(multi_turn_loop, fi
     loop.config.asr = {
         "context_aware": {
             "enable": True,
-            "mode": "prev_bias",
+            "mode": "bias",
             "filter_common": filter_common,
             "filter_numbers": filter_numbers,
         }
@@ -479,10 +484,12 @@ def test_bias_filters_common_words_and_numbers_independently(multi_turn_loop, fi
     assert outputs[1].extra_fields["asr_previous_context"] == expected
 
 
-@pytest.mark.parametrize("mode", ["prev_bias", "full_bias"])
-def test_bias_preserves_vanity_phone_spelling(multi_turn_loop, mode):
+@pytest.mark.parametrize("max_history", [1, 1000])
+def test_bias_preserves_vanity_phone_spelling(multi_turn_loop, max_history):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_numbers": True}}
+    loop.config.asr = {
+        "context_aware": {"enable": True, "mode": "bias", "max_history": max_history, "filter_numbers": True}
+    }
     loop.rollout_config.prompt_length = 512
     loop.tokenizer.decode = lambda ids, **kwargs: "1800flowers, 1-800-FLOWERS, 425-555-0123."
 
@@ -493,11 +500,11 @@ def test_bias_preserves_vanity_phone_spelling(multi_turn_loop, mode):
 
 
 @pytest.mark.parametrize(
-    ("mode", "expected"), [("prev_bias", "*Qwen*, *uh-huh*, *erm*, *UH*"), ("prev_text", "UH, erm, uh-huh, Qwen.")]
+    ("mode", "expected"), [("bias", "*Qwen*, *uh-huh*, *erm*, *UH*"), ("text", "UH, erm, uh-huh, Qwen.")]
 )
 def test_filler_filter_can_be_disabled_and_does_not_change_previous_text(multi_turn_loop, mode, expected):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_fillers": mode == "prev_text"}}
+    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "filter_fillers": mode == "text"}}
     loop.rollout_config.prompt_length = 512
     transcript = "UH, erm, uh-huh, Qwen."
     loop.tokenizer.decode = lambda ids, **kwargs: f"<src=English><tgt=English>\n<VERBATIM>{transcript}</VERBATIM>"
@@ -505,11 +512,33 @@ def test_filler_filter_can_be_disabled_and_does_not_change_previous_text(multi_t
     assert outputs[1].extra_fields["asr_previous_context"] == expected
 
 
-@pytest.mark.parametrize(("mode", "after_third"), [("prev_bias", "*NVIDIA*"), ("full_bias", "*NVIDIA*, *Q-wen*")])
-def test_bias_keeps_most_recent_distinct_terms(mode, after_third):
+@pytest.mark.parametrize("validate", [False, True])
+@pytest.mark.parametrize("mode", ["text", "bias"])
+def test_response_window_reaches_prompts_and_resets_per_trajectory(multi_turn_loop, validate, mode):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "max_history": 2}}
+    loop.rollout_config.prompt_length = 512
+    transcripts = iter(["Alpha.", "Beta.", "Gamma.", "Delta."])
+    loop.tokenizer.decode = lambda ids, **kwargs: next(transcripts)
+    outputs, _ = asyncio.run(loop.generate_segments(rows * 2, {"logprobs": True}, validate=validate))
+    expected = (
+        ["", "Alpha.", "Alpha.\nBeta.", "Beta.\nGamma."]
+        if mode == "text"
+        else ["", "*Alpha*", "*Beta*, *Alpha*", "*Gamma*, *Beta*"]
+    )
+    assert [output.extra_fields["asr_previous_context"] for output in outputs] == expected
+    for index, context in enumerate(expected[1:], start=1):
+        assert context in loop.processor.calls[index][0][0]
+    loop.tokenizer.decode = lambda ids, **kwargs: "Fresh."
+    fresh, _ = asyncio.run(loop.generate_segments(rows[:1], {}, validate=validate))
+    assert fresh[0].extra_fields["asr_previous_context"] == ""
+
+
+@pytest.mark.parametrize(("max_history", "after_third"), [(1, "*NVIDIA*"), (1000, "*NVIDIA*, *Q-wen*")])
+def test_bias_keeps_most_recent_distinct_terms(max_history, after_third):
     from recipe.phimm.agentic.context_prompt import ContextPrompt
 
-    context = ContextPrompt(mode, version=2609, max_terms=2, extra_common_words=["routine"])
+    context = ContextPrompt("bias", version=2609, max_history=max_history, max_terms=2, extra_common_words=["routine"])
     context.observe("THE and we, uh, don't. Routine.")
     assert context.context == ""
     context.observe("OpenAI, Qwen.")
@@ -737,6 +766,7 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
 @pytest.mark.parametrize("validate", [False, True])
 def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop, validate):
     import datasets
+
     from recipe.phimm.agentic.dataset import ASRDataset
     from recipe.phimm.data.dataset import augment
     from recipe.phimm.tools.random_merge_list import random_merge

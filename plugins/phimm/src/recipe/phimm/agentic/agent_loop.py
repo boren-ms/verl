@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import ray
 import torch
+
 from recipe.phimm.agentic.context_prompt import (
     DEFAULT_CONTEXT_MODE,
     DEFAULT_MAX_BIAS_TERMS,
@@ -18,7 +19,6 @@ from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.audio import load_audio
-
 from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, DictConfigWrap, register
 from verl.trainer.ppo.v1.agent_loop_tq import AgentLoopManagerTQ, AgentLoopWorkerTQBase
 from verl.utils.profiler import simple_timer
@@ -85,6 +85,7 @@ class ASRAgentLoop(AgentLoopBase):
             context = ContextPrompt(
                 config.get("mode", DEFAULT_CONTEXT_MODE),
                 version=getattr(self.config.data, "version", None),
+                max_history=config.get("max_history", 1),
                 max_terms=config.get("max_terms", DEFAULT_MAX_BIAS_TERMS),
                 filter_common=config.get("filter_common", True),
                 filter_numbers=config.get("filter_numbers", True),

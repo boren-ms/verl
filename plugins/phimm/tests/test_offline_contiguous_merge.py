@@ -10,6 +10,7 @@ import pytest
 import yaml
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
+
 from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.data.dataset import jsonl_dataset
 from recipe.phimm.tools.offline_contiguous_merge import contiguous_merge, main, prepare
@@ -63,7 +64,30 @@ def test_same_size_unique_neighbor_windows_cover_every_input(size):
     assert len(used) > len(rows)
 
 
-@pytest.mark.parametrize("merge_mode", ["contiguous23", "full_recording"])
+@pytest.mark.parametrize("size", [5, 6, 9, 49])
+def test_five_segment_windows_are_unique_ordered_and_cover_each_recording(size):
+    rows = list(reversed(rows_for("a", size) + rows_for("b", size + 1)))
+    output = contiguous_merge(rows, merge_mode="contiguous5")
+    assert output == contiguous_merge(rows, merge_mode="contiguous5")
+    assert len(output) == len(rows) - 4 * 2
+    assert len({tuple(row["source_indices"]) for row in output}) == len(output)
+    assert {i for row in output for i in row["source_indices"]} == set(range(len(rows)))
+    for row in output:
+        members = [rows[i] for i in row["source_indices"]]
+        assert row["merge_count"] == len(row["audio_path"]) == 5
+        assert len({member["original_audio_url"] for member in members}) == 1
+        offsets = [member["part_start_seconds"] for member in members]
+        assert offsets == list(range(offsets[0], offsets[0] + 10, 2))
+        assert row["text"] == " ".join(member["text"] for member in members)
+
+
+@pytest.mark.parametrize("size", [1, 2, 3, 4])
+def test_five_segment_windows_reject_short_recordings(size):
+    with pytest.raises(ValueError, match="at least five"):
+        contiguous_merge(rows_for("a", size), merge_mode="contiguous5")
+
+
+@pytest.mark.parametrize("merge_mode", ["contiguous23", "contiguous5", "full_recording"])
 def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_path, merge_mode):
     rows = rows_for("a", 5)
     for index, row in enumerate(rows):
@@ -85,7 +109,7 @@ def test_normalization_precedes_merge_and_training_preserves_segment_lists(tmp_p
     stats = prepare(source, root, merge_mode=merge_mode)
     assert source == before
     assert stats["input_rows"] == 5
-    expected_count = 1 if merge_mode == "full_recording" else 5
+    expected_count = 5 if merge_mode == "contiguous23" else 1
     assert stats["output_rows"] == expected_count
     output = [json.loads(line) for line in (root / "data.jsonl").read_text().splitlines()]
     with gzip.open(root / "data.jsonl.gz", "rt") as stream:

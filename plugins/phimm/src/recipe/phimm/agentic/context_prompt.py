@@ -3,13 +3,14 @@
 import copy
 import re
 import unicodedata
+from collections import deque
 from itertools import chain
 
 from recipe.phimm.reward.asr_response import get_hyp_text
 
-DEFAULT_CONTEXT_MODE = "prev_text"
-DEFAULT_MAX_BIAS_TERMS = 2000
-CONTEXT_MODES = {DEFAULT_CONTEXT_MODE, "prev_bias", "full_bias"}
+DEFAULT_CONTEXT_MODE = "text"
+DEFAULT_MAX_BIAS_TERMS = 1000
+CONTEXT_MODES = {DEFAULT_CONTEXT_MODE, "bias"}
 
 
 def context_options(asr_config):
@@ -114,13 +115,14 @@ def _bias_terms(transcript, excluded_words, filter_numbers):
 
 
 class ContextPrompt:
-    """One context builder per sampled, greedy, or validation trajectory."""
+    """One builder per trajectory; max_history counts previous response turns, including empty ones."""
 
     def __init__(
         self,
         mode,
         *,
         version=None,
+        max_history=1,
         max_terms=DEFAULT_MAX_BIAS_TERMS,
         filter_common=True,
         filter_numbers=True,
@@ -129,12 +131,16 @@ class ContextPrompt:
     ):
         if mode not in CONTEXT_MODES:
             raise ValueError(f"Unknown ASR context mode {mode!r}; expected one of {sorted(CONTEXT_MODES)}")
+        if not isinstance(max_history, int) or isinstance(max_history, bool) or max_history < 1:
+            raise ValueError("asr.context_aware.max_history must be a positive integer")
         if mode != DEFAULT_CONTEXT_MODE and (
             not isinstance(max_terms, int) or isinstance(max_terms, bool) or max_terms < 1
         ):
             raise ValueError("asr.context_aware.max_terms must be a positive integer")
         self.mode = mode
         self.version = version
+        self.max_history = max_history
+        self.responses = deque(maxlen=max_history)
         self.max_terms = max_terms
         self.filter_numbers = filter_numbers
         self.excluded_words = (
@@ -154,14 +160,22 @@ class ContextPrompt:
     def observe(self, response):
         transcript = get_hyp_text(response, version=self.version)
         if self.mode == DEFAULT_CONTEXT_MODE:
-            self.history = transcript
+            self.responses.append(transcript)
+            self.history = "\n".join(text for text in self.responses if text)
             return
 
         # Rank by last occurrence: later terms in this segment precede earlier
         # ones, and all precede terms carried over from older segments.
-        terms = reversed(list(_bias_terms(transcript, self.excluded_words, self.filter_numbers)))
-        if self.mode == "full_bias":
-            terms = chain(terms, self.terms)
+        terms = tuple(reversed(list(_bias_terms(transcript, self.excluded_words, self.filter_numbers))))
+        # Empty responses still advance the window. Retain each response's
+        # capped distinct terms so expired responses cannot leak context.
+        distinct = {}
+        for term in terms:
+            distinct.setdefault(_key(term), term)
+            if len(distinct) == self.max_terms:
+                break
+        self.responses.append(tuple(distinct.values()))
+        terms = chain.from_iterable(reversed(self.responses))
         selected = {}
         for term in terms:
             selected.setdefault(_key(term), term)
