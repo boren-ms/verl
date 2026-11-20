@@ -346,7 +346,9 @@ def get_metrics(trans: str, reco: str, *args: str, pack_dir: str | Path | None =
     return record
 
 
-def _compute_eer(ref: str, hyp: str, pack_dir: str | Path | None = None) -> tuple[int, int, float]:
+def _compute_eer(
+    ref: str, hyp: str, pack_dir: str | Path | None = None, *, strict: bool = False
+) -> tuple[int, int, float]:
     """Return (n_err, n_ref, eer) by calling SpeechInsight GetMetrics.
 
     EER = (NumTransEnts - NumTransEntsMatched) / NumTransEnts, taken from the
@@ -355,15 +357,28 @@ def _compute_eer(ref: str, hyp: str, pack_dir: str | Path | None = None) -> tupl
     """
     record = get_metrics(ref, hyp, "--verbatim", pack_dir=pack_dir)
     if not record:
+        if strict:
+            raise RuntimeError("SpeechInsight EER scoring failed")
         return 0, 0, 0.0
     metric_list = record.get("Metrics") or []
     if not metric_list:
+        if strict:
+            raise RuntimeError("SpeechInsight returned no EER metrics")
         return 0, 0, 0.0
     entity_info = metric_list[0].get("EntityInfo") or {}
     n_ref = int(entity_info.get("NumTransEnts") or 0)
+    if strict and (
+        "NumTransEnts" not in entity_info
+        or "NumTransEntsMatched" not in entity_info
+        or n_ref < 0
+        or (n_ref == 0 and re.search(r"<NE(?::[^>]+)?>", ref, re.IGNORECASE))
+    ):
+        raise RuntimeError("SpeechInsight returned invalid entity denominators")
     if n_ref == 0:
         return 0, 0, 0.0
     n_matched = int(entity_info.get("NumTransEntsMatched") or 0)
+    if strict and not 0 <= n_matched <= n_ref:
+        raise RuntimeError("SpeechInsight returned invalid matched entity counts")
     n_err = max(n_ref - n_matched, 0)
     return n_err, n_ref, n_err / n_ref
 
@@ -400,7 +415,12 @@ def eval_score(solution_str: str | list[str], ground_truth: str, **kwargs):
     }
     result.update(_category_edits((dter_detail or {}).get("ter_category_info")))
     if compute_eer:
-        eer_n_err, eer_n_ref, eer = _compute_eer(ref_text, hyp_text, pack_dir=pack_dir)
+        # Display-form TER and verbatim entity evaluation have different source
+        # references. Keep the original tagged Transcription for entity scoring.
+        entity_ref = _clean_ref(extra_info.get("entity_transcription", ground_truth))
+        eer_n_err, eer_n_ref, eer = _compute_eer(
+            entity_ref, hyp_text, pack_dir=pack_dir, strict=kwargs.get("strict_eer", False)
+        )
         result["eer"] = eer
         result["eer_n_err"] = eer_n_err
         result["eer_n_ref"] = eer_n_ref
