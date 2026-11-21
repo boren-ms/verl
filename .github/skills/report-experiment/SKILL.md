@@ -85,7 +85,8 @@ remain valid regardless of this monitor-specific trigger.
 
 Use the user's control/reference experiment when specified. Otherwise use the
 first requested experiment as the reference and label that choice explicitly.
-Keep one stable experiment order and color mapping across every figure and table.
+Keep one stable experiment order and visual style mapping across every figure
+and table. Apply user-requested style changes consistently to the comparison.
 
 Comparative evidence must place experiments together:
 
@@ -162,10 +163,31 @@ Create validation figures with:
 
 - actual optimizer step on the x-axis;
 - `p_err` percentage on the y-axis, lower is better;
-- all comparable experiments overlaid in each dataset panel, using one
-  consistent color per experiment and markers at observed points;
+- all comparable experiments overlaid in each dataset panel, using a distinct
+  color, line pattern, and marker shape for each experiment;
 - one panel per dataset, splitting dense panels across figures/pages;
 - gaps for missing observations and resumed history rather than interpolation.
+
+Make validation curves easy to distinguish when they overlap or are viewed in
+grayscale. Prefer a colorblind-friendly palette and visibly different solid,
+dashed, dotted, or dash-dot patterns; do not rely on color alone. Use hollow
+markers when filled markers obscure nearby observations. Keep the same style
+for each experiment across datasets, full-history views, zooms, and subsequent
+report refreshes; use its color and line pattern in reward plots as well.
+
+Use readable labels, tick text, and line widths at the final Chat/PDF display
+size. Place a shared legend outside the data panels, with short unambiguous
+labels and handles long enough to show each line pattern. Use light gridlines
+and sufficient panel spacing to avoid clutter or clipping.
+
+When unequal training budgets compress newer runs into the left edge, add an
+early-step zoom alongside the full-history figure. Show all comparable runs'
+observed points within that window, state its bounds, and preserve the original
+full-history axes. Do not extrapolate shorter runs, smooth curves, or change
+values to improve their appearance. Save the style mapping and zoom bounds in
+the evidence package and update the reusable generator so automatic refreshes
+retain the presentation. For a styling-only request, reuse saved evidence and
+verify that plotted values are unchanged; do not collect new experiment data.
 
 Alongside the figures, report for each dataset and run:
 
@@ -197,11 +219,15 @@ datasets.
 ### Full evaluation: default Excel comparison and table image
 
 When a report includes completed OpenASR/full evaluation results, generate the
-comparison workbook and its full table image by default, without waiting for a
+comparison workbook and a table image covering the requested evaluation scope, without waiting for a
 separate request. Use [openasr-report](../openasr-report/SKILL.md) with the exact
 reference chosen for this comparison, and follow
 [evaluation comparison tables](references/evaluation-comparison-table.md) for
-rendering, verification and delivery. Keep training trajectories and exact-step
+rendering, verification and delivery. For an OpenLong-focused comparison, use
+experiments as rows, dataset WERs as columns, then average WER and WERR versus
+the selected baseline; hide other evaluation suites in the displayed table.
+Keep measured results from stopped experiments, with their status/provenance.
+Keep training trajectories and exact-step
 tables separate from checkpoint-endpoint evaluation tables. A training-only
 report does not require an evaluation workbook or a new evaluation run.
 

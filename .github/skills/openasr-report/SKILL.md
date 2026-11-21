@@ -18,7 +18,13 @@ an `.xlsx`; it does not launch jobs or publish results to another repository.
 
 ## Layout
 
-Three sheets: `openasr`, `model_info`, and `dataset_results`. The `openasr` metrics layout is:
+Canonical source sheets are `openasr`, `model_info`, and `dataset_results`. For
+OpenLong-focused experiment comparisons, also create an editable
+`openlong_comparison` view with experiments as rows, datasets as columns,
+average WER and baseline-relative WERR, following the shared
+[OpenLong experiment-view contract](../report-experiment/references/evaluation-comparison-table.md#openlong-focused-experiment-view).
+Use that focused view for the table figure and PDF; keep canonical source sheets
+for provenance and broader coverage. The `openasr` metrics layout is:
 
 - **Row 2** `Header`: `<baseline-label>`, `<model-label-1>`, `<model-label-2>`, ..., `WERR` (one WERR header per non-baseline model column).
 - **Row 3** `OpenEN`: `A`, `B`, `C`, ..., `A->B`, `A->C`, ...

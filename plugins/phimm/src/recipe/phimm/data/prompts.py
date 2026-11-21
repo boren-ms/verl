@@ -10,7 +10,7 @@ from recipe.phimm.utils.languages import LANGUAGES, get_language_name
 STYLES = {
     "verb": ("Transcribe verbatim, including all filler words and disfluencies.", "VERBATIM"),
     "lex": ("Output must be in lexical format.", "LEXICAL"),
-    "display": ("Output must be in display format.", "READABLE"),
+    "display": ("", "READABLE"),
 }
 
 
@@ -36,7 +36,9 @@ def get_task_prompt(style="verb", language=None, *, lang_hint=True):
     """Build a complete ASR prompt with its audio marker and optional language hint."""
     if style not in STYLES:
         raise ValueError(f"Unknown style: {style!r}; expected verb, lex, or display")
-    prompt = f"Transcribe the audio clip into text. {STYLES[style][0]}"
+    prompt = "Transcribe the audio clip into text."
+    if instruction := STYLES[style][0]:
+        prompt += f" {instruction}"
     languages = resolve_language(language).split() if language else []
     return add_language_hint(f"{prompt}<audio>", languages if lang_hint else [])
 

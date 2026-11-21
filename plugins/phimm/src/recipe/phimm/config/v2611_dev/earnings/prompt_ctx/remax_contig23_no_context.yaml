@@ -1,0 +1,14 @@
+# @package _global_
+defaults:
+  - remax_rm23_no_context
+  - /data/train_data/offline_audio/earnings_short_contiguous23@_contiguous_train
+  - _self_
+
+data:
+  train_data: ${_contiguous_train}
+
+asr:
+  expected_training_rows: 25240
+
+trainer:
+  experiment_name: remax_contig23_no_context

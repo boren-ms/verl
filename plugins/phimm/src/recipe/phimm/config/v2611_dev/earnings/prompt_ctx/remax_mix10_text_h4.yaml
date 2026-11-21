@@ -1,0 +1,14 @@
+# @package _global_
+# Same Mix10 data and text history as the 2x run, with base LR and PPO epochs.
+defaults:
+  - remax_mix10_text_h4_lr2x_ppo2
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 6.0e-07
+    ppo_epochs: 1
+
+trainer:
+  experiment_name: remax_mix10_text_h4

@@ -36,13 +36,11 @@ rewards:
     path: recipe/phimm/reward/asr_inhouse_measure.py
     name: eval_score
     reward_kwargs:
-      version: 2609
       locale: zh-cn
   val_inhouse_all:
     path: recipe/phimm/reward/asr_inhouse_measure.py
     name: eval_score
-    reward_kwargs:
-      version: 2609
+    reward_kwargs: {}
   val_openasr_ml:
     path: recipe/phimm/reward/asr_eval.py
     name: openasr_eval

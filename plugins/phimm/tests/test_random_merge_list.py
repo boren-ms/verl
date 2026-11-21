@@ -210,7 +210,7 @@ def test_hydra_random_merge_block_enables_context_and_disables_random_cuts():
         config = compose(config_name="remax_earnings_short_baseline", overrides=["+asr_training=random_merge"])
     assert config.offline_data.random_merge.enabled
     assert not config.offline_data.random_segment.enabled
-    assert config.asr.context_aware
+    assert config.asr.context_aware.enable
     assert config.data.max_audio_dur is None
     assert config.data.max_prompt_length == 2048
     assert config.asr.expected_training_rows is None
@@ -227,9 +227,9 @@ def test_no_context_preset_preserves_exact_data_and_other_controls(preset):
     with initialize_config_dir(config_dir=str(directory), version_base=None):
         control = compose(config_name="remax_earnings_short_random_merge23_context")
         ablation = compose(config_name=preset)
-    assert ablation.asr.context_aware is False
+    assert ablation.asr.context_aware.enable is False
     # Normalize only the intended flag and experiment-derived output paths.
-    ablation.asr.context_aware = control.asr.context_aware
+    ablation.asr.context_aware.enable = control.asr.context_aware.enable
     ablation.trainer.experiment_name = control.trainer.experiment_name
     assert OmegaConf.to_container(ablation, resolve=True) == OmegaConf.to_container(control, resolve=True)
 

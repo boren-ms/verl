@@ -1,0 +1,24 @@
+# Random 2–3 segments per original clip, seed 42. Each row keeps its full reference.
+# 2,732 rows, preserving the original per-subset counts. Audio paths are ordered lists.
+# Preparation audit: az://orngwus2cresco/data/boren/data/Training/quartr_fl_segments_23_v1/random_segment23/preparation.json
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/quartr_fl_segments_23_v1/random_segment23/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_fl_segments
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - subset
+      - audio_length
+      - source_language
+      - source_status
+      - approval
+      - source_tsv
+      - source_row

@@ -235,7 +235,16 @@ reward_map:
   hiin_dictation_dtest_l_d_fy23q2_hi_in_dtest: val_inhouse_all
 
 asr:
-  context_aware: false
+  context_aware:
+    enable: false
+    mode: text  # text | bias
+    prefix: null  # Override the text before context; null keeps the mode's default instruction.
+    max_history: 1  # Number of previous response turns used as context in either mode.
+    max_terms: -1  # No cap; positive T keeps last T words (text) or recent T distinct terms (bias).
+    filter_common: true
+    filter_numbers: true  # Exclude numeric terms; keep mixed names such as 3M.
+    filter_fillers: true  # Exclude hesitation sounds such as uh, um, and erm.
+    common_words: []  # Additional words to exclude from bias lists.
   validation_remote_dir: ${trainer.default_hdfs_dir}/val_data_gen
 
 ray_kwargs:

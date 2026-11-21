@@ -1,0 +1,28 @@
+# @package _global_
+# Prompt baseline RM23 data with the Contig23 text-h1 policy and update budget.
+defaults:
+  - remax_earnings_short_contiguous23_text_history1
+  - /data/train_data/earnings_short_random_merge23_context@_random_merge23_train
+  - _self_
+
+data:
+  train_data: ${_random_merge23_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, epoch: 1, shuffle: true}
+        - {name: quartr_1st23, epoch: 1, shuffle: true}
+        - {name: quartr_2nd48, epoch: 1, shuffle: true}
+        - {name: quartr_3rd38, epoch: 1, shuffle: true}
+
+asr:
+  expected_training_rows: 10054
+  context_aware:
+    # Historical text h1 carried the complete previous transcript without a word cap.
+    max_terms: -1
+
+trainer:
+  experiment_name: remax_rm23_text_h1
+  # 78 batches per epoch: allow enough epochs to reach the inherited 394 updates.
+  total_epochs: 7
+  resume_mode: disable

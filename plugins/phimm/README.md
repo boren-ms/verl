@@ -51,7 +51,7 @@ The default U2 cohort uses
 `openlong_all_2parents_error_2609r2b_u2.yaml`: 1,085 unchanged audio clips
 from eight parent recordings, with the original full reference repeated on
 that parent's rows. Grouping metadata is retained, so WER aligns joined new
-outputs against the full reference once per parent. All U2 callers use this canonical configuration. `asr.context_aware`
+outputs against the full reference once per parent. All U2 callers use this canonical configuration. `asr.context_aware.enable`
 controls decoding separately and is not changed by the scoring default.
 Historical independently scored U2 WER is a different metric convention.
 
@@ -156,7 +156,7 @@ continuation variants, use the datasource groups in
 `preparation.json` records each preset's original generation options, ordered
 sources, row counts, parity hashes and remote publication checksums. Their
 training YAMLs select these manifests directly and contain no `offline_data`
-section. Context is controlled by `asr.context_aware`. Preparation plans are
+section. Context is controlled by `asr.context_aware.enable`. Preparation plans are
 used only when explicitly invoking the offline tool. The manifests are
 available under:
 
@@ -212,7 +212,7 @@ settings, counts and hashes. The tool applies raw path/text normalization,
 generates the audio lists, then saves rows **before** task information,
 foreign-language masking and prompt/reference formatting. Those steps still
 run when training loads the prepared rows. Validation inputs, optimizer
-budgets, and `asr.context_aware` are preserved. Prepare new datasets with this
+budgets, and `asr.context_aware.enable` are preserved. Prepare new datasets with this
 tool before training, then launch the generated snapshot or update the preset
 to read the prepared manifests directly.
 
@@ -318,7 +318,7 @@ never randomly augmented. The normal per-segment token limits still apply.
 
 Use `+asr_training=random_merge` with `recipe.phimm.tools.offline_audio`.
 This selects ordered-list merging before task information is added, enables
-`asr.context_aware=true`, reserves a 2048-token prompt budget and disables
+`asr.context_aware.enable=true`, reserves a 2048-token prompt budget and disables
 random cuts. The offline plan is:
 
 ```yaml
@@ -361,9 +361,9 @@ sampled audio order):
 ```
 
 The ASR dataset expands this list into two segments, preserving the original
-utterance boundaries. B is decoded with A's generated response as an assistant
-prefix. The full joined text is scored once per trajectory; the prefix is not
-scored twice. Sampled and greedy trajectories retain their own histories.
+utterance boundaries. B's user prompt includes A's generated transcript text as
+`Previous context: {previous context}`. The full joined text is scored
+once per trajectory; injected context is not scored twice. Sampled and greedy trajectories retain their own histories.
 Do not combine this block with enabled random segmentation.
 
 Text variants follow the same order, keywords are unioned without duplicates,
@@ -402,12 +402,21 @@ exposure per update differs because a parent contains multiple utterances.
 
 For a matched context-off experiment, use
 `remax_earnings_short_random_merge23_no_context`. It reads the exact same
-materialized manifests and sets `asr.context_aware: false` for sampled training,
-the ReMax greedy baseline AND validation. All three decode with empty assistant
-prefixes. U2 grouping and full-parent references are retained for WER scoring.
+materialized manifests and sets `asr.context_aware.enable=false` for sampled training,
+the ReMax greedy baseline AND validation. All three decode without previous context in the user prompt. U2 grouping and full-parent references are retained for WER scoring.
 The old preset name `remax_earnings_short_random_merge23_no_train_context` is
 an alias with the same shared policy. There is no separate training override.
-Use only `asr.context_aware` in configurations and CLI overrides.
+Use `asr.context_aware.enable` to enable or disable context across all three paths,
+and `asr.context_aware.mode` to select how that context is built.
+
+For the same RM23 data and training budget with bias terms, use
+`prompt_ctx/remax_earnings_short_random_merge23_prev_bias` for the preceding segment or
+`prompt_ctx/remax_earnings_short_random_merge23_full_bias` for up to 1,000 earlier segments in the
+trajectory. Each preset has its own experiment name and enables the common-word,
+number, and filler filters. Use
+`prompt_ctx/remax_earnings_short_random_merge23_prev_bias_unfiltered` to compare
+previous segment biasing with all three filters disabled. These config names
+are relative to `--config-path config/v2611_dev/earnings`.
 
 ### Offline consecutive utterance windows
 
@@ -456,13 +465,29 @@ and sampling mix. The long-form presets also define their own training budget.
 The paired multi-segment ReMax presets are
 `remax_earnings_short_contiguous23_context` and
 `remax_earnings_short_contiguous23_no_context` under `config/v2611_dev/earnings/`.
+Use `prompt_ctx/remax_earnings_short_contiguous23_full_bias` for Contiguous23
+with bias terms from up to 1,000 previous responses and all three filters enabled.
+For `max_history: 2`, use `prompt_ctx/remax_earnings_short_contiguous23_text_history2`
+for transcript context or `prompt_ctx/remax_earnings_short_contiguous23_bias_history2`
+for bias terms. These inherit the full-bias preset and have distinct experiment names.
+Use `prompt_ctx/remax_earnings_short_contiguous5_text_history4` for exactly five
+adjacent segments per sample and text from up to four previous responses. Its
+datasource is `data/train_data/offline_audio/earnings_short_contiguous5.yaml`.
+It uses all 24,520 unique five-segment windows from the same 25,240 utterances
+and 180 recordings, with no repeated boundary windows. The per-source sampling
+budgets match those window counts, giving 382 updates over two epochs at batch
+size 128. It reserves 4096 prompt tokens for the audio and transcript history.
+Rebuild the windows with `offline_contiguous_merge --merge-mode contiguous5`;
+this mode requires at least five utterances per recording and keeps every
+consecutive five-utterance window once. The manifests and preparation audit are
+under `az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/`.
 They share all five prepared sources and the same ReMax recipe (`n=8`), and set
-`asr.context_aware` to true/false across sampled rollout, greedy baseline and
+`asr.context_aware.enable` to true/false across sampled rollout, greedy baseline and
 validation. Both retain ordered 2/3-utterance lists and full-parent U2 scoring;
-the context-off preset decodes each segment with an empty assistant prefix.
+the context-off preset decodes each segment without previous context in its prompt.
 
 Set `data.max_audio_dur: null` when using
-these complete lists; `asr.context_aware` controls history for both training and
+these complete lists; `asr.context_aware.enable` controls history for both training and
 validation. The sample count is unchanged, while total audio exposure grows
 because each output contains two or three utterances.
 
@@ -590,16 +615,42 @@ python plugins/phimm/submit.py --evaluate --submission-id <unique-context-eval-i
 
 This evaluates the complete Earnings21, Earnings22 and CORAAL parent groups.
 Segments run in timestamp order within each recording. The immediately
-preceding segment's decoded output (including its ASR formatting, excluding
-chat special tokens) is appended directly to the next prompt's open assistant
-turn, after `<|im_start|>assistant\n`. The first segment has an empty prefix;
-prefixes reset between recordings, and recordings can run concurrently.
-Only newly generated tokens are scored and carried to the following segment;
-history is not accumulated. Saved `asr_detail.context_prefixes` aligns with
-`segment_outputs` for auditing. The preset reserves 2048 prompt tokens for
-audio and prefix together and raises an error on overflow.
+preceding segment's transcript text is appended to the next user prompt as
+`Previous context: {previous context}` before applying the chat template.
+Language headers, ASR formatting tags, and nonspeech markers are removed using
+the standard transcript extractor. The assistant turn starts empty. The first
+segment has no context line; context resets between recordings, and recordings
+can run concurrently. Only newly generated tokens are scored, with raw response
+formatting preserved for reward checks. By default, only the immediately previous
+response's text is carried forward. Set `asr.context_aware.max_history`
+to include more responses. Saved
+`asr_detail.previous_contexts` saves the complete appended instructions, including
+their prefixes, aligned with `segment_outputs` for auditing.
+Override the instruction before the generated context with
+`asr.context_aware.prefix`, passed to `ContextPrompt(..., prefix=None)`.
+The object owns both context history and construction of the appended instruction.
+For example, to match the original Prompt @800 training wording:
 
-The shared option `asr.context_aware=true` enables this behavior in both
+```yaml
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 1
+    prefix: "Previous segment transcript (for context):"
+```
+
+This appends `Previous segment transcript (for context): <generated transcript>`
+to the final user turn. The prefix is stripped and joined to the context with one
+space. `null` retains the default instruction for the selected mode; an empty
+string appends the context alone. The override also applies to bias
+mode, preserving its extracted terms. No instruction is appended when context
+is empty, including the first segment of each recording.
+
+The preset reserves 2048 prompt tokens for audio and context together and raises
+an error on overflow.
+
+The shared option `asr.context_aware.enable=true` enables this behavior in both
 training and validation. For training, use `+asr_training=context_aware` on
 the normal training config and set a unique `trainer.experiment_name`. This
 selects the offline multi-segment plan (one or two random segments per sample)
@@ -609,6 +660,74 @@ examples. Set `offline_data.random_segment.segment_count` to choose another supp
 segment count, or enable the flag directly on an existing multi-segment config.
 Single-segment samples have no preceding context.
 
+Context settings live in one mapping:
+
+```yaml
+asr:
+  context_aware:
+    enable: true
+    mode: bias
+    max_history: 1
+    filter_common: true
+    filter_numbers: true
+    filter_fillers: true
+    max_terms: -1  # Unlimited; set a positive integer to cap words/terms.
+    common_words: []
+```
+
+A legacy boolean `asr.context_aware` is still accepted and uses the default
+`text` mode when enabled. With `asr.context_aware.enable=true`, choose:
+
+| `asr.context_aware.mode` | Context placed in the user prompt |
+|---|---|
+| `text` (default) | Cleaned transcripts of the selected previous responses, oldest to newest, separated by newlines; a positive `max_terms` keeps only the last T words. |
+| `bias` | Words and short capitalized phrases extracted from the selected previous responses. |
+
+`max_history` sets the response window for **both** modes. Use `1`
+for the immediately previous response, `3` for the latest three, or `1000` for
+up to the latest 1,000. It must be a positive integer when specified. Empty,
+nonspeech, and fully filtered responses still count toward the window and
+evict older responses. History resets for each recording or training sample.
+For example, `mode: text` with `max_history: 3` includes the latest
+three cleaned responses; `mode: bias` with `max_history: 1000`
+builds a bias list from up to 1,000 earlier responses.
+
+`max_terms` defaults to `-1`, which leaves words and terms
+uncapped in both modes. Set a positive integer T to enable a cap. In
+`text` mode, it keeps the last T whitespace-delimited words after
+combining the response window. Repeated words count separately; punctuation
+and whitespace within the retained suffix are preserved. This can trim part
+of the oldest retained response. In `bias` mode, it caps distinct extracted
+terms instead.
+
+The default window is one response. Only `text` and `bias` modes are supported.
+The previous-bias presets use `mode: bias` with `max_history: 1`; the full-bias
+presets use `mode: bias` with `max_history: 1000`.
+
+Bias mode uses the MoE format:
+`Pay extra attention to the following phrases/words: *OpenAI*, *Qwen*, *Microsoft Research*.`
+The line is appended after the existing audio marker and any language hint.
+The builder preserves internal hyphens and version dots in the displayed terms,
+deduplicates case-insensitively and ignores punctuation when deduplicating,
+and omits the line when no terms remain. Bias terms are ordered by their most
+recent occurrence, including within a segment. A positive `max_terms` limits
+the number of distinct terms; `-1` keeps all eligible distinct terms in the
+response window. Common English words, numeric terms, and hesitation sounds
+such as `uh`, `um`, `erm`, and `uh-huh` are filtered by default. Set
+`filter_common`, `filter_numbers`, or `filter_fillers` under `asr.context_aware`
+to `false` to disable each filter independently. Mixed terms like `3M` and
+`GPT-4` are eligible either way. For example, `GPT-4`, `Q-wen`, and
+`1-800-FLOWERS` keep their hyphens in the prompt.
+When common-word filtering is enabled, extend the English filter with
+`asr.context_aware.common_words=[word1,word2]`. Adjust the cap
+with `asr.context_aware.max_terms` (default `-1`, no cap). This cap is independent of
+`max_history`: in bias mode it limits distinct terms after combining the selected
+responses, not the response count or token count.
+In both modes, the complete prompt must still fit its token limit; context is
+not automatically trimmed to fit that limit. In the saved
+`asr_detail.previous_contexts`, bias mode records the instruction and formatted
+term list.
+
 For Earnings Short SC1, select
 `--config-path config/v2611_dev/earnings --config-name remax_earnings_short_context_aware`.
 This inherits the Earnings Short baseline data and training budget, enables
@@ -616,11 +735,11 @@ segmentation explicitly, and uses exactly two segments with a random cut per
 full clip. Context is enabled for both training and validation.
 
 Sampled rollouts and ReMax greedy baselines each build their own context from
-their own generated outputs. The prefix belongs to the prompt for both the
+their own generated transcript text. Context belongs to the user prompt for both the
 rollout server and actor: only new response tokens retain response masks and
 rollout logprobs and contribute to the policy loss. All segments share the
 single parent-level outcome reward. The default remains independent decoding
-(`asr.context_aware=false`).
+(`asr.context_aware.enable=false`).
 
 The recipe selects the installed NVIDIA CUDA runtime matching PyTorch's CUDA
 major version. The source branch's explicit-runtime helper is reused in the

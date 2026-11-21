@@ -1,0 +1,50 @@
+# @package _global_
+# One parent per recording, using ordered lists of existing short audio segments.
+# Up to four previous generated transcripts for sampled training, greedy baseline, and validation.
+defaults:
+  - /v2611_dev/earnings/base_earning
+  - /data/train_data/offline_audio/earnings_contiguous_full@_contiguous_full_train
+  - _self_
+
+actor_rollout_ref:
+  rollout:
+    # A null limit uses the model's native context length in the current server.
+    max_model_len: ${data.max_model_length}
+    enable_chunked_prefill: true
+    # Bound vLLM profiling and prefill memory independently of context capacity.
+    # Chunked prefill supports the configured prompt plus response length.
+    max_num_batched_tokens: 8192
+  actor:
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
+data:
+  # Four responses of up to 768 tokens plus the original 1024-token audio prompt.
+  max_prompt_length: 4096
+  train_data: ${_contiguous_full_train}
+  train_batch_size: 2
+  max_audio_dur: null
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: earn_fy27, sample: 74, shuffle: true}
+        - {name: quartr_1st23, sample: 23, shuffle: true}
+        - {name: quartr_2nd48, sample: 48, shuffle: true}
+        - {name: quartr_3rd38, sample: 35, shuffle: true}
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous_full_text_h4
+  # 180 full-recording parents / batch2 = 90 updates per epoch, 360 total.
+  total_training_steps: null
+  total_epochs: 4
+  resume_mode: disable
+  resume_from_path: null
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 4
+  expected_training_rows: 180
+  expected_training_steps: 360

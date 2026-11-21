@@ -1,0 +1,37 @@
+# @package _global_
+# Equal sample counts: 25,240 offline adjacent 2-3 utterance lists and 25,240
+# original short utterances. Shuffle together, preserving order inside each list.
+defaults:
+  - base_earning
+  - /data/train_data/offline_audio/earnings_short_contiguous23@_contiguous_train
+  - /data/train_data/earn_fy27@_earning_train
+  - /data/train_data/quartr_1st23@_quartr_first23_train
+  - /data/train_data/quartr_2nd48@_quartr_second48_train
+  - /data/train_data/quartr_3rd38@_quartr_third38_train
+  - _self_
+
+data:
+  train_data:
+    - ${_contiguous_train}
+    - ${_earning_train}
+    - ${_quartr_first23_train}
+    - ${_quartr_second48_train}
+    - ${_quartr_third38_train}
+  mix:
+    - shuffle: true
+      datasource:
+        # Each source contains one full contiguous copy and one short copy.
+        - {name: earn_fy27, sample: 19136, shuffle: true}
+        - {name: quartr_1st23, sample: 6250, shuffle: true}
+        - {name: quartr_2nd48, sample: 12784, shuffle: true}
+        - {name: quartr_3rd38, sample: 12310, shuffle: true}
+
+asr:
+  context_aware: true
+  expected_training_rows: 50480
+  expected_training_steps: 788
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_mix_context
+  total_epochs: 2
+  total_training_steps: 788

@@ -1,6 +1,6 @@
 # @package _global_
 # The U2 clips decoded in parent order, scored against original full-parent references.
-# Set asr.context_aware=false for a matched independent-decoding control.
+# Set asr.context_aware.enable=false for a matched independent-decoding control.
 defaults:
   - eval_base
   - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_u2
@@ -18,7 +18,8 @@ data:
     - ${_u2}
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true
 
 reward_map:
   earnings21_u2: val_openasr_en

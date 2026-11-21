@@ -1,0 +1,12 @@
+# @package _global_
+# Same Prompt-context checkpoint and inhouse clips; decode with no preceding context.
+defaults:
+  - eval_enus_eer_prompt_h1
+  - _self_
+
+asr:
+  context_aware:
+    enable: false
+
+trainer:
+  experiment_name: eval_enus_eer_prompt_off

@@ -1,0 +1,15 @@
+# @package _global_
+# Group A: double the baseline actor learning rate and use two PPO epochs.
+# Inherit the FL + Earnings RM2-3 x4 data, context OFF and 800-step budget.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_no_context
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1.2e-6
+    ppo_epochs: 2
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_no_context_a

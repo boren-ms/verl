@@ -1,0 +1,17 @@
+# Entity-matched held-out test: 7,533 utterances / 20,829 annotated targets.
+# Seen entity vocabulary; retain the publisher's documented parent/text overlaps.
+# Keyword metrics are lexical diagnostics, not the release's span-aware EER.
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/speech/pname/hc_clean_v0/val_entity_matched.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_clean_v0_entity_matched
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [audio_length, source_audio_path, wav_sha256, target_occurrences, split]

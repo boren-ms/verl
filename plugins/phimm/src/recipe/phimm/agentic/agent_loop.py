@@ -7,6 +7,12 @@ from uuid import uuid4
 
 import ray
 import torch
+from recipe.phimm.agentic.context_prompt import (
+    DEFAULT_CONTEXT_MODE,
+    DEFAULT_MAX_BIAS_TERMS,
+    ContextPrompt,
+    context_options,
+)
 from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
@@ -19,19 +25,25 @@ from verl.utils.profiler import simple_timer
 
 @register("asr")
 class ASRAgentLoop(AgentLoopBase):
-    async def generate_row(self, row, sampling_params, *, validate, assistant_prefix=""):
+    async def generate_row(self, row, sampling_params, *, validate, previous_context=""):
         """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
         chat = self.processor if getattr(self.processor, "chat_template", None) else self.tokenizer
+        messages = row[self.config.data.prompt_key]
+        if previous_context:
+            messages = copy.deepcopy(messages)
+            for message in reversed(messages):
+                if message["role"] == "user":
+                    message["content"] += f"\n{previous_context}"
+                    break
+            else:
+                raise ValueError("ASR previous context requires a user prompt")
         text = chat.apply_chat_template(
-            row[self.config.data.prompt_key],
+            messages,
             add_generation_prompt=True,
             tokenize=False,
             **dict(self.config.data.get("apply_chat_template_kwargs", {})),
         )
-        # Continue the open assistant turn. A completed assistant message would
-        # insert an end-of-turn token and give the prefix different semantics.
-        text += assistant_prefix
         inputs = await asyncio.to_thread(self.processor, text=[text], audios=[audio], return_tensors="pt")
         prompt_ids = inputs["input_ids"][0].tolist()
         if len(prompt_ids) > self.rollout_config.prompt_length:
@@ -66,25 +78,36 @@ class ASRAgentLoop(AgentLoopBase):
             multi_modal_data={"multi_modal_inputs": dict(inputs)},
             metrics=metrics,
             num_turns=2,
-            extra_fields={**output.extra_fields, "asr_context_prefix": assistant_prefix},
+            extra_fields={**output.extra_fields, "asr_previous_context": previous_context},
         )
 
     async def generate_segments(self, rows, sampling_params, *, validate):
-        """Optionally condition each segment on its predecessor's generated text."""
+        """Optionally condition each segment on earlier outputs in this trajectory."""
         if not rows:
             raise ValueError("ASR requires at least one segment")
-        if getattr(self.config, "asr", {}).get("context_aware", False):
+        config = context_options(getattr(self.config, "asr", {}))
+        if config.get("enable", False):
             outputs, texts = [], []
-            prefix = ""
-            # Rows are already grouped by source/parent and ordered by start.
-            # State belongs to this invocation, so concurrent parents never mix.
+            context = ContextPrompt(
+                config.get("mode", DEFAULT_CONTEXT_MODE),
+                prefix=config.get("prefix"),
+                max_history=config.get("max_history", 1),
+                max_terms=config.get("max_terms", DEFAULT_MAX_BIAS_TERMS),
+                filter_common=config.get("filter_common", True),
+                filter_numbers=config.get("filter_numbers", True),
+                filter_fillers=config.get("filter_fillers", True),
+                extra_common_words=config.get("common_words", ()),
+            )
+            # Use the supplied segment order. Each invocation has its own context.
             for row in rows:
-                output = await self.generate_row(row, sampling_params, validate=validate, assistant_prefix=prefix)
+                output = await self.generate_row(
+                    row, sampling_params, validate=validate, previous_context=context.prompt
+                )
                 outputs.append(output)
-                # Only newly generated tokens are scored and carried forward;
-                # the injected prefix is never counted a second time.
-                prefix = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
-                texts.append(prefix)
+                # Score raw new responses; the context builder consumes cleaned text.
+                text = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
+                texts.append(text)
+                context.observe(text)
             return outputs, texts
         outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
         texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
@@ -96,7 +119,7 @@ class ASRAgentLoop(AgentLoopBase):
         # A greedy trajectory conditions on its own earlier outputs, matching
         # the sampled trajectory's context policy without sharing its history.
         # validate=True selects greedy decoding limits. History uses the same
-        # asr.context_aware flag in sampled training, greedy training and validation.
+        # context settings in sampled training, greedy training and validation.
         _, texts = await self.generate_segments(rows, params, validate=True)
         text = "\n".join(texts)
         info = copy.deepcopy(row.get("extra_info") or {})
@@ -129,7 +152,7 @@ class ASRAgentLoop(AgentLoopBase):
                     "parent_info": info,
                     "segment_outputs": texts,
                     "segment_info": [r.get("extra_info") or {} for r in rows],
-                    "context_prefixes": [o.extra_fields.get("asr_context_prefix", "") for o in outputs],
+                    "previous_contexts": [o.extra_fields.get("asr_previous_context", "") for o in outputs],
                     **({"segment_rows": rows} if validate else {}),
                 },
                 ensure_ascii=False,

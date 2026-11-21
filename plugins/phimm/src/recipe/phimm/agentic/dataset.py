@@ -89,12 +89,48 @@ def _align_null_features(data_sets):
 
 
 def _align_source_features(data_sets):
-    """Align scalar/list audio paths and empty optional fields before merging sources."""
-    list_paths = any(hasattr(ds.features.get("audio_path"), "feature") for ds in data_sets)
+    """Align scalar/list audio and provenance metadata before merging sources."""
+    list_audio_fields = {
+        name
+        for ds in data_sets
+        for name, feature in ds.features.items()
+        if name.startswith("audio") and isinstance(getattr(feature, "feature", None), datasets.Value)
+    }
+    list_extra_fields = {
+        name: feature
+        for ds in data_sets
+        for name, feature in ds.features.get("extra_info", {}).items()
+        if isinstance(getattr(feature, "feature", None), datasets.Value)
+    }
     aligned = []
     for ds in data_sets:
-        if list_paths and "audio_path" in ds.features and not hasattr(ds.features["audio_path"], "feature"):
-            ds = ds.map(lambda row: {"audio_path": [row["audio_path"]] if row["audio_path"] else None})
+        scalar_fields = sorted(name for name in list_audio_fields if isinstance(ds.features.get(name), datasets.Value))
+        scalar_extra_fields = sorted(
+            name
+            for name in list_extra_fields
+            if isinstance(ds.features.get("extra_info", {}).get(name), datasets.Value)
+        )
+        if scalar_fields or scalar_extra_fields:
+            features = ds.features.copy()
+            for name in scalar_fields:
+                feature = features[name]
+                features[name] = datasets.Sequence(datasets.Value("string") if feature.dtype == "null" else feature)
+            for name in scalar_extra_fields:
+                features["extra_info"][name] = list_extra_fields[name]
+
+            def promote_lists(row, names=tuple(scalar_fields), extra_names=tuple(scalar_extra_fields)):
+                result = {name: [row[name]] if row[name] is not None else None for name in names}
+                if extra_names:
+                    extra = dict(row["extra_info"])
+                    for name in extra_names:
+                        extra[name] = [extra[name]] if extra[name] is not None else None
+                    result["extra_info"] = extra
+                return result
+
+            ds = ds.map(
+                promote_lists,
+                features=features,
+            )
         aligned.append(ds)
     aligned = _align_null_features(aligned)
     # Arrow cannot concatenate nested structs with different child fields.

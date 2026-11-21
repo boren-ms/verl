@@ -1,0 +1,31 @@
+# 2–3 consecutive clips within the same recording and subset, ordered by FL onset.
+# 2,732 rows, preserving the original per-subset counts. Audio paths are ordered lists.
+# 20 singleton groups are replaced by unique windows within their original subsets.
+# Preparation audit: az://orngwus2cresco/data/boren/data/Training/quartr_fl_segments_23_v1/contiguous23/preparation.json
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/quartr_fl_segments_23_v1/contiguous23/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_fl_segments
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - event_id
+      - subset
+      - audio_length
+      - source_language
+      - source_status
+      - approval
+      - source_tsv
+      - source_row
+      - merge_count
+      - source_ids
+      - source_audio_lengths
+      - source_languages
+      - source_start_seconds
+      - merge_parent_audio_path

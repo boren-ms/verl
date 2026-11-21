@@ -1,14 +1,15 @@
 # @package _global_
 # Enable with +asr_training=context_aware on the normal training config.
-# Each sampled/greedy trajectory uses its own previous segment output.
+# Each sampled/greedy trajectory adds its own previous transcript text to the user prompt.
 
 defaults:
   - multi_segment
   - _self_
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true
 
 data:
-  # Reserve room for the previous response alongside the current audio.
+  # Reserve room for the previous transcript text alongside the current audio.
   max_prompt_length: 2048

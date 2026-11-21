@@ -20,4 +20,5 @@ actor_rollout_ref:
     max_num_batched_tokens: 57344
 
 asr:
-  context_aware: false
+  context_aware:
+    enable: false

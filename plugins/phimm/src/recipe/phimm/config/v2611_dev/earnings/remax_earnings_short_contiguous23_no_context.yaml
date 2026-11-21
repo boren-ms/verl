@@ -17,7 +17,8 @@ data:
   max_audio_dur: null
 
 asr:
-  context_aware: false
+  context_aware:
+    enable: false
 
 trainer:
   experiment_name: remax_earnings_short_contiguous23_no_context
