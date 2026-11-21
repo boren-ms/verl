@@ -1,0 +1,18 @@
+# @package _global_
+# FL + Earnings RM2-3 x4 with the previous two transcripts as prompt context.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_context
+  - _self_
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 2
+  expected_training_steps: 1748
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_text_history2
+  # max(800, 2 * floor(111888 / 128)) = 1748 updates; drop the last partial batch.
+  total_epochs: 2
+  total_training_steps: 1748

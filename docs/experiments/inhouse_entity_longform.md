@@ -112,7 +112,33 @@ The reporter checks all selected recordings and ordered clips, full references,
 context history and persisted metric counts. Primary suite scores are equal-weight
 means of the five dataset scores; corpus count-weighted rates are supplementary.
 
-## Current five-dataset EER results WITH English language hint (2026-11-20)
+## Final EER comparison: styles, context and latest tools (2026-11-20)
+
+Updated: 2026-11-20 17:02 PST
+
+Seven evaluation settings completed and passed audit; each covers 125 recordings, 3,889 original presegments and 8,584 reference entities. The original six were also rescored from saved outputs with latest MoE tools, without re-decoding; 0/750 recording results changed.
+
+All displayed scores use the pinned MoE 2026-11-10 bundle: SpeechInsight 2.28.4 and TER 2.22.1. The original six runs were rescored from saved outputs with no re-decoding; 0/750 recording results changed. The new display+h1 training-prefix run was decoded and scored with the latest bundle.
+
+| Model / decoding | Style | Latest mean EER % |
+|---|---|---:|
+| SFT @38000 OFF | display | 23.5544 |
+| SFT @38000 OFF | verb | 24.3836 |
+| Prompt @800 h1 [default] | display | 23.1199 |
+| Prompt @800 h1 [train] | verb | 22.4887 |
+| Prompt @800 OFF | display | 22.8121 |
+| Prompt @800 OFF | verb | 23.0663 |
+| Prompt @800 h1 [train] | display | 23.2436 |
+
+Same-training-prefix h1: display **23.2436%**, verb **22.4887%**; display minus verb **+0.7549 percentage points**. Lower EER is better.
+
+[train] uses `Previous segment transcript (for context):`; [default] uses `Previous context:`. The new display h1 [train] and verb h1 [train] share checkpoint, history1, context prefix, English language hint and presegments. The older display h1 [default] differs in context prefix as well as task style.
+
+The primary mean equally weights five datasets. The new decode and all audit/config/provenance artifacts are durable; exact owned pool paused with zero pods. Full report pointer: `tmp/inhouse_tools_moe_20261110/latest_report.json`.
+
+Durable new decode audit: `az://orngwus2cresco/data/boren/outputs/v2611_eval/dtest-enus-eer-display-langhint-prompt-s800-h1-trainprefix-moe-20261121/evaluation_audit`. New rescores are in each original run root under `evaluation_rescore/moe_bundle_20261110`.
+
+## Display-style EER results WITH English language hint (2026-11-20)
 
 All three Ray jobs succeeded and passed the full recording/segment/reference,
 context, metric-count, and every-segment prompt audits. Each uses 125 recordings,

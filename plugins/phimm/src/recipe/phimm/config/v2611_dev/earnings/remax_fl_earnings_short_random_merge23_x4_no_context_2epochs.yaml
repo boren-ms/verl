@@ -1,0 +1,12 @@
+# @package _global_
+# Matched text-history2 control: same data and 1748 updates, without prompt context.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_text_history2
+  - _self_
+
+asr:
+  context_aware:
+    enable: false
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_no_context_2epochs
