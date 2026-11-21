@@ -317,3 +317,100 @@ az://orngwus2cresco/data/boren/data/verl/vibevoice_asr/paper-ami/
   scores/{ihm,sdm}/overlap-sensitivity.json
   metadata/reproduction-report.md
 ```
+
+## Diarization RL integration
+
+The experimental Main ReMax recipes are
+`v2611_dev/vibevoice/remax_vibevoice_ami_ls` and
+`v2611_dev/vibevoice/smoke_vibevoice_ami_ls`. They use the official offline
+checkpoint as the seed, AMI **train-IHM** plus the existing noisy/RIR LS
+manifest for training, and **DavidAI English internal-test** for evaluation.
+AMI dev-SDM is no longer the validation source. The 16 paper reproduction
+meetings remain excluded from training. DavidAI's 45-recording test subset
+is evaluation only: do not use it as an optimization reward, tune the recipe
+against it, or select checkpoints from its scores. Its disjoint 3-recording
+smoke subset can be supplied for an ID-overlap audit.
+
+Prepare manifests with the existing attached annotations:
+
+```bash
+python -m vibevoice_asr.prepare_rl_data \
+  --ami-train /data/ami-train.jsonl --ami-dev /data/ami-dev.jsonl \
+  --ls /data/ls.jsonl \
+  --davidai-test /data/davidai-internal-test.jsonl \
+  --davidai-smoke /data/davidai-validation-smoke.jsonl \
+  --output-dir /data/vibevoice-rl
+```
+
+`--ami-dev` audits the AMI recording split only. Add `--limit-per-source 1`
+and use a separate output directory for the single-update smoke recipe.
+The preparation audits complete AMI recording identities before subsetting,
+rejects train/dev/paper-test overlap, and checks supplied DavidAI smoke/test
+IDs for overlap. It never uses transcripts or reference speaker labels to
+construct the model prompt. LS has synthetic single-speaker activity over
+the decoded waveform, rather than genuine speaker-turn labels; its WDER is
+explicitly unavailable.
+
+DavidAI's source manifest stores SVAD selectors for each recording. Preparation
+restores their common full **mixed** waveform and preserves the complete
+reference time axis. Each recording is decoded in one call so that independent
+chunks cannot silently reset speaker IDs. The full recipe allows up to 901
+seconds, an 8,192-token prompt and a 16,384-token validation response within a
+24,576-token context. Training audio stays limited to 40 seconds. The smoke
+recipe bounds evaluation at 180 seconds and 8,192 response tokens; its first
+test recording is approximately 162 seconds. Longer inputs raise rather than
+being truncated. These are explicit runtime limits, not guarantees of memory
+capacity on every device. The full 8-GPU recipe requires separate validation.
+
+The rollout agent uses the official 24-kHz processor and native JSON array
+output with speaker IDs and timestamps **in seconds**. HF retains the expanded
+audio prompt and tensors for logprob/backward; vLLM receives the corresponding
+collapsed audio placeholder plus the exact same normalized waveform. The
+upstream vLLM processor does not normalize raw audio itself. The HF adapter pads the native
+acoustic mask across response tokens and freezes the acoustic/semantic encoders
+and connectors. Decoder attention and MLP projections receive LoRA adapters.
+The HF training recipe uses eager attention because Transformers 5 propagates
+the root backend into the convolutional tokenizers, which reject FlashAttention
+initialization. A compatibility initializer also preserves loaded parameters:
+Transformers 5.7 tracks initialization per parameter, while upstream writes
+through `.data`, which otherwise reinitializes the LM head and connectors after
+loading. vLLM retains its own attention backend. Its engine-specific
+config explicitly sets the audio frontend to BF16, matching the HF actor;
+setting only the actor's dtype does not change vLLM's seed config.
+Both backends use the acoustic distribution's mean in these RL recipes to
+avoid fresh acoustic noise between rollout and policy logprob computation.
+The paper reproduction used the original stochastic frontend; its scores are
+not a baseline for this changed frontend without an additional evaluation.
+
+The outcome reward is
+`1 - 0.5 * min(DER, 1) - 0.5 * min(WER, 1)`. DER uses zero collar and includes
+overlap; speaker assignment is permutation invariant. WER uses the existing
+English normalizer. Only the optimization reward is clipped: pooled DER/WER
+retain the original error and reference counts, including rates above 100%.
+Malformed or incomplete native JSON receives zero reward and counts all
+reference speech as missed; no samples disappear from the denominator.
+ReMax subtracts the same prompt's greedy reward from sampled rewards. Existing
+Main KL regularization and token importance correction remain enabled.
+
+To submit the one-update integration check on an already verified, synced
+single-GPU node:
+
+```bash
+export VIBEVOICE_RL_MODEL=/data/vibevoice-asr-model
+export VIBEVOICE_RL_DATA_ROOT=/data/vibevoice-rl-smoke
+python plugins/phimm/submit.py \
+  --submission-id vibevoice-ami-ls-davidai-smoke-UNIQUE \
+  --config-path config/v2611_dev/vibevoice \
+  --config-name smoke_vibevoice_ami_ls
+```
+
+The submitter forwards these two explicit environment inputs to Ray. The smoke
+uses two training rows (one AMI, one LS), two sampled rollouts each, rank-8 LoRA,
+one optimizer update, validation before/after, and checkpoint saving at step 1.
+Successful composition or an HF forward alone does not establish that the RL
+pipeline works; check actual update, finite logprobs/gradients, validation and
+complete checkpoint evidence. Verify loaded weights against the seed and inspect
+HF/vLLM token logprob differences: finite loss alone can hide a reinitialized
+head or unequal audio inputs. One DavidAI recording is a functional check,
+not a full-test WER/DER or evidence of training improvement. Formal training
+must be launched separately after reviewing the smoke results.

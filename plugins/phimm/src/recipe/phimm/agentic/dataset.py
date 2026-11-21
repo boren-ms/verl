@@ -132,9 +132,9 @@ def _align_source_features(data_sets):
                 features=features,
             )
         aligned.append(ds)
-    aligned = _align_null_features(aligned)
     # Arrow cannot concatenate nested structs with different child fields.
-    # Keep parent-group metadata when another source omits those fields.
+    # Resolve null leaves against the other sources before falling back to
+    # string: empty LS word lists must acquire AMI's list-of-struct type.
     features = datasets.Features.from_arrow_schema(pa.unify_schemas([ds.features.arrow_schema for ds in aligned]))
     result = []
     for ds in aligned:
@@ -144,7 +144,7 @@ def _align_source_features(data_sets):
         if ds.features.arrow_schema != features.arrow_schema:
             ds = ds.cast(features)
         result.append(ds)
-    return result
+    return _align_null_features(result)
 
 
 def _collect_datasources(data_sets: Sequence[datasets.Dataset]) -> dict[str, datasets.Dataset]:

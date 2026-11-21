@@ -25,6 +25,8 @@ from verl.utils.profiler import simple_timer
 
 @register("asr")
 class ASRAgentLoop(AgentLoopBase):
+    transcript_text = staticmethod(get_hyp_text)
+
     async def generate_row(self, row, sampling_params, *, validate, previous_context=""):
         """Preserve the source recipe's chat template and audio processor."""
         audio = await asyncio.to_thread(load_audio, row, self.config.data.max_audio_dur)
@@ -160,7 +162,7 @@ class ASRAgentLoop(AgentLoopBase):
         }
         if validate:
             # Aggregate text is only for validation display, after raw scoring.
-            response = get_hyp_text(texts)
+            response = self.transcript_text(texts)
             output.response_ids = self.tokenizer.encode(response, add_special_tokens=False)
             if not output.response_ids:
                 # TransferQueue attaches the precomputed reward to the last token.
@@ -185,11 +187,28 @@ class ASRAgentLoop(AgentLoopBase):
 
 @ray.remote
 class ASRWorker(AgentLoopWorkerTQBase):
+    async def _run_agent_loop(self, *args, **kwargs):
+        from hydra.utils import get_class
+
+        # Ray can deserialize this worker without running the module's
+        # decorator. Main dispatches sampled/validation calls through its local
+        # registry, separately from our greedy-baseline make_agent path.
+        agent_class = get_class(
+            self.config.get("asr", {}).get("agent_loop_class", "recipe.phimm.agentic.agent_loop.ASRAgentLoop")
+        )
+        register("asr")(agent_class)
+        return await super()._run_agent_loop(*args, **kwargs)
+
     def _compute_multi_modal_inputs(self, output, input_ids):
         return (output.multi_modal_data or {}).get("multi_modal_inputs")
 
     def make_agent(self):
-        return ASRAgentLoop(
+        from hydra.utils import get_class
+
+        agent_class = get_class(
+            self.config.get("asr", {}).get("agent_loop_class", "recipe.phimm.agentic.agent_loop.ASRAgentLoop")
+        )
+        return agent_class(
             trainer_config=DictConfigWrap(self.config),
             server_manager=self.llm_client,
             tokenizer=self.tokenizer,

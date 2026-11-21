@@ -231,6 +231,9 @@ def hf_processor(name_or_path, **kwargs):
             case "Qwen3_5AudioProcessor":
                 # The audio model uses standard 1D positions; no vision RoPE binding.
                 pass
+            case "VibeVoiceASRProcessor":
+                # Offline VibeVoice uses ordinary one-dimensional positions.
+                pass
             case "Gemma4Processor":
                 # Gemma4 uses standard 1D RoPE -> no get_rope_index to bind. Disable its strict
                 # per-image-token check (which Qwen's processor lacks).

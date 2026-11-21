@@ -56,7 +56,14 @@ from verl.utils.transformers_compat import get_auto_model_for_vision2seq
 
 AutoModelForVision2Seq = get_auto_model_for_vision2seq()
 
-_VARLEN_MULTI_MODAL_KEYS = {"input_features", "feature_attention_mask", "mm_token_type_ids"}
+_VARLEN_MULTI_MODAL_KEYS = {
+    "input_features",
+    "feature_attention_mask",
+    "mm_token_type_ids",
+    "speech_tensors",
+    "speech_masks",
+    "acoustic_input_mask",
+}
 
 
 class LambdaLayer(nn.Module):

@@ -8,6 +8,32 @@ _lock = RLock()
 _ready = False
 
 
+def _init_asr_weights(self, module):
+    """Preserve loaded parameters when Transformers initializes missing ones.
+
+    Upstream writes through ``param.data``, bypassing Transformers 5.7's
+    per-parameter initialization guards and overwriting the loaded head and
+    connectors. Check each parameter so a missing bias can still be initialized.
+    """
+    from torch import nn
+
+    config = getattr(self.config, "language_model_config", None)
+    if not hasattr(config, "initializer_range"):
+        config = getattr(self.config, "decoder_config", None)
+    std = getattr(config, "initializer_range", 0.02)
+
+    def initialize(parameter, function, **kwargs):
+        if parameter is not None and not getattr(parameter, "_is_hf_initialized", False):
+            function(parameter, **kwargs)
+
+    if isinstance(module, nn.Linear):
+        initialize(module.weight, nn.init.normal_, mean=0.0, std=std)
+        initialize(module.bias, nn.init.zeros_)
+    elif isinstance(module, nn.LayerNorm):
+        initialize(module.weight, nn.init.ones_)
+        initialize(module.bias, nn.init.zeros_)
+
+
 def prepare_upstream():
     """Import upstream while allowing its own AutoModel registrations.
 
@@ -50,8 +76,10 @@ def prepare_upstream():
         finally:
             _LazyAutoMapping.register = original
 
+        from vibevoice.modular.modeling_vibevoice_asr import VibeVoiceASRPreTrainedModel
         from vibevoice.modular.modular_vibevoice_text_tokenizer import VibeVoiceASRTextTokenizerFast
 
+        VibeVoiceASRPreTrainedModel._init_weights = _init_asr_weights
         apply_template = VibeVoiceASRTextTokenizerFast.apply_chat_template
 
         def apply_chat_template(self, *args, **kwargs):

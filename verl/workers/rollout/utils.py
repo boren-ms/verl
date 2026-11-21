@@ -35,6 +35,11 @@ def get_max_position_embeddings(hf_config) -> int:
         if text_config is not None:
             max_len = getattr(text_config, "max_position_embeddings", None)
 
+    if max_len is None and callable(getattr(hf_config, "get_text_config", None)):
+        # Composite audio models may expose their decoder only through the
+        # Transformers accessor, without a literal `text_config` attribute.
+        max_len = getattr(hf_config.get_text_config(), "max_position_embeddings", None)
+
     if max_len is None:
         raise ValueError("max_position_embeddings not found in HFModelConfig!")
     return int(max_len)

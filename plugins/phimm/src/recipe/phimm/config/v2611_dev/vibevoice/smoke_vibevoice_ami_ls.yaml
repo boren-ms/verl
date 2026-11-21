@@ -1,0 +1,44 @@
+# @package _global_
+# One actual optimizer update, not a formal training run.
+defaults:
+- remax_vibevoice_ami_ls
+- _self_
+actor_rollout_ref:
+  model:
+    lora_rank: 8
+  actor:
+    ppo_mini_batch_size: 2
+    ppo_micro_batch_size_per_gpu: 1
+  rollout:
+    agent:
+      num_workers: 1
+    n: 2
+    max_num_seqs: 2
+    max_model_len: 10240
+    engine_kwargs:
+      vllm:
+        limit_mm_per_prompt:
+          audio:
+            length: 4320000
+    custom:
+      validation_response_length: 8192
+data:
+  max_prompt_length: 2048
+  max_model_length: 10240
+  train_batch_size: 2
+  gen_batch_size: 2
+  val_batch_size: 1
+  mix: null
+  dataloader_num_workers: 0
+asr:
+  validation_max_audio_seconds: 180
+trainer:
+  experiment_name: vibevoice_ami_ls_smoke
+  n_gpus_per_node: 1
+  total_epochs: 1
+  total_training_steps: 1
+  test_freq: 1
+  save_freq: 1
+  resume_mode: disable
+  logger:
+  - console

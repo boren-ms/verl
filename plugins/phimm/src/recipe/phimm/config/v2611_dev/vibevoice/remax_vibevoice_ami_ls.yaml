@@ -1,0 +1,147 @@
+# @package _global_
+# Preparation only: launch formal training separately after the smoke succeeds.
+defaults:
+- ../base@_global_
+- _self_
+actor_rollout_ref:
+  model:
+    path: ${oc.env:VIBEVOICE_RL_MODEL}
+    external_lib: hf_vibevoice_asr
+    use_remove_padding: false
+    use_fused_kernels: false
+    lora_rank: 64
+    target_modules: model.language_model.layers.\d+.(self_attn.(q_proj|k_proj|v_proj|o_proj)|mlp.(gate_proj|up_proj|down_proj))
+    exclude_modules: null
+    override_config:
+      architectures:
+      - VibeVoiceForCausalLM
+      verl_deterministic_audio: true
+      torch_dtype: bfloat16
+      tie_word_embeddings: false
+      # TF5 propagates the root implementation to the convolutional tokenizers,
+      # which do not advertise FlashAttention support. Rollout uses vLLM's backend.
+      attn_implementation: eager
+  actor:
+    ppo_micro_batch_size_per_gpu: 1
+    ppo_max_token_len_per_gpu: 4096
+    fsdp_config:
+      model_dtype: bf16
+  ref:
+    log_prob_max_token_len_per_gpu: 4096
+    fsdp_config:
+      model_dtype: bf16
+  rollout:
+    max_num_seqs: 8
+    max_model_len: 24576
+    max_num_batched_tokens: 8192
+    enforce_eager: true
+    gpu_memory_utilization: 0.65
+    engine_kwargs:
+      vllm:
+        # Main forwards engine overrides separately from the HF actor config.
+        # The seed root dtype is float32; align its audio frontend with the actor.
+        hf_overrides:
+          dtype: bfloat16
+          torch_dtype: bfloat16
+        gdn_prefill_backend: null
+        lora_target_modules:
+        - q_proj
+        - k_proj
+        - v_proj
+        - o_proj
+        - gate_proj
+        - up_proj
+        - down_proj
+        logits_processors: []
+        limit_mm_per_prompt:
+          audio:
+            count: 1
+            length: 21624000
+    custom:
+      stop: []
+      stop_token_ids: []
+      no_repeat_ngram_size: 0
+      validation_no_repeat_ngram_size: 0
+      validation_response_length: 16384
+    enable_prefix_caching: false
+data:
+  train_data:
+  - dataset_name: jsonl
+    jsonl_schema: diarization
+    jsonl_paths: ${oc.env:VIBEVOICE_RL_DATA_ROOT}/ami_train_ihm.jsonl
+    post_process:
+      verl_format:
+        prompt_key: prompt
+        extra_keys: &id001
+        - id
+        - recording_id
+        - source_recording
+        - duration_s
+        - evaluation_duration_s
+        - source_start_s
+        - source_end_s
+        - reference_segments
+        - reference_words
+        - reference_turns
+        - annotation_kind
+        - split
+        - microphone
+        - validation_role
+        - decoding_mode
+        - audio_sha256
+  - dataset_name: jsonl
+    jsonl_schema: diarization
+    jsonl_paths: ${oc.env:VIBEVOICE_RL_DATA_ROOT}/ls.jsonl
+    post_process:
+      verl_format:
+        prompt_key: prompt
+        extra_keys: *id001
+  val_data:
+  - dataset_name: jsonl
+    jsonl_schema: diarization
+    jsonl_paths: ${oc.env:VIBEVOICE_RL_DATA_ROOT}/davidai_test.jsonl
+    post_process:
+      verl_format:
+        prompt_key: prompt
+        extra_keys: *id001
+  mix:
+  - shuffle: true
+    datasource:
+    - name: ami_train_ihm
+      sample: 17620
+      shuffle: true
+    - name: ls
+      sample: 17620
+      shuffle: true
+  max_prompt_length: 8192
+  max_response_length: 2048
+  # Training stays limited to short independent clips.
+  max_audio_dur: 40
+  max_model_length: 24576
+  val_batch_size: 1
+reward_map:
+  ami_train_ihm: vibevoice_diarization
+  ls: vibevoice_diarization
+  davidai_test: vibevoice_diarization
+rewards:
+  vibevoice_diarization:
+    path: vibevoice_asr.reward
+    name: diarization_reward
+    reward_kwargs:
+      der_weight: 0.5
+asr:
+  agent_loop_class: vibevoice_asr.agent_loop.VibeVoiceAgentLoop
+  validation_max_audio_seconds: 901
+trainer:
+  experiment_name: vibevoice_ami_ihm_ls_remax
+  project_name: vibevoice_diarization
+  nnodes: 1
+  n_gpus_per_node: 8
+ray_kwargs:
+  ray_init:
+    runtime_env:
+      env_vars:
+        VERL_USE_EXTERNAL_MODULES: hf_vibevoice_asr
+        VLLM_PLUGINS: vibevoice_asr
+        VIBEVOICE_USE_MEAN: '1'
+        VERL_REMOTE_CACHE_NAMESPACE: vibevoice-rl-ami-ihm-ls-v1

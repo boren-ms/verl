@@ -21,3 +21,4 @@ def register():
     AutoProcessor.register(VibeVoiceConfig, Qwen2AudioProcessor, exist_ok=True)
     ModelRegistry.register_model("VibeVoice", "vllm_vibevoice_asr.model:VibeVoiceForCausalLM")
     ModelRegistry.register_model("VibeVoiceForASRTraining", "vllm_vibevoice_asr.model:VibeVoiceForCausalLM")
+    ModelRegistry.register_model("VibeVoiceForCausalLM", "vllm_vibevoice_asr.model:VibeVoiceForCausalLM")

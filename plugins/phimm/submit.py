@@ -35,7 +35,8 @@ def main(argv=None):
         command.append(f"trainer.experiment_name={args.submission_id}")
     command.extend(args.overrides)
     source_paths = os.pathsep.join(
-        str(repository / path) for path in ("plugins/phimm/src", "plugins/qwen35_audio/src", ".")
+        str(repository / path)
+        for path in ("plugins/phimm/src", "plugins/qwen35_audio/src", "plugins/vibevoice_asr/src", ".")
     )
     if os.environ.get("PYTHONPATH"):
         source_paths += os.pathsep + os.environ["PYTHONPATH"]
@@ -48,6 +49,11 @@ def main(argv=None):
             "HYDRA_FULL_ERROR": "1",
         }
     }
+    # These are explicit recipe inputs, needed by the Ray driver as well as
+    # workers when OmegaConf resolves the environment interpolations.
+    for key in ("VIBEVOICE_RL_MODEL", "VIBEVOICE_RL_DATA_ROOT"):
+        if key in os.environ:
+            runtime_env["env_vars"][key] = os.environ[key]
     ray.init(address="auto", log_to_driver=False)
     try:
         address = ray._private.worker.global_worker.node.address_info["webui_url"]

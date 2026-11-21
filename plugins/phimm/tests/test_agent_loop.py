@@ -26,6 +26,10 @@ def agent_loop(monkeypatch):
             super().__init__(**kwargs)
             self.metrics = SimpleNamespace(**self.metrics)
 
+    class WorkerBase:
+        async def _run_agent_loop(self, *args, **kwargs):
+            return args, kwargs
+
     @contextmanager
     def timer(name, metrics):
         yield
@@ -41,7 +45,7 @@ def agent_loop(monkeypatch):
         },
         "verl.trainer.ppo.v1.agent_loop_tq": {
             "AgentLoopManagerTQ": object,
-            "AgentLoopWorkerTQBase": object,
+            "AgentLoopWorkerTQBase": WorkerBase,
         },
         "verl.utils.profiler": {"simple_timer": timer},
     }
@@ -52,6 +56,24 @@ def agent_loop(monkeypatch):
             module.__dict__.update(attributes)
             context.setitem(sys.modules, name, module)
         return runpy.run_path(str(Path(recipe.phimm.__file__).parent / "agentic/agent_loop.py"))
+
+
+def test_fresh_ray_worker_registers_selected_loop_before_main_dispatch(agent_loop, monkeypatch):
+    import hydra.utils
+
+    selected_loop = type("NativeLoop", (), {})
+    lookup = Mock(return_value=selected_loop)
+    monkeypatch.setattr(hydra.utils, "get_class", lookup)
+    worker = agent_loop["ASRWorker"]()
+    worker.config = OmegaConf.create({"asr": {"agent_loop_class": "native.module.NativeLoop"}})
+    registration = Mock(return_value=lambda cls: cls)
+    worker._run_agent_loop.__globals__["register"] = registration
+
+    result = asyncio.run(worker._run_agent_loop({"temperature": 0}, {}, agent_name="asr", trace=False))
+
+    lookup.assert_called_once_with("native.module.NativeLoop")
+    registration.assert_called_once_with("asr")
+    assert result == (({"temperature": 0}, {}), {"agent_name": "asr", "trace": False})
 
 
 @pytest.mark.parametrize("validate", [False, True])

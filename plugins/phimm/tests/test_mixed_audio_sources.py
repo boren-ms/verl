@@ -7,6 +7,41 @@ from omegaconf import OmegaConf
 from recipe.phimm.agentic.dataset import ASRDataset
 
 
+def test_diarization_and_single_speaker_mix_preserves_empty_word_schema(tmp_path):
+    sources = []
+    for index, words in enumerate(([{"start": 0.0, "end": 1.0, "speaker": "A", "text": "hello"}], [])):
+        path = tmp_path / f"diarization_{index}.jsonl"
+        path.write_text(
+            json.dumps(
+                {
+                    "audio_path": "unused.wav",
+                    "text": "hello",
+                    "prompt": "<audio>",
+                    "reference_segments": [{"start": 0.0, "end": 1.0, "speaker": "A"}],
+                    "reference_words": words,
+                    "source_start_s": 0.0 if index == 0 else None,
+                }
+            )
+            + "\n"
+        )
+        sources.append(
+            {
+                "dataset_name": "jsonl",
+                "jsonl_schema": "diarization",
+                "jsonl_paths": str(path),
+                "post_process": {
+                    "verl_format": {"extra_keys": ["reference_segments", "reference_words", "source_start_s"]}
+                },
+            }
+        )
+    config = OmegaConf.create({"train_files": "train", "train_data": sources})
+    dataset = ASRDataset("train", None, config)
+    assert dataset[0]["extra_info"]["reference_words"][0]["text"] == "hello"
+    assert dataset[1]["extra_info"]["reference_words"] == []
+    assert dataset[0]["extra_info"]["source_start_s"] == 0.0
+    assert dataset[1]["extra_info"]["source_start_s"] is None
+
+
 @pytest.mark.parametrize("adjustment", ["original", None])
 def test_short_and_contiguous_mix_preserves_audio_metadata_and_segments(tmp_path, adjustment):
     rows = [

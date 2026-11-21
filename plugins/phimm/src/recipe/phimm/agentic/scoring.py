@@ -30,7 +30,7 @@ def score_response(config, row, response, *, extra_info=None):
         extra_info=dict(extra_info if extra_info is not None else row.get("extra_info", {}) or {}),
         **dict(spec.get("reward_kwargs", {})),
     )
-    if "n_ref" in result and isinstance(response, (str, list)):
+    if "n_ref" in result and "n_json_total" not in result and isinstance(response, (str, list)):
         responses = response if isinstance(response, list) else [response]
         result["n_json_valid"] = sum(
             all(is_jsonl_segment(segment) for segment in parse_jsonl_response(item)) for item in responses
