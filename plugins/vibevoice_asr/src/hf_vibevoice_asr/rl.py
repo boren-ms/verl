@@ -29,6 +29,11 @@ class VibeVoiceASRForRL(VibeVoiceASRForConditionalGeneration):
 
     def __init__(self, config):
         super().__init__(config)
+        decoder_attention = getattr(config, "verl_decoder_attn_implementation", None)
+        if decoder_attention is not None:
+            # Select the decoder after construction: a root FlashAttention
+            # setting also reaches the convolutional speech tokenizers.
+            self.model.language_model.set_attn_implementation(decoder_attention)
         if getattr(config, "verl_deterministic_audio", False):
             # HF and rollout must condition on the same features. Upstream
             # otherwise draws fresh acoustic noise on every forward.

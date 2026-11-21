@@ -1,5 +1,5 @@
 # @package _global_
-# Preparation only: launch formal training separately after the smoke succeeds.
+# Balanced AMI-IHM + LS ReMax with evaluation-only DavidAI test.
 defaults:
 - ../base@_global_
 - _self_
@@ -21,6 +21,9 @@ actor_rollout_ref:
       # TF5 propagates the root implementation to the convolutional tokenizers,
       # which do not advertise FlashAttention support. Rollout uses vLLM's backend.
       attn_implementation: eager
+      # Eager BF16 decoder logits diverge from vLLM's FlashAttention. Keep
+      # convolutional frontends eager and select only the decoder after init.
+      verl_decoder_attn_implementation: flash_attention_2
   actor:
     ppo_micro_batch_size_per_gpu: 1
     ppo_max_token_len_per_gpu: 4096

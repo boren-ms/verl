@@ -369,9 +369,15 @@ collapsed audio placeholder plus the exact same normalized waveform. The
 upstream vLLM processor does not normalize raw audio itself. The HF adapter pads the native
 acoustic mask across response tokens and freezes the acoustic/semantic encoders
 and connectors. Decoder attention and MLP projections receive LoRA adapters.
-The HF training recipe uses eager attention because Transformers 5 propagates
-the root backend into the convolutional tokenizers, which reject FlashAttention
-initialization. A compatibility initializer also preserves loaded parameters:
+The HF training recipe initializes with eager attention because Transformers 5
+propagates the root backend into the convolutional tokenizers, which reject
+FlashAttention initialization. After construction, the adapter selects
+FlashAttention-2 for the language decoder only. With identical weights and
+bitwise-identical audio features, BF16 eager decoder logprobs differed from
+vLLM by mean absolute 0.181/0.285 nats on the AMI/LS diagnostic clips; decoder
+FlashAttention-2 reduced these to 0.0036/0.0176 nats (maximum below 0.1).
+These are two short diagnostic samples, not a guarantee of exact backend
+equivalence. A compatibility initializer also preserves loaded parameters:
 Transformers 5.7 tracks initialization per parameter, while upstream writes
 through `.data`, which otherwise reinitializes the LM head and connectors after
 loading. vLLM retains its own attention backend. Its engine-specific
