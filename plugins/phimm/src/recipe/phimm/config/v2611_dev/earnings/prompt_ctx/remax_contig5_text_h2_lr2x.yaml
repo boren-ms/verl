@@ -1,0 +1,12 @@
+# @package _global_
+defaults:
+  - remax_contig5_text_h2
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1.2e-6
+
+trainer:
+  experiment_name: remax_contig5_text_h2_lr2x
