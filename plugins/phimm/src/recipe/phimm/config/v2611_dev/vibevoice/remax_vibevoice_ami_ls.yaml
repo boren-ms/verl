@@ -9,6 +9,7 @@ actor_rollout_ref:
     external_lib: hf_vibevoice_asr
     use_remove_padding: false
     use_fused_kernels: false
+    enable_gradient_checkpointing: true
     lora_rank: 64
     target_modules: model.language_model.layers.\d+.(self_attn.(q_proj|k_proj|v_proj|o_proj)|mlp.(gate_proj|up_proj|down_proj))
     exclude_modules: null
@@ -25,6 +26,8 @@ actor_rollout_ref:
       # convolutional frontends eager and select only the decoder after init.
       verl_decoder_attn_implementation: flash_attention_2
   actor:
+    # Native multimodal forwards use padding; bound activation memory by rows.
+    use_dynamic_bsz: false
     ppo_micro_batch_size_per_gpu: 1
     ppo_max_token_len_per_gpu: 4096
     fsdp_config:
