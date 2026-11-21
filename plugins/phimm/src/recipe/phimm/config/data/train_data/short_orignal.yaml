@@ -1,0 +1,124 @@
+# Original Earnings Short sources with the shared datasource name short_orignal.
+# Combines earn_fy27, quartr_1st23, quartr_2nd48, and quartr_3rd38.
+# Source paths, preprocessing, and task formatting match the individual YAMLs.
+
+# Original FY27 batch 1/2 transcriptions, without Polyus TTS.
+# Match the NE-tagged comparison's processing and task settings.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/earningscall-fy27-en-us-batch1.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/speech/EarningsCall_2026_conversion_svad/"
+    rename_fields:
+      mappings:
+        text: display
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/earningscall-fy27-en-us-batch2.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audios/"
+      dst_part: "az://orngwus2cresco/data/speech/earningscall-2026/batch2-raw/EarningsCall_2026_batch2-raw_conversion_svad/"
+    rename_fields:
+      mappings:
+        text: display
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+
+# Cleaned Quartr FY27 Batch 1 partial set: 3,125 segments from 23 events,
+# 15.03 hours. NE/PName tags are stripped into text and extracted as keywords.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/earningscall-quartr-fy27-batch1-first23events-cleaned.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_First23events_Cleaned/audio/"
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+
+# Reviewed/adjusted Quartr FY27 batch 1 second 48 events: 6,392 rows,
+# approximately 35.84 hours. Eight rows flag a transcript not adjusted after
+# audio trimming; the source JSONL retains their status for audit.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/earningscall-quartr-fy27-batch1-second48events.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FY27_Batch1_Partial_Second48events/audio/"
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+
+# Cleaned Quartr Final38 delivery: 6,155 rows from 35 observed event IDs,
+# approximately 34.21 hours. Eleven rows are marked pending foreign-language
+# review; fifteen rows record audio adjustments. Source metadata is retained
+# in the JSONL, including the original timing for adjusted clips.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/earningscall-quartr-fyy27-batch1-final38events-cleaned.jsonl
+  pre_process:
+    path_map:
+      field: audio_path
+      src_part: "audio/"
+      dst_part: "az://orngwus2cresco/data/speech/users/qimiao/EarningsCall_Quartr_FYY27_Batch1_Partial_Final38events_Cleaned/audio/"
+    rename_fields:
+      mappings:
+        text: display_ne_tagged
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt

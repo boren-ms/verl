@@ -1,0 +1,62 @@
+# @package _global_
+# Sample 50k FL RM23 x4 rows and 25k each from original short, Contig5, and short RS23.
+# Double the inherited actor learning rate; retain the inherited PPO epochs.
+# Reporting baseline: Prompt @800, earnings-short-rm23-prompt-context-20261118.
+# Baseline evaluation: earnings-short-rm23-prompt-context-20261118-s800-openlong.
+# Compare full OpenLong Earnings21/Earnings22/CORAAL with the saved baseline.
+# Report data/context/LR/topology and 1,952-vs-800 step differences with WER/WERR.
+defaults:
+  - /v2611_dev/earnings/base_earning
+  - /data/train_data/short_orignal@_short_orignal_train
+  - /data/train_data/flshort_rm23x4@_flshort_rm23x4_train
+  - /data/train_data/contig5@_contig5_train
+  - /data/train_data/short_rs23@_short_rs23_train
+  - _self_
+
+data:
+  # Reserve prompt space for up to four previous generated transcripts.
+  max_prompt_length: 4096
+  train_data:
+    - ${_short_orignal_train}
+    - ${_flshort_rm23x4_train}
+    - ${_contig5_train}
+    - ${_short_rs23_train}
+  train_batch_size: 128
+  mix:
+    - shuffle: true
+      datasource:
+        # Give FL RM23 x4 twice the budget; repeat Contig5 slightly to reach 25k.
+        - {name: short_orignal, sample: 25000, shuffle: true}
+        - {name: flshort_rm23x4, sample: 50000, shuffle: true}
+        - {name: contig5, sample: 25000, shuffle: true}
+        - {name: short_rs23, sample: 25000, shuffle: true}
+
+reward_map:
+  short_orignal: train_librispeech
+  flshort_rm23x4: train_librispeech
+  contig5: train_librispeech
+  short_rs23: train_librispeech
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1.2e-06
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 4
+  expected_training_rows: 125000
+  expected_training_steps: 1952
+
+trainer:
+  experiment_name: remax_short_flrm23x4_contig5_text_h4_equal
+  nnodes: 8
+  n_gpus_per_node: 8
+  # floor((50,000 + 3 * 25,000) / 128) * 2 = 1,952 optimizer steps.
+  total_epochs: 2
+  total_training_steps: 1952

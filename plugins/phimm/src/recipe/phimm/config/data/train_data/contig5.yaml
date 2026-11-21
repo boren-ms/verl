@@ -1,0 +1,64 @@
+# Shared datasource: contig5. Based on offline_audio/earnings_short_contiguous5.yaml.
+# Unique consecutive five-segment windows over the complete Earnings Short mix.
+# 25,240 input utterances / 180 recordings -> 24,520 samples; no boundary repeats.
+# Provenance: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/preparation.json
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_000/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_001/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_002/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_003/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_004/data.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+    verl_format:
+      prompt_key: prompt

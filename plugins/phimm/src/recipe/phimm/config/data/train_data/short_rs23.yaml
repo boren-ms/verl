@@ -1,0 +1,62 @@
+# Shared datasource: short_rs23. Based on offline_audio/earnings_short_sc.yaml.
+# Prepared offline; original transform settings and hashes are in preparation.json.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/4ec7512ec2f224a5/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_rs23
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/5c79a182c159eb80/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_rs23
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/f52a10e423430ee0/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_rs23
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/2af56362d89e6423/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_rs23
+    verl_format:
+      prompt_key: prompt
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/325eb770c3bda963/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_rs23
+    verl_format:
+      prompt_key: prompt
