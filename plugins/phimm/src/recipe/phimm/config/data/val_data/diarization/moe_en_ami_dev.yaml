@@ -1,0 +1,25 @@
+# @package data.val_data
+- dataset_name: jsonl
+  jsonl_schema: diarization
+  sft_target_format: text
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/pilot_v1/moe_ami_dev/data.jsonl
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - recording_id
+      - source_recording
+      - speaker_map
+      - duration_s
+      - evaluation_duration_s
+      - source_start_s
+      - source_end_s
+      - reference_segments
+      - reference_words
+      - reference_turns
+      - annotation_kind
+      - source_chunk
+      - source_record_index
+      - split
+      - speaker_count
+  val_batch_size: -1

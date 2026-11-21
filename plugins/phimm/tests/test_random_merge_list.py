@@ -140,7 +140,6 @@ def test_global_block_produces_full_reference_segments_and_leaves_validation_alo
             "val_files": "val",
             "train_data": [source],
             "val_data": [source],
-            "version": 2609,
         }
     )
     full_config = OmegaConf.create(
@@ -188,7 +187,9 @@ def test_source_block_inherits_hint_language_before_formatting(tmp_path):
     )
     assert len(result) == 1
     assert result[0]["extra_info"]["language"] == "French"
-    assert result[0]["reward_model"]["gt_output"].count("<src=French>") == 2
+    assert list(map(json.loads, result[0]["reward_model"]["gt_output"].splitlines())) == [
+        {"language": "French", "text": text} for text in result[0]["reward_model"]["ground_truth"].split()
+    ]
 
 
 def test_empty_disabled_and_formatted_input():

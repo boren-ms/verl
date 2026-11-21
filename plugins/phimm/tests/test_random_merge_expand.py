@@ -102,7 +102,10 @@ def test_materialized_cross_source_rows_survive_task_formatting(tmp_path):
             assert raw["text"] == " ".join(r["text"] for r in originals_in_order)
             assert raw["keywords"] == [k for r in originals_in_order for k in r["keywords"]]
             assert raw["language"] == "English"
-            assert final["reward_model"]["gt_output"].count("<src=English>") == len(raw["audio_path"])
+            lines = list(map(json.loads, final["reward_model"]["gt_output"].splitlines()))
+            assert len(lines) == len(raw["audio_path"])
+            assert {line["language"] for line in lines} == {"English"}
+            assert " ".join(line["text"] for line in lines) == raw["text"]
     with pytest.raises(FileExistsError):
         materialize(input_dir, sources_path, out, "az://test/new")
 

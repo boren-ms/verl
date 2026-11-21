@@ -1,0 +1,28 @@
+# @package data.val_data
+# Evaluation only: 48 recordings x 2 original channels, independently SVAD-cut.
+# References remain full-channel transcripts; no oracle reference-based cuts.
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/dai-public-en-separated-svad30/data.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - clip_id
+      - channel
+      - language
+      - language_code
+      - audio_path
+      - audio_sha256
+      - source_id
+      - source_revision
+      - duration_s
+      - svad_source
+      - svad_bounds
+      - svad_parent_duration
+      - svad_method

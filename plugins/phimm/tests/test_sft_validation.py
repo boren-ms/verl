@@ -17,6 +17,27 @@ def test_source_revision_is_independent_of_ray_worker_cwd(tmp_path, monkeypatch)
     assert len(expected) == 40
 
 
+def test_dai_sft_checkpoint_evaluation_keeps_speaker_prompt_and_der_scoring():
+    import recipe.phimm
+
+    directory = Path(recipe.phimm.__file__).parent / "config/v2611_dev/sft"
+    with initialize_config_dir(config_dir=str(directory), version_base=None):
+        cfg = compose(
+            config_name="eval_sft_dai_diarization_2611r2",
+            overrides=[
+                "trainer.experiment_name=dai-periodic",
+                "actor_rollout_ref.model.path=az://test/exports/step1000/qwen_hf",
+            ],
+        )
+    assert cfg.trainer.val_only and cfg.trainer.resume_mode == "disable"
+    assert (cfg.trainer.nnodes, cfg.trainer.n_gpus_per_node) == (1, 8)
+    assert cfg.actor_rollout_ref.model.path.endswith("/step1000/qwen_hf")
+    assert cfg.actor_rollout_ref.model.lora_rank == 0
+    assert cfg.data.val_data[0].post_process.verl_format.target_format == "speaker_jsonl"
+    assert cfg.rewards.val_diarization.reward_kwargs.prediction_format == "speaker_jsonl"
+    assert cfg.rewards.val_diarization.reward_kwargs.compute_wer
+
+
 def test_native_sft_validation_preserves_base3a_decoding_and_has_no_training_resume():
     import recipe.phimm
 

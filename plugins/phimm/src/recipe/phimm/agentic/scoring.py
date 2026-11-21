@@ -5,6 +5,7 @@ from collections import defaultdict
 from functools import cache
 
 import numpy as np
+from recipe.phimm.reward.asr_response import is_jsonl_segment, parse_jsonl_response
 
 
 @cache
@@ -23,18 +24,35 @@ def score_response(config, row, response, *, extra_info=None):
         raise ValueError(f"No scorer for {source!r}")
     spec = registrations[name]
     fn = load_score_function(spec["path"], spec["name"])
-    return fn(
+    result = fn(
         solution_str=response,
         ground_truth=row["reward_model"]["ground_truth"],
         extra_info=dict(extra_info if extra_info is not None else row.get("extra_info", {}) or {}),
         **dict(spec.get("reward_kwargs", {})),
     )
+    if "n_ref" in result and isinstance(response, (str, list)):
+        responses = response if isinstance(response, list) else [response]
+        result["n_json_valid"] = sum(
+            all(is_jsonl_segment(segment) for segment in parse_jsonl_response(item)) for item in responses
+        )
+        result["n_json_total"] = len(responses)
+    return result
 
 
 def aggregate_error_rates(data_sources, extra_infos):
     """Use sum(errors)/sum(reference units), never mean(utterance WER)."""
     totals = defaultdict(lambda: defaultdict(float))
-    prefixes = {"n_": "p_", "nb_": "pb_", "nu_": "pu_", "dter_n_": "dter_p_", "eer_n_": "eer_p_", "nc_": "pc_"}
+    prefixes = {
+        "n_": "p_",
+        "hf_n_": "hf_p_",
+        "nb_": "pb_",
+        "nu_": "pu_",
+        "dter_n_": "dter_p_",
+        "eer_n_": "eer_p_",
+        "nc_": "pc_",
+        "der_n_": "der_p_",
+        "wder_n_": "wder_p_",
+    }
     for i, source in enumerate(data_sources):
         for key, values in extra_infos.items():
             value = values[i]
@@ -42,7 +60,11 @@ def aggregate_error_rates(data_sources, extra_infos):
                 totals[source][key] += value
     metrics = {}
     for source, counts in totals.items():
+        if counts["n_json_total"]:
+            metrics[f"val-aux/{source}/json_valid_rate/mean@1"] = counts["n_json_valid"] / counts["n_json_total"]
         for prefix, output_prefix in prefixes.items():
+            if prefix in {"der_n_", "wder_n_"} and counts.get(prefix.removesuffix("n_") + "unavailable", 0):
+                continue
             denominator = counts.get(prefix + "ref", 0)
             if denominator <= 0:
                 continue

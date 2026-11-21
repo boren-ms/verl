@@ -100,7 +100,7 @@ def test_shared_reward_dispatch(config, monkeypatch, source, name):
                 "solution_str": responses,
                 "ground_truth": "full reference",
                 "extra_info": row["extra_info"],
-                **OmegaConf.to_container(spec.reward_kwargs),
+                **dict(spec.get("reward_kwargs", {})),
             },
         )
     ]
@@ -149,8 +149,8 @@ def test_baseline_measures_drive_vote_reward(config):
         "reward_model": {"ground_truth": "hello world"},
         "extra_info": {"language": "English"},
     }
-    bad = "<src=English><tgt=English>\n<verbatim>hello</verbatim>"
-    good = "<src=English><tgt=English>\n<verbatim>hello world</verbatim>"
+    bad = '{"language":"English","text":"hello"}'
+    good = '{"language":"English","text":"hello world"}'
     baseline = score_response(config, row, bad)
     assert baseline["score"] == 0
     info = {"language": "English", "greedy_hyp": bad, "greedy_reward": baseline}
@@ -165,8 +165,8 @@ def test_joint_segment_reward_uses_full_reference_and_joint_greedy_measures(conf
         "reward_model": {"ground_truth": "hello world"},
         "extra_info": {"language": "English"},
     }
-    first = "<src=English><tgt=English>\n<verbatim>hello</verbatim>"
-    second = "<src=English><tgt=English>\n<verbatim>world</verbatim>"
+    first = '{"language":"English","text":"hello"}'
+    second = '{"language":"English","text":"world"}'
     baseline = score_response(config, row, [first, ""])
     result = score_response(config, row, [first, second], extra_info={"language": "English", "greedy_reward": baseline})
     assert baseline["word"] == 0.5

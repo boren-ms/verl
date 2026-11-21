@@ -160,7 +160,7 @@ class ASRAgentLoop(AgentLoopBase):
         }
         if validate:
             # Aggregate text is only for validation display, after raw scoring.
-            response = get_hyp_text(texts, version=self.config.data.version)
+            response = get_hyp_text(texts)
             output.response_ids = self.tokenizer.encode(response, add_special_tokens=False)
             if not output.response_ids:
                 # TransferQueue attaches the precomputed reward to the last token.

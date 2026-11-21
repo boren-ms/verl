@@ -144,7 +144,6 @@ def test_dataset_block_expands_paths_without_splitting_reference_or_loading_audi
         {
             "train_files": "train",
             "val_files": "val",
-            "version": 2609,
             "train_data": [
                 {
                     "dataset_name": "jsonl",
@@ -204,7 +203,6 @@ def test_segmented_and_unsegmented_sources_share_a_mix(tmp_path):
     config = OmegaConf.create(
         {
             "train_files": "train",
-            "version": 2609,
             "train_data": sources,
             "shuffle": False,
             "train_batch_size": 1,

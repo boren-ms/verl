@@ -8,16 +8,13 @@ reference and hypothesis string.  No dependency on DTER / dfmetrics / dotnet.
 from __future__ import annotations
 
 import math
-import re
 import unicodedata
 from dataclasses import dataclass
-from itertools import zip_longest
 from numbers import Real
 
 from jiwer import process_characters, process_words
-
 from recipe.phimm.reward.asr_metrics import measure, normalize_text
-from recipe.phimm.reward.asr_response import get_hyp_text, parse_response_outputs
+from recipe.phimm.reward.asr_response import get_hyp_text, is_jsonl_segment, parse_response_outputs
 from recipe.phimm.utils.languages import LANGUAGES, get_language_code
 
 # ---------------------------------------------------------------------------
@@ -375,16 +372,14 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     For ``word_lang`` only, lexical accuracy is capped at 0.99 so language
     errors contribute even for perfect text. Raw ``word`` accuracy and
     negative insertion accuracies are unchanged.
-    ``fmt`` is one minus the fraction of invalid 2609 segments: missing
-    parsed text or an incomplete leading tag in the raw parsed text.
+    ``fmt`` is the fraction of responses containing only valid JSONL lines.
     ``word_fmt`` is one minus ``(1 - fmt)`` divided by
     ``max(total_reference_words, 1)``.
     """
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    version = kwargs.get("version")
-    task_outputs = parse_response_outputs(solution_str, version=version)
-    hyp_text = get_hyp_text(solution_str, version=version)
+    task_outputs = parse_response_outputs(solution_str)
+    hyp_text = get_hyp_text(solution_str)
 
     char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
     word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
@@ -398,7 +393,7 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
     openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
     lang_acc = sum(check_lang(output, tgt_lang)["acc"] for output in task_outputs) / len(task_outputs)
-    fmt = sum(check_fmt(output) for output in task_outputs) / len(task_outputs)
+    fmt = sum(all(is_jsonl_segment(segment) for segment in output) for output in task_outputs) / len(task_outputs)
     char_acc = char_error.accuracy()
     word_acc = word_error.accuracy()
     n_total = max(word_error.n_ref, 1)
@@ -432,71 +427,11 @@ def _lang_codes(lang) -> list[str]:
 
 
 def check_lang(task_output, tgt_lang) -> dict[str, float | int]:
-    """Check language headers against the reference language(s).
-
-    Multiple reference languages are alternatives: each predicted source/target
-    pair must name the same supported language from that set. Missing reference
-    languages and their order do not affect accuracy. In this case ``n_ref`` is
-    the number of predicted pairs (at least one), and ``n_err`` counts invalid
-    pairs. A missing header scores zero.
-
-    For a single reference language, retain the ordered edit-count check;
-    extra headers still count as insertions. Names, ISO codes, and aliases are
-    normalized. Chinese/Mandarin (zh) and Cantonese (yue) remain distinct.
-    Language identifiers must use supported English names or ISO codes.
-    Missing or unsupported values
-    cannot match a reference, and a completely missing header counts as one
-    invalid prediction. Unsupported reference languages cannot earn matching credit.
-    Missing source languages count as errors.
-
-    For a single reference, substitutions, deletions, and insertions each count
-    as one error per position. ``n_ref`` is the expected language count and
-    ``acc = 1 - n_err / max(n_ref, 1)``. Extra predictions can make
-    accuracy negative. Hypothesis text, including ``<nonspeech>``, is not checked.
-    """
-    ref_codes = _lang_codes(tgt_lang)
-    supported_codes = frozenset(LANGUAGES.values())
-    references = [f"{code}:{code}" if code in supported_codes else "invalid-reference" for code in ref_codes]
-    predictions = []
-    for segment in task_output:
-        src_codes = _lang_codes(segment["src"])
-        tgt_codes = _lang_codes(segment["tgt"])
-        pairs = zip_longest(src_codes or [None], tgt_codes or [None])
-        predictions.extend(
-            f"{src}:{tgt}" if src in supported_codes and tgt in supported_codes else "invalid-prediction"
-            for src, tgt in pairs
-        )
-
-    if len(ref_codes) > 1:
-        allowed = {f"{code}:{code}" for code in ref_codes if code in supported_codes}
-        n_ref = max(len(predictions), 1)
-        n_err = sum(prediction not in allowed for prediction in predictions) if predictions else 1
-        return {"acc": 1.0 - n_err / n_ref, "n_err": n_err, "n_ref": n_ref}
-
-    alignment = process_words(" ".join(references), " ".join(predictions))
-    n_err = alignment.substitutions + alignment.deletions + alignment.insertions
-    n_ref = len(ref_codes)
-    return {"acc": 1.0 - n_err / max(n_ref, 1), "n_err": n_err, "n_ref": n_ref}
-
-
-def check_fmt(task_output) -> float:
-    """Return ``1 - errors / total`` for raw parsed 2609 segment text.
-
-    Complete leading tags and untagged text are valid. Missing parsed text
-    and incomplete leading tags count as errors. Empty output scores zero.
-    """
-    if not task_output:
-        return 0.0
-    errors = 0
-    for segment in task_output:
-        text = segment["text"]
-        if text is None:
-            errors += 1
-            continue
-        raw_text = text.lstrip()
-        if raw_text.startswith("<") and re.match(r"</?[A-Za-z][\w:.-]*>", raw_text) is None:
-            errors += 1
-    return 1.0 - errors / len(task_output)
+    """Each predicted name must be supported and match a reference language."""
+    allowed = set(_lang_codes(tgt_lang)) & set(LANGUAGES.values())
+    codes = [code for segment in task_output for code in (_lang_codes(segment["language"]) or [None])] or [None]
+    n_err = sum(code not in allowed for code in codes)
+    return {"acc": 1.0 - n_err / len(codes), "n_err": n_err, "n_ref": len(codes)}
 
 
 def clip(x, lo=-1.0, hi=1.0):
@@ -676,8 +611,7 @@ def lang_score(solution_str: str | list[str], ground_truth=None, **kwargs):
     """Return only the language-identification reward and metric."""
     extra_info = kwargs.get("extra_info") or {}
     tgt_lang = extra_info.get("language", kwargs.get("language", "English")).lower().strip()
-    version = kwargs.get("version")
-    task_outputs = parse_response_outputs(solution_str, version=version)
+    task_outputs = parse_response_outputs(solution_str)
     p_lang = sum(check_lang(output, tgt_lang)["acc"] for output in task_outputs) / len(task_outputs)
     return {
         "score": p_lang,

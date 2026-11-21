@@ -311,7 +311,7 @@ class ASRDataset(Dataset):
         set_chunk_load_mode(config.get("chunk_load_mode") or "indexed")
 
         data_confs = _prepare_data_confs(config, is_train=is_train)
-        data_sets = [create_audio_dataset(**{**conf, "version": config.version}) for conf in data_confs]
+        data_sets = [create_audio_dataset(**conf) for conf in data_confs]
         data_sets = _align_source_features(data_sets)
         self.ds = _combine_datasets(data_sets, config, is_train=is_train)
         if max_samples > 0:

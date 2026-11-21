@@ -11,6 +11,7 @@ import pyarrow as pa
 import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
 from recipe.phimm.data.prompts import get_task_output, get_task_prompt, resolve_language
+from recipe.phimm.data.speaker_jsonl import SPEAKER_JSONL_PROMPT, format_speaker_jsonl
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import (
     all_rank_print,
@@ -22,16 +23,29 @@ from recipe.phimm.utils.shared import (
 from verl.audio_cache import submit_audio_cache_dataset
 
 
-def jsonl_dataset(jsonl_paths, **kwargs):
+def jsonl_dataset(jsonl_paths, jsonl_schema=None, **kwargs):
     """Load a JSONL dataset from the specified paths.
 
     Supports both plain ``.jsonl`` files and gzip-compressed ``.jsonl.gz`` files.
     """
 
-    parse_options = pjson.ParseOptions(
-        explicit_schema=pa.schema([pa.field("keywords", pa.list_(pa.string()))]),
-        unexpected_field_behavior="infer",
-    )
+    fields = [pa.field("keywords", pa.list_(pa.string()))]
+    if jsonl_schema == "diarization":
+        # A mixed corpus can have many consecutive batches with no word or
+        # turn labels. Keep the absent lists typed so Arrow can read later rows.
+        interval = [("start", pa.float64()), ("end", pa.float64()), ("speaker", pa.string())]
+        labeled = pa.list_(pa.struct([*interval, ("text", pa.string())]))
+        fields.extend(
+            [
+                pa.field("reference_segments", pa.list_(pa.struct(interval))),
+                pa.field("reference_words", labeled),
+                pa.field("reference_turns", labeled),
+                pa.field("speaker_map", pa.list_(pa.struct([("source", pa.string()), ("local", pa.string())]))),
+            ]
+        )
+    elif jsonl_schema is not None:
+        raise ValueError(f"Unknown JSONL schema: {jsonl_schema!r}")
+    parse_options = pjson.ParseOptions(explicit_schema=pa.schema(fields), unexpected_field_behavior="infer")
 
     def load_jsonl(file_path):
         with bf.BlobFile(file_path, "rb") as file_obj:
@@ -256,9 +270,14 @@ def verl_format_ds(ds, **kwargs):
 
     def map_fn(egs):
         text = egs.get("text", "")
+        prompt = egs[prompt_key]
+        target = egs.get("gt_output", text)
+        if kwargs.get("target_format") == "speaker_jsonl":
+            prompt = SPEAKER_JSONL_PROMPT
+            target = format_speaker_jsonl(egs)
         result = {
-            prompt_key: to_user_msg(egs[prompt_key]),
-            "reward_model": {"ground_truth": text, "gt_output": egs.get("gt_output", text)},
+            prompt_key: to_user_msg(prompt),
+            "reward_model": {"ground_truth": text, "gt_output": target},
             "extra_info": {key: _extra_info_value(egs, key) for key in extra_keys},
             "data_source": egs.get("data_source", "asr"),
         }
@@ -388,7 +407,7 @@ def mask_foreign_language(ds, *, task_info, **kwargs):
 def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs):
     """Add the prompt, formatted output, and resolved language without changing text."""
 
-    def add_info(row):
+    def format_jsonl_example(row):
         # A merged list can contain multiple spoken languages. The configured
         # source hint filled missing languages before merging; retain the union
         # here when constructing the language hint and formatted reference.
@@ -406,7 +425,7 @@ def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs)
             "language": lang,
         }
 
-    return ds.map(add_info, **pop_map_kwargs(kwargs))
+    return ds.map(format_jsonl_example, **pop_map_kwargs(kwargs))
 
 
 def augment(ds, **kwargs):

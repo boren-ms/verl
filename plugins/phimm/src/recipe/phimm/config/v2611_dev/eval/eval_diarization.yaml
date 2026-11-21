@@ -1,0 +1,15 @@
+# @package _global_
+# Decode DAI SVAD clips using the same speaker JSONL prompt as AMI dev.
+defaults:
+  - eval_base
+  - /data/val_data/diarization: dai_asr_i18n_public_en
+  - /reward/diarization@_global_
+  - _self_
+
+rewards:
+  val_diarization:
+    reward_kwargs:
+      prediction_format: speaker_jsonl
+
+trainer:
+  experiment_name: ???

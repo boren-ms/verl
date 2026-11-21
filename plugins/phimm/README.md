@@ -99,6 +99,150 @@ Non-speech and foreign-language
 checks require every response to satisfy the sample's task, while retaining
 one parent-level reference count.
 
+Recording-level diarization evaluation uses
+[`reward/diarization_eval.py`](src/recipe/phimm/reward/diarization_eval.py),
+with the same `solution_str`, `ground_truth`, `extra_info` dispatch interface as
+`reward/asr_eval.py`. Install its optional CPU scoring dependencies with
+`uv pip install -e 'plugins/phimm[diarization]'` in the evaluation environment.
+It runs inside the existing agent-loop evaluation; there is no postprocessing
+command. The opt-in
+[`config/reward/diarization.yaml`](src/recipe/phimm/config/reward/diarization.yaml)
+adds `val_diarization` and maps `dai_asr_i18n_en_public` to it while retaining
+the existing ASR scorers.
+
+The consolidated input JSONL keeps all references on each recording's row:
+
+```json
+{"id":"example","audio_path":"/data/example.wav","text":"Hello world","language":"English","data_source":"dai_asr_i18n_en_public","evaluation_duration_s":2.0,"reference_segments":[{"speaker":"A","start_s":0.0,"end_s":1.0},{"speaker":"B","start_s":1.0,"end_s":2.0}],"reference_words":[{"speaker":"A","text":"Hello"},{"speaker":"B","text":"world"}]}
+```
+
+The DAI preset detects the response format (`prediction_format: auto`).
+For ordinary ASR transcription, it uses the single-speaker baseline
+(`text_speaker: speaker_0`). Every nonempty
+decoded segment is marked as speaker_0 over its full decoding interval from
+`svad_bounds`. Empty or `<nonspeech>` outputs produce no speech interval.
+All recognized words receive the same label. The original ASR prompt and
+response cleanup are reused; the model need not emit JSON, labels or timestamps.
+No additional acoustic diarization or forced-alignment model is loaded.
+
+For example, decoded texts `["Hello", "world"]` with
+`svad_bounds: [[0, 1], [1, 2]]` yield:
+
+```json
+{"segments":[{"speaker":"speaker_0","start_s":0.0,"end_s":1.0},{"speaker":"speaker_0","start_s":1.0,"end_s":2.0}],"words":[{"speaker":"speaker_0","text":"Hello"},{"speaker":"speaker_0","text":"world"}]}
+```
+
+Against reference A saying Hello during `[0, 1]` and reference B saying world
+during `[1, 2]`, optimal mapping can match speaker_0 to only one reference
+speaker: both DER and WDER are 50%. This baseline does not recognize speaker
+changes. DER depends on the segment activity and boundaries, not on the
+recognized wording apart from whether each segment is empty. Within-segment
+silence can count as false alarm, and speaker changes/overlap can incur errors.
+`single_speaker_baseline: 1` is recorded in the scoring output.
+
+Labels are mapped optimally once per recording. SVAD-prepared rows retain one
+recording per sample, with an ordered `audio_path` list and matching
+`svad_bounds: [[start_s, end_s], ...]` on the same JSONL row. The agent loop
+returns one response per segment. Words are joined in segment order.
+
+For models trained with the AMI speaker JSONL prompt, use
+[`eval_diarization_ami`](src/recipe/phimm/config/v2611_dev/eval/eval_diarization_ami.yaml)
+with the exported model path. It evaluates full AMI dev and requests the same
+JSONL as the SFT preset:
+
+```jsonl
+{"spk":1,"text":"Hello.","start":0,"end":75}
+{"spk":2,"text":"Hi.","start":50,"end":100}
+```
+
+`start` and `end` are integer 10 ms ticks relative to the input clip. WER
+uses the `text` fields in output order. WDER requires `spk` for spoken words,
+and DER requires `spk`, `start` and `end` for speech intervals. Missing
+metadata makes the affected metric unavailable without preventing WER. Word
+order across overlapping lines follows the emission order; the scorer does
+not invent word timestamps. The legacy JSON object with `segments` and `words`
+remains supported. For SVAD, each response uses its own clip clock, and the
+scorer adds the clip offset. Speaker IDs must stay consistent across responses
+from the same recording.
+
+Every decoding segment must have one response. Text mode can also use
+`seg_start`/`seg_end` for one segment, or `evaluation_duration_s` for one full
+recording. Without timing metadata DER is unavailable; WDER still works from
+the recognized words with their common speaker label. In structured mode,
+every segment must supply a valid metric field for that metric to be available.
+The original full reference annotations stay in `extra_info` and never enter
+the prompt. Reference speech in gaps omitted by SVAD remains in the denominator
+and counts as missed speech, rather than disappearing from the evaluation.
+
+The data YAMLs in
+[`config/data/val_data/diarization/`](src/recipe/phimm/config/data/val_data/diarization/)
+select the Orange `public-en-jsonl/svad30/` manifests, prepared offline with
+the bundled Smart VAD and a maximum segment length of 30 seconds:
+`dai_asr_i18n_public_en` (48),
+`dai_asr_i18n_public_en_validation_smoke` (3), and
+`dai_asr_i18n_public_en_internal_test` (45). The internal subsets are disjoint;
+the full public view includes both. These data are evaluation only, with no
+training split. Each YAML requests standard verbatim transcription and retains
+all reference fields from its JSONL row, without annotation sidecars.
+
+For example, the audio field becomes
+`"audio_path": ["/data/example.wav#0.0:1.0", "/data/example.wav#1.0:2.0"]`,
+with `"svad_bounds": [[0.0, 1.0], [1.0, 2.0]]`. The transcript, reference
+segments, reference words, ID and other attached fields remain unchanged.
+The existing offline preparation command is reusable:
+
+```bash
+python -m recipe.phimm.tools.svad_segment --src data.jsonl \
+  --dst data-svad30.jsonl --max-len-sec 30
+```
+
+Use the existing evaluation entry point with a merged model and unique run name:
+
+```bash
+python -m recipe.phimm.main_asr_eval --config-name eval_diarization \
+  actor_rollout_ref.model.path=<merged-hf-checkpoint> \
+  trainer.experiment_name=<unique-eval-name>
+```
+
+For the smoke subset, add
+`data/val_data/diarization=dai_asr_i18n_public_en_validation_smoke`.
+The scorer returns fractional `der` and `wder` plus sufficient counts:
+
+- DER uses zero collar, includes overlapping speech and clips to
+  `evaluation_duration_s` when supplied. Prepared DAI reference segments already
+  include the upstream 200 ms same-speaker word-gap merge. Native model segments
+  are used as supplied. Corpus DER pools `der_n_err / der_n_ref`, where the
+  denominator is reference speaker-seconds. Miss, false alarm and confusion
+  counts are also returned.
+- WDER aligns normalized words with Levenshtein, includes substituted pairs,
+  excludes insertions/deletions and pools `wder_n_err / wder_n_ref` over aligned
+  word pairs. It is a supplemental speaker metric, distinct from WER. Default
+  normalization is the existing ASR `hf_english` normalizer applied per word.
+  To reproduce the earlier DAI-based WDER normalization, install that toolkit
+  and set `rewards.val_diarization.reward_kwargs.normalization=dai_asr_i18n`.
+- Reward defaults to `1-DER`. Set
+  `rewards.val_diarization.reward_kwargs.reward_metric=wder` for `1-WDER`.
+  Both metrics are returned in either case. DER can exceed one and its reward
+  can be negative. Missing or invalid predicted annotations give `null` rates,
+  an `*_unavailable` flag and zero reward for the selected unavailable metric.
+  An explicit empty segment list counts as missed speech. Zero denominators
+  give undefined rates while retaining primitive counts for corpus pooling.
+
+Validation logs pooled `val-core/<source>/der_p_err/mean@1` and
+`val-core/<source>/wder_p_err/mean@1`. If any recording lacks valid predicted
+annotations for a metric, its pooled corpus rate is omitted; the other metric
+can still be reported. Both presets enable `compute_wer: true`, reusing
+the existing OpenASR English scorer on the joined transcription. Its `n_err`
+and `n_ref` counts produce the usual pooled `val-core/<source>/p_err/mean@1`
+WER alongside DER/WDER. This does not change the selected diarization reward.
+
+For a concrete DER example, let reference A speak during `[0, 2]`, reference B
+during `[1, 3]`, and hypothesis X during `[0, 4]`. Mapping X to A gives one
+speaker-second of missed speech during `[1, 2]`, one of confusion during
+`[2, 3]`, and one of false alarm during `[3, 4]`. The denominator is four
+reference speaker-seconds, including both speakers in the overlap:
+`DER = (1 + 1 + 1) / 4 = 75%`.
+
 The adapter retains batch128, LoRA320/640, LR6e-7, two epochs, six-source
 mix, validation20/save10, and auto resume. Runtime checks require 55,664 rows
 and 868 updates. Main's decoupled token importance correction has cap5 without
@@ -546,15 +690,14 @@ joins their text for lexical, keyword, punctuation and capitalization
 metrics against the original full reference. Language and format checks run
 separately on each response and are averaged with equal segment weights;
 when a reference lists multiple languages (for example `English_Chinese`),
-each header may match any listed language, with matching `src` and `tgt`.
-An independent response need not contain all reference languages. Mixed
-responses check every header; unsupported or mismatched languages lose credit.
-Single-language references retain their existing extra-header penalties.
-For all references,
-missing or malformed responses remain visible to these checks. Combined
-metrics (`word_lang`, `char_lang`, `word_fmt`) use those averaged checks.
-Only model response format 2609 is supported; omitted versions default to
-2609 and other configured versions raise an error.
+each predicted target language name may match any listed language. Repeated
+labels on separate lines are valid.
+
+Responses use JSONL: one `{"language":"English","text":"Hello."}` object per
+segment, with one or more lines in transcript order. The scorer joins the
+`text` fields in order. A malformed line contributes its raw text, gets
+no language credit, and fails the format check for that response. Combined metrics
+(`word_lang`, `char_lang`, `word_fmt`) use the same per-segment checks.
 ReMax likewise generates all greedy segment responses and scores them as one
 sample before sampled trajectories start. The agent returns independent
 outputs through Main's multi-output interface (`uid_session_segment`), each

@@ -10,7 +10,7 @@ from cachetools import FIFOCache, cached
 from recipe.phimm.data.chunk import load_chunk_example, load_chunk_sample
 
 from verl.audio_cache import localize_audio_source, split_audio_sources
-from verl.audio_chunk import read_chunk_audio, split_chunk_audio_source
+from verl.audio_chunk import open_chunk_audio, read_chunk_audio, split_chunk_audio_source
 from verl.audio_zip import read_zip_audio, split_zip_audio_source
 
 logger = logging.getLogger(__name__)
@@ -177,7 +177,8 @@ def get_audio_duration(source):
             raise ValueError(f"Chunk index out of range: {source}")
         source = references[int(index)]
     if split_chunk_audio_source(source) is not None:
-        return sf.info(io.BytesIO(read_chunk_audio(source))).duration
+        with open_chunk_audio(source) as stream:
+            return sf.info(stream).duration
     if split_zip_audio_source(source) is not None:
         return sf.info(io.BytesIO(read_zip_audio(source))).duration
 
@@ -196,7 +197,12 @@ def _load_time_chunk(spec):
         raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
 
     chunk_audio = None
-    if split_chunk_audio_source(file_path) is not None or split_zip_audio_source(file_path) is not None:
+    if split_chunk_audio_source(file_path) is not None:
+        with open_chunk_audio(file_path) as record, sf.SoundFile(record) as wav:
+            first, last = _time_chunk_frames(start, end, start_is_percent, e_str, wav.frames, wav.samplerate, spec)
+            wav.seek(first)
+            return wav.read(last - first), wav.samplerate
+    if split_zip_audio_source(file_path) is not None:
         chunk_audio, sr = sf_read(file_path)
         chunk_audio = np.asarray(chunk_audio)
         frames = len(chunk_audio)
@@ -221,6 +227,14 @@ def _load_time_chunk(spec):
         info = sf.info(readable_path)
         sr = info.samplerate
         frames = info.frames
+    start_frame, stop_frame = _time_chunk_frames(start, end, start_is_percent, e_str, frames, sr, spec)
+    if chunk_audio is not None:
+        return chunk_audio[start_frame:stop_frame], sr
+    return sf.read(readable_path, start=start_frame, stop=stop_frame)
+
+
+def _time_chunk_frames(start, end, start_is_percent, e_str, frames, sr, spec):
+    file_path, _, tail = spec.rpartition("#")
     if start_is_percent:
         end = 100.0 if end is None else end
         if end < 0:
@@ -255,13 +269,13 @@ def _load_time_chunk(spec):
             end = duration
         if not 0 <= start < end <= duration:
             raise ValueError(f"Invalid audio range in seconds: {tail!r}")
-        start_frame = int(start * sr)
-        stop_frame = int(end * sr)
-    stop_frame = max(start_frame + 1, min(stop_frame, frames))
-    if chunk_audio is not None:
-        return chunk_audio[start_frame:stop_frame], sr
-    audio, sr = sf.read(readable_path, start=start_frame, stop=stop_frame)
-    return audio, sr
+        # A JSON selector generated from integer frames can round slightly
+        # below its original frame when converted through seconds.
+        first = start * sr
+        last = end * sr
+        start_frame = round(first) if abs(first - round(first)) < 1e-7 else int(first)
+        stop_frame = round(last) if abs(last - round(last)) < 1e-7 else int(last)
+    return start_frame, max(start_frame + 1, min(stop_frame, frames))
 
 
 def _load_chunk(spec):

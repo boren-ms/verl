@@ -1,0 +1,16 @@
+# @package _global_
+# AMI SFT: one JSONL object per segment with optional speaker and 10 ms timestamps.
+
+defaults:
+  - sft_base3a_2611r2
+  - /data/train_data/diarization@data.train_data: moe_en_full_ami_train
+  - /data/val_data/diarization@data.val_data: moe_en_full_ami_dev
+  - _self_
+
+data:
+  mix: null
+  shuffle: true
+  sft_target_format: speaker_jsonl
+
+trainer:
+  experiment_name: sft_ami_diarization_2611r2

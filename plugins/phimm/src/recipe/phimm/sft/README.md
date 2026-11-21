@@ -32,9 +32,8 @@ reference and verifies that the prompt prefix is identical. The Qwen processor
 receives `(waveform, sample_rate)` and extracts the audio features once; the
 tokenizer encodes the remaining assistant suffix. The dataset returns token
 IDs, positions, an assistant-only loss mask, and `multi_modal_inputs`. The
-native engine supplies causal next-token alignment and optimization. Tags in
-the formatted reference are part of the target, so the model learns the same
-response convention used by the recognition scorer.
+native engine supplies causal next-token alignment and optimization. The loss
+supervises the entire JSON object, including both field names.
 
 The Ray entry point populates the base-model/config/tokenizer cache on every
 participating GPU node before constructing the native SFT trainer. This is
@@ -182,3 +181,35 @@ counts; do not attribute every rerun difference to the checkpoint or merge
 precision. If a batch validation is resumed, retain the original experiment and
 the complete original `steps` list so its committed configuration fingerprints
 continue to match.
+
+## JSONL responses
+
+Base3a SFT supervises one JSON object per segment. An example with multiple
+prepared segments puts each object on its own line in transcript order:
+
+```jsonl
+{"language":"English","text":"Hello."}
+{"language":"French","text":"Bonjour."}
+```
+
+Each line uses the target language name and prepared segment transcript.
+Quotes and embedded newlines inside transcripts are escaped.
+
+MoE diarization sources set `sft_target_format: text` on their data YAMLs.
+Their existing speaker-tagged transcripts are supervised as plain text, and
+other sources in the same mix retain the default JSONL target format.
+
+For AMI-only diarization SFT, use `--sft --config-name sft_ami_diarization_2611r2`.
+This preset trains on full AMI train and uses full AMI dev for teacher-forced
+validation. It combines reference words inside each annotated speaker activity
+interval and emits one `{"spk":1,"text":"Hello.","start":0,"end":50}` object
+per line, in start-time order. Speaker IDs follow first appearance and can
+repeat on later lines; overlapping speakers have separate lines. Start and end
+are integer 10 ms ticks relative to the model's input audio. Text is required;
+unknown speaker IDs or timestamp pairs are omitted.
+The same Orange audio paths and manifests serve both target formats.
+
+Use `eval_openfull_zip` for the merged model's full evaluation. It scores the
+transcript field with the existing corpus WER/CER scorers. Malformed lines
+are scored as raw text and counted separately in the JSON validity rate.
+Use the original code revision to replay archived tagged outputs.

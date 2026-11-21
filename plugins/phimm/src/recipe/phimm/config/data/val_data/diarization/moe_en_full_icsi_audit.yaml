@@ -1,0 +1,37 @@
+# @package data.val_data
+# Orange full_v1 statistics (icsi_audit), from verified audio frame counts.
+# Source recordings: 75; source WAV hours: 71.687.
+# Audio clips: 16,297; clip hours: 69.514; reference words: 793,946.
+# Recording-scoped speakers: 488; speaker activity intervals: 200,485.
+# Clip duration (s): mean 15.36, median 15.22, p95 16.28, range 5.20-25.88.
+# Words per audio clip: mean 48.7, median 48.0.
+# Annotations excluded: length filter 5,525, outside waveform 5.
+# Mixed upstream train/dev/eval; keep out of the training mix.
+# Report: az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/full_v1/statistics/summary.json
+- dataset_name: jsonl
+  jsonl_schema: diarization
+  sft_target_format: text
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/full_v1/manifests/moe_icsi/part-*.jsonl.gz
+  post_process:
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - recording_id
+      - source_recording
+      - speaker_map
+      - duration_s
+      - evaluation_duration_s
+      - source_start_s
+      - source_end_s
+      - reference_segments
+      - reference_words
+      - reference_turns
+      - annotation_kind
+      - source_chunk
+      - source_record_index
+      - split
+      - speaker_count
+      - source_audio_duration_s
+      - source_sample_rate
+      - source_channels
+  val_batch_size: 64

@@ -22,6 +22,22 @@ def _read_json(path):
         return json.load(stream)
 
 
+def validate_training_evidence(monitor, *, step, submission_id, world_size, intermediate=False):
+    """Keep final exports strict while permitting verified periodic snapshots."""
+    assert monitor["submission_id"] == submission_id
+    assert not monitor["nonfinite_metrics"]
+    assert monitor["checkpoint"]["step"] == step
+    assert monitor["checkpoint"]["complete_expected_files"] == world_size * 3 + 2
+    if intermediate:
+        assert monitor["status"] in ("RUNNING", "SUCCEEDED"), monitor["status"]
+        assert step <= monitor["last_completed_optimizer_step"] <= monitor["target_optimizer_step"]
+        assert any(item["step"] == step for item in monitor["teacher_forced_validation"])
+    else:
+        assert monitor["status"] == "SUCCEEDED", monitor["status"]
+        assert monitor["target_optimizer_step"] == step == monitor["last_completed_optimizer_step"]
+        assert monitor["teacher_forced_validation"][-1]["step"] == step
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--checkpoint-root", required=True)
@@ -39,6 +55,8 @@ def main(argv=None):
     parser.add_argument("--preserve-lora-precision", action="store_true", required=True)
     parser.add_argument("--work-dir")
     parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--intermediate-checkpoint", action="store_true")
+    parser.add_argument("--training-evidence", help="Immutable evidence JSON for this exact checkpoint")
     args = parser.parse_args(argv)
     if args.step <= 0 or args.workers <= 0:
         parser.error("step and workers must be positive")
@@ -51,17 +69,21 @@ def main(argv=None):
     assert execution_revision == args.expected_execution_revision, "Export execution checkout changed"
     root = args.checkpoint_root.rstrip("/")
     assert root.startswith("az://"), "Checkpoint root must identify the verified Azure producer"
-    monitor_path = root + "/pipeline_evidence/training_monitor_latest.json"
+    monitor_path = args.training_evidence or root + "/pipeline_evidence/training_monitor_latest.json"
     monitor = _read_json(monitor_path)
-    assert monitor["submission_id"] == args.expected_training_submission_id
-    assert monitor["status"] == "SUCCEEDED", monitor["status"]
-    assert monitor["target_optimizer_step"] == args.step == monitor["last_completed_optimizer_step"]
-    assert monitor["checkpoint"]["step"] == args.step
-    assert monitor["checkpoint"]["complete_expected_files"] == args.expected_world_size * 3 + 2
-    assert not monitor["nonfinite_metrics"]
-    assert monitor["teacher_forced_validation"][-1]["step"] == args.step
+    validate_training_evidence(
+        monitor,
+        step=args.step,
+        submission_id=args.expected_training_submission_id,
+        world_size=args.expected_world_size,
+        intermediate=args.intermediate_checkpoint,
+    )
     with bf.BlobFile(root + "/latest_checkpointed_iteration.txt", "r") as stream:
-        assert int(stream.read().strip()) == args.step, "Final checkpoint tracker differs"
+        committed_step = int(stream.read().strip())
+    if args.intermediate_checkpoint:
+        assert committed_step >= args.step, "Requested checkpoint is not committed"
+    else:
+        assert committed_step == args.step, "Final checkpoint tracker differs"
     with bf.BlobFile(root + "/effective_config.yaml", "rb") as stream:
         producer_raw = stream.read()
     config = OmegaConf.create(producer_raw.decode())
@@ -188,6 +210,7 @@ def main(argv=None):
     evidence = {
         "checkpoint": checkpoint,
         "checkpoint_step": args.step,
+        "intermediate_checkpoint": args.intermediate_checkpoint,
         "checkpoint_inventory": inventory,
         "source_training_revision": args.expected_producer_revision,
         "producer_revision_evidence": "verified launch lineage, distinct from export execution checkout",
@@ -227,9 +250,12 @@ def main(argv=None):
         "execution_revision": execution_revision,
         "recorded_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
-    sidecar_path = hf / "final_pipeline_provenance.json"
+    sidecar_name = (
+        "checkpoint_pipeline_provenance.json" if args.intermediate_checkpoint else "final_pipeline_provenance.json"
+    )
+    sidecar_path = hf / sidecar_name
     sidecar_path.write_text(json.dumps(sidecar, indent=2) + "\n")
-    bf.copy(str(sidecar_path), remote + "/final_pipeline_provenance.json", overwrite=False)
+    bf.copy(str(sidecar_path), remote + "/" + sidecar_name, overwrite=False)
     print("EXPORT_SUCCESS=" + remote, flush=True)
 
 

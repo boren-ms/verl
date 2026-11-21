@@ -286,12 +286,11 @@ def test_raw_dataset_mixes_without_loading_audio_or_tokenizing(monkeypatch):
         )
         for name in ("a", "b")
     }
-    monkeypatch.setattr(dataset, "create_audio_dataset", lambda name, version: sources[name])
+    monkeypatch.setattr(dataset, "create_audio_dataset", lambda name: sources[name])
     config = OmegaConf.create(
         {
             "train_files": "train",
             "val_files": "val",
-            "version": 2609,
             "shuffle": False,
             "train_batch_size": 2,
             "train_data": [{"name": "a"}, [{"name": "b"}]],
@@ -340,7 +339,6 @@ def test_jsonl_pipeline_preserves_tags_keywords_prompt_and_ranked_limit(tmp_path
     result = create_audio_dataset(
         dataset_name="jsonl",
         jsonl_paths=str(path),
-        version=2609,
         pre_process={
             "path_map": {"field": "audio_path", "src_part": "audios/", "dst_part": "/local/"},
             "rename_fields": {"mappings": {"text": "display"}},

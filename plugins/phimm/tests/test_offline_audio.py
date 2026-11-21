@@ -33,7 +33,6 @@ def test_offline_snapshot_reloads_and_preserves_task_order(tmp_path, mode):
             "data": {
                 "train_files": "train",
                 "val_files": "val",
-                "version": 2609,
                 "train_data": [[source]],
                 "val_data": [[source]],
             },

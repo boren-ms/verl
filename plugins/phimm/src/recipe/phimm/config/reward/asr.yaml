@@ -6,7 +6,6 @@ rewards:
     path: recipe/phimm/reward/asr_vote.py
     name: compute_score
     reward_kwargs:
-      version: 2609
       reduce: {mode: average, total: 2}
       measures:
         char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
@@ -20,7 +19,6 @@ rewards:
     path: recipe/phimm/reward/asr_vote.py
     name: compute_score
     reward_kwargs:
-      version: 2609
       reduce: {mode: average, total: 1}
       measures:
         char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
@@ -30,8 +28,6 @@ rewards:
   val_openasr_expansion:
     path: recipe/phimm/reward/openasr_expansion.py
     name: openasr_expansion_eval
-    reward_kwargs:
-      version: 2609
   val_inhouse_zh:
     path: recipe/phimm/reward/asr_inhouse_measure.py
     name: eval_score
@@ -44,15 +40,9 @@ rewards:
   val_openasr_ml:
     path: recipe/phimm/reward/asr_eval.py
     name: openasr_eval
-    reward_kwargs:
-      version: 2609
   val_openasr_en:
     path: recipe/phimm/reward/asr_eval.py
     name: openasr_en_eval
-    reward_kwargs:
-      version: 2609
   val_openasr_hi_in:
     path: recipe/phimm/reward/asr_eval.py
     name: openasr_hi_in_eval
-    reward_kwargs:
-      version: 2609
