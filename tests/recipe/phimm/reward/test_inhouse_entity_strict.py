@@ -121,7 +121,7 @@ def test_setup_checks_actual_speechinsight_version_before_installing_ter(tmp_pat
         json.dumps({"libraries": {f"Microsoft.Speech.ASR.Metrics.Metrics.NetCore.AnyCPU/{version}.0": {}}})
     )
     monkeypatch.setattr(measure.shutil, "which", lambda _: None)
-    error = "Expected SpeechInsight 2.28.4" if version == "2.18.0" else "bbb is unavailable"
+    error = "Expected SpeechInsight 2.28.4" if version == "2.18.0" else "TER wheel SHA-256 mismatch"
     with pytest.raises(RuntimeError, match=error):
         measure.ensure_pack_dir(tmp_path)
     assert str(tmp_path) not in measure._SETUP_DONE
@@ -135,3 +135,47 @@ def test_setup_does_not_fall_back_to_legacy_tools(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError, match="bbb is unavailable"):
         measure.ensure_pack_dir(tmp_path)
     assert str(tmp_path) not in measure._SETUP_DONE
+
+
+@pytest.mark.parametrize("corrupt", ["wheel", "binary", None])
+def test_setup_verifies_both_manifest_hashes_before_install(tmp_path, monkeypatch, corrupt):
+    import copy
+    import hashlib
+    import json
+
+    binary = measure._metric_bin(tmp_path)
+    binary.parent.mkdir(parents=True)
+    binary.write_bytes(b"binary")
+    wheel = tmp_path / "speechinsight_tools_latest" / measure.TER_WHEEL_NAME
+    wheel.write_bytes(b"wheel")
+    (binary.parent / "GetMetrics.deps.json").write_text(
+        json.dumps({"libraries": {"Microsoft.Speech.ASR.Metrics.Metrics.NetCore.AnyCPU/2.28.4.0": {}}})
+    )
+    manifest = copy.deepcopy(measure.TOOLS_MANIFEST)
+    manifest["ter"]["sha256"] = hashlib.sha256(wheel.read_bytes()).hexdigest()
+    manifest["get_metrics"]["sha256"] = hashlib.sha256(binary.read_bytes()).hexdigest()
+    monkeypatch.setattr(measure, "TOOLS_MANIFEST", manifest)
+    monkeypatch.setattr(measure.shutil, "which", lambda _: None)
+    if corrupt == "wheel":
+        wheel.write_bytes(b"changed wheel")
+    elif corrupt == "binary":
+        binary.write_bytes(b"changed executable")
+    error = {
+        "wheel": "TER wheel SHA-256 mismatch",
+        "binary": "GetMetrics executable SHA-256 mismatch",
+        None: "bbb is unavailable",
+    }[corrupt]
+    with pytest.raises(RuntimeError, match=error):
+        measure.ensure_pack_dir(tmp_path)
+    assert str(tmp_path) not in measure._SETUP_DONE
+
+
+def test_bundle_pins_current_moe_wheel_and_executable():
+    assert measure.BUNDLE_REVISION == "2026-11-10"
+    assert measure.TER_VERSION == "2.22.1"
+    assert measure.TER_WHEEL_NAME == "ter-2.22.1-py3-none-any.whl"
+    assert measure.TOOLS_MANIFEST["ter"]["sha256"] == "af2a5c37985beaf9df11baf86791d14210d6d4f46bca3c89fe86ea34f8314b84"
+    assert (
+        measure.TOOLS_MANIFEST["get_metrics"]["sha256"]
+        == "329cce87466c14b8d97a5bc05d665ebb36080601ac6057617b65aa260d3ad920"
+    )

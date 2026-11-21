@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import fcntl
+import hashlib
 import importlib.metadata
 import json
 import logging
@@ -86,21 +87,23 @@ def _clean_hyp(text: str) -> str:
 logger = logging.getLogger(__name__)
 
 SPEECHINSIGHT_VERSION = "2.28.4"
-TER_VERSION = "2.20.0"
-DEFAULT_PACK_DIR = "/root/data/packages/SpeechInsight_2_28_4"
-DEFAULT_REMOTE_PACK_ROOT = "az://orngwus2cresco/data/speech/users/boren/eval_packages/inhouse_eer_workbook_20261120"
+TOOLS_MANIFEST = json.loads(Path(__file__).with_name("speechinsight_tools_manifest.json").read_text())
+BUNDLE_REVISION = TOOLS_MANIFEST["bundle_revision"]
+TER_VERSION = TOOLS_MANIFEST["ter"]["version"]
+DEFAULT_PACK_DIR = "/root/data/packages/SpeechInsight_moe_20261110_ter_2_22_1"
+DEFAULT_REMOTE_PACK_ROOT = "az://orngwus2cresco/data/speech/users/boren/eval_packages/inhouse_moe_20261110"
 DOTNET_REMOTE_ROOT = "az://orngwus2cresco/data/speech/users/ruchaofan/packages"
-TER_WHEEL_NAME = "ter-2.20.0-py3-none-any.whl"
+TER_WHEEL_NAME = TOOLS_MANIFEST["ter"]["wheel"]
 DOTNET_TAR_NAME = "dotnet-runtime-8.0.0-linux-x64.tar.gz"
 _SETUP_DONE: set[str] = set()
 
 
 def _metric_bin(pack_dir: Path) -> Path:
-    return _lib_path(pack_dir) / "GetMetrics"
+    return pack_dir / "speechinsight_tools_latest" / TOOLS_MANIFEST["get_metrics"]["path"]
 
 
 def _lib_path(pack_dir: Path) -> Path:
-    return pack_dir / "speechinsight_tools_latest" / "linux-x64" / "framework-dependent"
+    return _metric_bin(pack_dir).parent
 
 
 def _dotnet_dir(pack_dir: Path) -> Path:
@@ -108,7 +111,7 @@ def _dotnet_dir(pack_dir: Path) -> Path:
 
 
 def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = None) -> Path:
-    """Install the MoE SpeechInsight 2.28.4 / TER 2.20.0 tools or fail.
+    """Install the pinned MoE 2026-11-10 bundle (SpeechInsight 2.28.4 / TER 2.22.1).
 
     Node-local setup is locked across reward workers. TER is installed into an
     isolated target so the selected wheel, rather than a system installation,
@@ -123,7 +126,7 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
     si_dir = pack / "speechinsight_tools_latest"
     metric_bin = _metric_bin(pack)
     dotnet_dir = _dotnet_dir(pack)
-    target = pack / "ter_python_2_20_0"
+    target = pack / ("ter_python_" + TER_VERSION.replace(".", "_"))
 
     def download(*args):
         if not shutil.which("bbb"):
@@ -144,6 +147,14 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
         expected = f"Microsoft.Speech.ASR.Metrics.Metrics.NetCore.AnyCPU/{SPEECHINSIGHT_VERSION}.0"
         if expected not in libraries:
             raise RuntimeError(f"Expected SpeechInsight {SPEECHINSIGHT_VERSION} in {metadata}")
+        for path, entry, label in (
+            (ter_whl, TOOLS_MANIFEST["ter"], "TER wheel"),
+            (metric_bin, TOOLS_MANIFEST["get_metrics"], "GetMetrics executable"),
+        ):
+            with path.open("rb") as stream:
+                actual = hashlib.file_digest(stream, "sha256").hexdigest()
+            if actual != entry["sha256"]:
+                raise RuntimeError(f"{label} SHA-256 mismatch: {path} ({actual})")
         if not (dotnet_dir / "dotnet").is_file():
             dotnet_tar = pack / DOTNET_TAR_NAME
             if not dotnet_tar.is_file():
@@ -155,14 +166,14 @@ def ensure_pack_dir(pack_dir: str | Path | None, remote_pack_root: str | None = 
         if not (dotnet_dir / "dotnet").is_file():
             raise RuntimeError(f"Missing dotnet runtime: {dotnet_dir}")
         installed = target / ".installed"
-        if not installed.is_file() or installed.read_text().strip() != TER_WHEEL_NAME:
+        if not installed.is_file() or installed.read_text().strip() != TOOLS_MANIFEST["ter"]["sha256"]:
             subprocess.run(
                 ["uv", "pip", "install", "--no-deps", "--target", str(target), str(ter_whl)],
                 check=True,
                 capture_output=True,
                 text=True,
             )
-            installed.write_text(TER_WHEEL_NAME + "\n")
+            installed.write_text(TOOLS_MANIFEST["ter"]["sha256"] + "\n")
         metric_bin.chmod(0o755)
 
     if str(target) not in sys.path:

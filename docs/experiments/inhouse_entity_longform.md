@@ -97,7 +97,7 @@ python -m recipe.phimm.tools.inhouse_entity_report \
 
 MoE's workbook metric named TER is `disfluencytolerant_ter`; the scorer uses
 `dfmetrics.ter.TER(locale="en-us", ter_type="disfluencytolerant")` from
-**ter 2.20.0**, shipped with SpeechInsight latest. The pinned wheel is installed
+**ter 2.22.1**, selected by MoE's 2026-11-10 manifest. The pinned wheel is installed
 into an isolated node-local target under the dedicated package directory.
 GetMetrics uses MoE's TSV layout (`id`, `hypothesis`, `reference`) and explicit
 column indices and locale. Counts determine fractional rates, including rates
@@ -256,7 +256,7 @@ generations are in `val_data_gen/<source>/0.jsonl`. The local report package
 is `tmp/inhouse_eer_2611v1/results/`, containing `report.md`, `datasets.csv`
 and `summary.json`.
 
-The active SpeechInsight package is MoE `speechinsight_tools_latest`, version
+The earlier evaluations used MoE `speechinsight_tools_latest`, version
 **2.28.4**, mirrored unchanged (492 files, 771,543,885 bytes) at
 `az://orngwus2cresco/data/speech/users/boren/eval_packages/inhouse_eer_workbook_20261120/speechinsight_tools_latest/`.
 Both workers passed matched/mismatched entity smoke checks. The GetMetrics
@@ -265,11 +265,16 @@ SHA-256 is `329cce87466c14b8d97a5bc05d665ebb36080601ac6057617b65aa260d3ad920`.
 
 The active data config names are `inhouse/eer` and `inhouse/ter`.
 Their adjacent Markdown inventories describe the exact five datasets in each.
-The scorer supports only SpeechInsight **2.28.4** and TER **2.20.0**;
-there is no legacy installer or tool-version selector. Setup checks the actual
-SpeechInsight dependency metadata and the imported TER version/location, and
-fails on missing tools or installation errors. Its default node-local cache is
-`/root/data/packages/SpeechInsight_2_28_4`. The package publication URI retains its original provenance name.
+The current scorer supports only MoE's pinned **2026-11-10** tool bundle:
+SpeechInsight **2.28.4** and TER **2.22.1**. The manifest is shipped as
+`recipe/phimm/reward/speechinsight_tools_manifest.json`; setup validates both
+GetMetrics and the TER wheel by SHA-256, dependency metadata, and the imported
+TER version/location. There is no legacy installer or version selector.
+The default cache is `/root/data/packages/SpeechInsight_moe_20261110_ter_2_22_1`,
+and the mirror root is
+`az://orngwus2cresco/data/speech/users/boren/eval_packages/inhouse_moe_20261110`.
+Previously completed evaluations keep their original TER 2.20.0 provenance;
+rescoring writes separate results and does not decode again.
 
 
 Prompts use the shared dataset transform:

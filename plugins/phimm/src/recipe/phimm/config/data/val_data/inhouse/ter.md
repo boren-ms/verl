@@ -17,8 +17,11 @@ Original audio/reference root:
 
 MoE `run_SI_local.py` uses **DisplayTranscription** with
 `getdfmetrics ter --locale en-us --ter_type disfluencytolerant`.
-The scorer uses that Python backend from **ter 2.20.0**, shipped with
-**speechinsight_tools_latest 2.28.4**, installed in an isolated runtime directory.
+The scorer uses that Python backend from **ter 2.22.1** in MoE's pinned
+**2026-11-10** bundle, installed in an isolated runtime directory. The bundled
+manifest pins the wheel and SpeechInsight GetMetrics by SHA-256; setup verifies
+both files and the imported TER version/location. Earlier evaluations used
+TER 2.20.0 and retain their original provenance.
 TER-only presets disable EER scoring. Primary score: equal-weight mean of the
 five per-dataset rates. Corpus count-weighted TER is separately labeled.
 The prompt uses the shared display task with the required English language hint:

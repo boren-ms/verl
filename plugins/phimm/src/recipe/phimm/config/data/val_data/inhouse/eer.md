@@ -57,15 +57,21 @@ Historical 31-subset `en-US-entity-v3` reports used tagged Transcription with
 --verbatim; they are not results for this five-dataset workbook protocol.
 Use `inhouse_entity_report --suite legacy_entity_v3` only to audit those old runs.
 
-The active SpeechInsight package is MoE `speechinsight_tools_latest`, version
-**2.28.4**, mirrored unchanged (492 files, 771,543,885 bytes) at
-`az://orngwus2cresco/data/speech/users/boren/eval_packages/inhouse_eer_workbook_20261120/speechinsight_tools_latest/`.
-Both workers passed matched/mismatched entity smoke checks. The GetMetrics
-SHA-256 is `329cce87466c14b8d97a5bc05d665ebb36080601ac6057617b65aa260d3ad920`.
+The scorer uses MoE's **2026-11-10** pinned bundle from source revision
+`fa0fe75ffbb28397058a3fa96a2842de6540b889`. Its manifest is copied verbatim to
+`recipe/phimm/reward/speechinsight_tools_manifest.json` and shipped with the plugin.
+The verified mirror is
+`az://orngwus2cresco/data/speech/users/boren/eval_packages/inhouse_moe_20261110/speechinsight_tools_latest/`.
 
-TER uses the pinned **ter 2.20.0** wheel bundled in that package, installed
-into an isolated node-local target. See the adjacent TER YAML and Markdown
-for its separate five-dataset selection.
+EER uses **SpeechInsight 2.28.4** GetMetrics; its SHA-256 is unchanged:
+`329cce87466c14b8d97a5bc05d665ebb36080601ac6057617b65aa260d3ad920`.
+TER now selects **2.22.1**; its wheel SHA-256 is
+`af2a5c37985beaf9df11baf86791d14210d6d4f46bca3c89fe86ea34f8314b84`.
+Setup rejects either file if its hash differs and checks the imported TER version
+and isolated installation path. Earlier evaluations used TER 2.20.0; their saved
+provenance remains unchanged. Rescore saved generations with
+`python -m recipe.phimm.tools.inhouse_entity_rescore --summary <original-summary.json> --output-dir <new-results>`;
+this runs EER only and never loads audio or a model.
 
 ## Dataset statistics
 

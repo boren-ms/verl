@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "bundle_revision": "2026-11-10",
+  "ter": {
+    "wheel": "ter-2.22.1-py3-none-any.whl",
+    "version": "2.22.1",
+    "sha256": "af2a5c37985beaf9df11baf86791d14210d6d4f46bca3c89fe86ea34f8314b84"
+  },
+  "get_metrics": {
+    "path": "linux-x64/framework-dependent/GetMetrics",
+    "sha256": "329cce87466c14b8d97a5bc05d665ebb36080601ac6057617b65aa260d3ad920"
+  }
+}
