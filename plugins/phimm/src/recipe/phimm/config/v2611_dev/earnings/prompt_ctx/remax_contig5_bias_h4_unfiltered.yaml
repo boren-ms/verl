@@ -1,0 +1,15 @@
+# @package _global_
+# Same Contig5 bias h4 recipe with all optional term filters disabled.
+defaults:
+  - remax_contig5_bias_h4
+  - _self_
+
+asr:
+  context_aware:
+    max_terms: 2000
+    filter_common: false
+    filter_numbers: false
+    filter_fillers: false
+
+trainer:
+  experiment_name: remax_contig5_bias_h4_unfiltered
