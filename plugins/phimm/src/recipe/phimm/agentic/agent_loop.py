@@ -81,11 +81,18 @@ class ASRAgentLoop(AgentLoopBase):
             extra_fields={**output.extra_fields, "asr_previous_context": previous_context},
         )
 
-    async def generate_segments(self, rows, sampling_params, *, validate):
-        """Optionally condition each segment on earlier outputs in this trajectory."""
+    async def generate_segments(self, rows, sampling_params, *, validate, training_context=None):
+        """Use generated history, or fixed reference history for parallel training."""
         if not rows:
             raise ValueError("ASR requires at least one segment")
         config = context_options(getattr(self.config, "asr", {}))
+        source = config.get("training_source", "generated")
+        if source not in {"generated", "reference"}:
+            raise ValueError("asr.context_aware.training_source must be generated or reference")
+        # Greedy training uses validation sampling limits, but must still use
+        # the same fixed input context as sampled training. Evaluation never
+        # reads reference context, even when the data happens to contain it.
+        use_reference = source == "reference" and (not validate if training_context is None else training_context)
         if config.get("enable", False):
             outputs, texts = [], []
             context = ContextPrompt(
@@ -98,6 +105,29 @@ class ASRAgentLoop(AgentLoopBase):
                 filter_fillers=config.get("filter_fillers", True),
                 extra_common_words=config.get("common_words", ()),
             )
+            if use_reference:
+                prompts = []
+                for row in rows:
+                    history = row.get("asr_reference_context")
+                    if not isinstance(history, list) or any(not isinstance(text, str) for text in history):
+                        raise ValueError(
+                            "Reference context requires offline segment_reference_contexts; "
+                            "run recipe.phimm.tools.offline_reference_context before training"
+                        )
+                    # Reset for each segment; empty references advance the
+                    # history window exactly as empty generated responses do.
+                    fixed_context = copy.deepcopy(context)
+                    for text in history:
+                        fixed_context.observe(text)
+                    prompts.append(fixed_context.prompt)
+                outputs = await asyncio.gather(
+                    *[
+                        self.generate_row(row, sampling_params, validate=validate, previous_context=prompt)
+                        for row, prompt in zip(rows, prompts, strict=True)
+                    ]
+                )
+                texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
+                return outputs, texts
             # Use the supplied segment order. Each invocation has its own context.
             for row in rows:
                 output = await self.generate_row(
@@ -116,11 +146,10 @@ class ASRAgentLoop(AgentLoopBase):
     async def greedy_baseline(self, row):
         params = dict(temperature=0.0, top_p=1.0, top_k=-1, logprobs=False)
         rows = row.get("asr_segments") or [row]
-        # A greedy trajectory conditions on its own earlier outputs, matching
-        # the sampled trajectory's context policy without sharing its history.
-        # validate=True selects greedy decoding limits. History uses the same
-        # context settings in sampled training, greedy training and validation.
-        _, texts = await self.generate_segments(rows, params, validate=True)
+        # validate=True selects greedy decoding limits. This is still a
+        # training trajectory: it shares fixed reference inputs with sampled
+        # training, or builds its own generated history under the default policy.
+        _, texts = await self.generate_segments(rows, params, validate=True, training_context=True)
         text = "\n".join(texts)
         info = copy.deepcopy(row.get("extra_info") or {})
         info.pop("greedy_reward", None)
