@@ -1,0 +1,23 @@
+# @package _global_
+# Matched 32-GPU / batch-256 context comparison; preserve two data epochs.
+defaults:
+  - remax_short_flrm23x4_contig5_text_h4_equal
+  - _self_
+
+data:
+  train_batch_size: 256
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 256
+
+asr:
+  expected_training_steps: 976
+
+trainer:
+  experiment_name: remax_mix4_text_h4_bs256_n4
+  nnodes: 4
+  n_gpus_per_node: 8
+  # floor(125,000 / 256) * 2 = 976 optimizer steps.
+  total_epochs: 2
+  total_training_steps: 976

@@ -1,0 +1,12 @@
+# @package _global_
+# Identical to the paired Text H4 run, except context is disabled.
+defaults:
+  - remax_mix4_text_h4_bs256_n4
+  - _self_
+
+asr:
+  context_aware:
+    enable: false
+
+trainer:
+  experiment_name: remax_mix4_noctx_bs256_n4
