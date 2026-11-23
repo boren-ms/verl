@@ -2,7 +2,12 @@
 # FL + Earnings RM2-3 x4 with the previous two transcripts as prompt context.
 defaults:
   - remax_fl_earnings_short_random_merge23_x4_context
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_fl_rm23_x4_openlong
   - _self_
+
+data:
+  val_data:
+    - ${_fl_rm23_x4_openlong}
 
 asr:
   context_aware:
@@ -16,3 +21,5 @@ trainer:
   # max(800, 2 * floor(111888 / 128)) = 1748 updates; drop the last partial batch.
   total_epochs: 2
   total_training_steps: 1748
+  save_freq: 100
+  test_freq: 400
