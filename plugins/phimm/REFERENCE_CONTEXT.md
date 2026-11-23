@@ -73,7 +73,7 @@ reference data stores all preceding references, so no new data preparation is
 needed.
 
 Validation uses complete OpenLong Earnings21, Earnings22 and CORAAL. Checkpoints
-are saved every 100 steps and validation runs every 200 steps. The trainer also
+are saved every 100 steps and validation runs every 400 steps. The trainer also
 saves and validates the final step 874.
 
 The code first selects one source for each decode:

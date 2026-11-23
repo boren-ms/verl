@@ -28,4 +28,4 @@ trainer:
   total_epochs: 1
   total_training_steps: 874
   save_freq: 100
-  test_freq: 200
+  test_freq: 400
