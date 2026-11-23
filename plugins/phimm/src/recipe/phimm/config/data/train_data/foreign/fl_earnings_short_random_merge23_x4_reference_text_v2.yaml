@@ -1,0 +1,145 @@
+# Fixed own-segment reference labels; preserve original FL + Earnings RM23 x4 parents.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_reference_text_v2_20261123/source_000.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+      - source_dataset_names
+      - source_row_indices
+      - source_data_sources
+      - random_merge_round
+      - random_merge_anchor_position
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_reference_text_v2_20261123/source_001.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+      - source_dataset_names
+      - source_row_indices
+      - source_data_sources
+      - random_merge_round
+      - random_merge_anchor_position
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_reference_text_v2_20261123/source_002.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+      - source_dataset_names
+      - source_row_indices
+      - source_data_sources
+      - random_merge_round
+      - random_merge_anchor_position
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_reference_text_v2_20261123/source_003.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+      - source_dataset_names
+      - source_row_indices
+      - source_data_sources
+      - random_merge_round
+      - random_merge_anchor_position
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_reference_text_v2_20261123/source_004.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+      - source_dataset_names
+      - source_row_indices
+      - source_data_sources
+      - random_merge_round
+      - random_merge_anchor_position
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_reference_text_v2_20261123/source_005.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_fl_segments
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - data_source
+      - random_merge_count
+      - random_merge_source_indices
+      - source_audio_lengths
+      - source_languages
+      - source_dataset_names
+      - source_row_indices
+      - source_data_sources
+      - random_merge_round
+      - random_merge_anchor_position
+      - segment_reference_texts
