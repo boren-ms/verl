@@ -148,7 +148,7 @@ def test_context_schedule_preset_uses_one_epoch_and_three_phases():
     assert config.trainer.total_epochs == 1
     assert config.trainer.total_training_steps == config.asr.expected_training_steps == 874
     assert config.trainer.save_freq == 100
-    assert config.trainer.test_freq == 200
+    assert config.trainer.test_freq == 400
     assert [source.post_process.add_field.fields.data_source for group in config.data.val_data for source in group] == [
         "earnings21",
         "earnings22",
