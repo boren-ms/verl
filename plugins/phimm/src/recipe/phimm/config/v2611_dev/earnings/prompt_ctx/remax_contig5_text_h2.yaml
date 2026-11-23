@@ -1,11 +1,19 @@
 # @package _global_
 defaults:
   - remax_earnings_short_contiguous5_text_history4
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong
   - _self_
+
+data:
+  val_data: ${_openlong}
 
 asr:
   context_aware:
     max_history: 2
+    validation_source: generated
 
 trainer:
   experiment_name: remax_contig5_text_h2
+  save_freq: 100
+  test_freq: 400
+  val_before_train: false

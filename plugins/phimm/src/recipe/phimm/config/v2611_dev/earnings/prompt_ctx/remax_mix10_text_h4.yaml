@@ -2,7 +2,15 @@
 # Same Mix10 data and text history as the 2x run, with base LR and PPO epochs.
 defaults:
   - remax_mix10_text_h4_lr2x_ppo2
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong
   - _self_
+
+data:
+  val_data: ${_openlong}
+
+asr:
+  context_aware:
+    validation_source: generated
 
 actor_rollout_ref:
   actor:
@@ -12,3 +20,6 @@ actor_rollout_ref:
 
 trainer:
   experiment_name: remax_mix10_text_h4
+  save_freq: 100
+  test_freq: 400
+  val_before_train: false
