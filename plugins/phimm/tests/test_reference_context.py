@@ -1,5 +1,6 @@
 """Fixed reference histories preserve parent rewards and cannot leak future labels."""
 
+import gzip
 import json
 from copy import deepcopy
 from pathlib import Path
@@ -7,8 +8,9 @@ from pathlib import Path
 import pytest
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
+
 from recipe.phimm.agentic.dataset import ASRDataset
-from recipe.phimm.tools.offline_reference_context import materialize, reference_contexts
+from recipe.phimm.tools.offline_reference_context import materialize, reference_texts
 
 
 def merged_row():
@@ -28,10 +30,18 @@ def merged_row():
     }
 
 
-def test_materialized_data_roundtrips_through_real_loader_without_changing_parent_contract(tmp_path):
+@pytest.mark.parametrize(
+    "validation_source",
+    [None, "generated", "reference", [{"start_step": 1, "source": None}, {"start_step": 201, "source": "reference"}]],
+)
+@pytest.mark.parametrize("compressed", [False, True])
+def test_materialized_data_roundtrips_through_real_loader_without_changing_parent_contract(
+    tmp_path, validation_source, compressed
+):
     row = merged_row()
-    path = tmp_path / "merged.jsonl"
-    path.write_text(json.dumps(row) + "\n")
+    path = tmp_path / ("merged.jsonl.gz" if compressed else "merged.jsonl")
+    payload = (json.dumps(row) + "\n").encode()
+    path.write_bytes(gzip.compress(payload) if compressed else payload)
     source = {
         "dataset_name": "jsonl",
         "jsonl_paths": str(path),
@@ -47,7 +57,13 @@ def test_materialized_data_roundtrips_through_real_loader_without_changing_paren
                 "train_data": [[source]],
                 "val_data": [[source]],
             },
-            "asr": {"context_aware": {"enable": True, "training_source": "reference"}},
+            "asr": {
+                "context_aware": {
+                    "enable": True,
+                    "training_source": "reference",
+                    "validation_source": validation_source,
+                }
+            },
         }
     )
     before = deepcopy(config)
@@ -58,9 +74,9 @@ def test_materialized_data_roundtrips_through_real_loader_without_changing_paren
         loaded = compose(config_name="training")
     assert loaded == snapshot
     raw = json.loads((output / "source_000.jsonl").read_text())
-    histories = raw.pop("segment_reference_contexts")
+    references = raw.pop("segment_reference_texts")
     assert raw == row
-    assert histories == [[], ["First label."], ["First label.", ""]]
+    assert references == ["First label.", "", "Last label."]
     train = ASRDataset("train", None, loaded.data)
     assert len(train) == 1
     sample = train[0]
@@ -68,10 +84,13 @@ def test_materialized_data_roundtrips_through_real_loader_without_changing_paren
     assert sample["extra_info"]["keywords"] == ["producer"]
     segments = sample["asr_segments"]
     assert [seg["audio_path"] for seg in segments] == row["audio_path"]
-    assert [seg["asr_reference_context"] for seg in segments] == histories
+    assert [seg["asr_reference_text"] for seg in segments] == references
+    assert all("asr_reference_context" not in seg for seg in segments)
     assert all(seg["reward_model"] == sample["reward_model"] for seg in segments)
     assert all("asr_reference_context" not in seg for seg in ASRDataset("val", None, loaded.data)[0]["asr_segments"])
-    audit = json.loads((output / "preparation.json").read_text())["sources"][0]
+    preparation = json.loads((output / "preparation.json").read_text())
+    assert preparation["validation_source"] == validation_source
+    audit = preparation["sources"][0]
     assert audit["parents"] == 1 and audit["segments"] == 3
     with pytest.raises(FileExistsError):
         materialize(config, output)
@@ -93,16 +112,32 @@ def test_unaligned_or_repeated_preparation_is_rejected(corruption):
     else:
         row["segment_reference_contexts"] = []
     with pytest.raises(ValueError):
-        reference_contexts(row)
+        reference_texts(row)
 
 
-@pytest.mark.parametrize("contexts", [None, [], [[], []], [[], ["ok"], ["future"]], [[], [1], ["ok", ""]]])
-def test_dataset_rejects_misaligned_fixed_contexts(contexts):
+@pytest.mark.parametrize("references", [None, [], ["a", "b"], ["a", None, "c"], ["a", 1, "c"]])
+def test_dataset_rejects_misaligned_own_segment_texts(references):
     ds = ASRDataset.__new__(ASRDataset)
-    ds.ds = [{"audio_path": ["a", "b", "c"], "prompt": [], "extra_info": {"segment_reference_contexts": contexts}}]
+    ds.ds = [{"audio_path": ["a", "b", "c"], "prompt": [], "extra_info": {"segment_reference_texts": references}}]
     ds.groups, ds.prompt_key = None, "prompt"
-    with pytest.raises(ValueError, match="segment_reference_contexts"):
+    with pytest.raises(ValueError, match="segment_reference_texts"):
         ds[0]
+
+
+def test_normalized_component_references_match_contig5_provenance():
+    row = merged_row()
+    row["components"] = [{"text": text} for text in ["First label.", "", "Last label."]]
+    row["source_ids"] = ["first", "foreign", "last"]
+    for i, value in enumerate(row["source_metadata_json"]):
+        original = json.loads(value)
+        original["display"] = original.pop("text")
+        original["id"] = row["source_ids"][i]
+        row["source_metadata_json"][i] = json.dumps(original)
+        row["audio_path"][i] = "az://account/data/" + original["audio_path"]
+    assert reference_texts(row) == ["First label.", "", "Last label."]
+    row["source_ids"][1] = "wrong segment"
+    with pytest.raises(ValueError, match="segment IDs"):
+        reference_texts(row)
 
 
 def test_reference_preset_preserves_original_experiment_budget_and_changes_only_training_context():

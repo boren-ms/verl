@@ -1,0 +1,39 @@
+# @package _global_
+# 1-399: no context; 400-799: reference h4; 800-1200: generated h4.
+# Validation always uses complete OpenLong with reference h4 context.
+defaults:
+  - remax_earnings_short_contiguous5_text_history4
+  - /data/train_data/offline_audio/earnings_short_contiguous5_reference_context@_contig5_reference_train
+  - /data/val_data/openasr/openlong_reference_context_zip@_openlong_reference
+  - _self_
+
+data:
+  train_data: ${_contig5_reference_train}
+  val_data:
+    - ${_openlong_reference}
+
+actor_rollout_ref:
+  actor:
+    optim:
+      # Twice the inherited 6e-7 learning rate.
+      lr: 1.2e-6
+
+asr:
+  expected_training_steps: 1200
+  context_aware:
+    training_source:
+      - start_step: 1
+        source: null
+      - start_step: 400
+        source: reference
+      - start_step: 800
+        source: generated
+    validation_source: reference
+
+trainer:
+  experiment_name: remax_contig5_text_h4_lr2x_context_schedule_openlong_reference
+  # 191 updates/epoch: seven epochs cover the explicit 1,200-step limit.
+  total_epochs: 7
+  total_training_steps: 1200
+  save_freq: 100
+  test_freq: 400

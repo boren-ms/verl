@@ -1,12 +1,14 @@
-"""Freeze preceding segment labels in existing ordered-merge JSONL manifests.
+"""Freeze each segment's own label in existing ordered-merge JSONL manifests.
 
 No audio, parent ordering, references, grouping, or source metadata is changed.
-Only training data is rewritten; validation keeps generated history.
+Only training data is rewritten; validation data and its source setting are preserved.
 """
 
 import argparse
+import gzip
 import hashlib
 import json
+from contextlib import ExitStack
 from copy import deepcopy
 from pathlib import Path
 
@@ -14,14 +16,15 @@ import blobfile as bf
 import yaml
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf, open_dict
+
 from recipe.phimm.agentic.context_prompt import context_options
 from recipe.phimm.tools.offline_audio import _sources
 
-CONTEXT_FIELD = "segment_reference_contexts"
+CONTEXT_FIELD = "segment_reference_texts"
 
 
-def reference_contexts(row):
-    """Recover exact preceding labels from audited per-segment provenance.
+def reference_texts(row):
+    """Recover exact own labels from audited per-segment provenance.
 
     Empty FL labels remain empty. Parent text cannot be divided heuristically:
     source_metadata_json must match the ordered audio list exactly.
@@ -36,11 +39,35 @@ def reference_contexts(row):
         or len(metadata) != len(paths)
     ):
         raise ValueError("Reference context requires aligned audio_path and source_metadata_json lists")
-    if CONTEXT_FIELD in row:
+    if CONTEXT_FIELD in row or "segment_reference_contexts" in row:
         raise ValueError("Reference contexts are already materialized")
+    originals = [json.loads(value) for value in metadata]
+    if any(not isinstance(original, dict) for original in originals):
+        raise ValueError("Reference provenance must contain segment objects")
+    # Contig5 retains raw tagged metadata and freezes the normalized labels in
+    # components. Require exactly one component per ordered audio segment.
+    if any("text" not in original for original in originals):
+        components, ids = row.get("components"), row.get("source_ids")
+        if (
+            not isinstance(components, list)
+            or len(components) != len(paths)
+            or not isinstance(ids, list)
+            or len(ids) != len(paths)
+            or any(not isinstance(part, dict) or not isinstance(part.get("text"), str) for part in components)
+            or any(
+                not isinstance(original.get("audio_path"), str)
+                or original.get("id") != source_id
+                or Path(original["audio_path"]).name != Path(path).name
+                for path, source_id, original in zip(paths, ids, originals, strict=True)
+            )
+        ):
+            raise ValueError("Normalized components must align with ordered segment IDs and audio paths")
+        references = [part["text"] for part in components]
+        if row.get("text") != " ".join(references):
+            raise ValueError("Parent reference does not match the ordered segment references")
+        return references
     references = []
-    for path, value in zip(paths, metadata, strict=True):
-        original = json.loads(value)
+    for path, original in zip(paths, originals, strict=True):
         if (
             not isinstance(original, dict)
             or original.get("audio_path") != path
@@ -50,7 +77,7 @@ def reference_contexts(row):
         references.append(original["text"])
     if row.get("text") != " ".join(references):
         raise ValueError("Parent reference does not match the ordered segment references")
-    return [references[:index] for index in range(len(references))]
+    return references
 
 
 def materialize(config, output_dir, *, input_paths=None, blob_root=None):
@@ -69,26 +96,37 @@ def materialize(config, output_dir, *, input_paths=None, blob_root=None):
         paths = source["jsonl_paths"]
         paths = [paths] if isinstance(paths, str) else paths
         target = root / f"source_{index:03d}.jsonl"
-        inputs, count, segments, empty_histories = [], 0, 0, 0
+        inputs, count, segments, empty_references = [], 0, 0, 0
         with target.open("w", encoding="utf-8") as output:
             for uri in paths:
                 path = (input_paths or {}).get(uri, uri)
                 digest, input_count = hashlib.sha256(), 0
-                with bf.BlobFile(path, "rb") as handle:
+                with ExitStack() as stack:
+                    handle = stack.enter_context(bf.BlobFile(path, "rb"))
+                    if str(path).endswith(".gz"):
+                        handle = stack.enter_context(gzip.GzipFile(fileobj=handle, mode="rb"))
                     for line in handle:
                         digest.update(line)
                         row = json.loads(line)
                         try:
-                            histories = reference_contexts(row)
+                            references = reference_texts(row)
                         except (ValueError, TypeError) as error:
                             raise ValueError(f"{path}:{input_count + 1}: {error}") from error
-                        row[CONTEXT_FIELD] = histories
+                        row[CONTEXT_FIELD] = references
                         output.write(json.dumps(row, ensure_ascii=False, allow_nan=False) + "\n")
                         input_count += 1
-                        segments += len(histories)
-                        empty_histories += sum(not any(history) for history in histories)
+                        segments += len(references)
+                        empty_references += sum(not text for text in references)
                 count += input_count
-                inputs.append({"uri": uri, "read_path": str(path), "rows": input_count, "sha256": digest.hexdigest()})
+                inputs.append(
+                    {
+                        "uri": uri,
+                        "read_path": str(path),
+                        "rows": input_count,
+                        "sha256": digest.hexdigest(),
+                        "hash_scope": "uncompressed_jsonl_bytes",
+                    }
+                )
         post = source.setdefault("post_process", {})
         extra_keys = post.setdefault("verl_format", {}).setdefault("extra_keys", [])
         if CONTEXT_FIELD not in extra_keys:
@@ -104,7 +142,7 @@ def materialize(config, output_dir, *, input_paths=None, blob_root=None):
                 "manifest_sha256": manifest_hash,
                 "parents": count,
                 "segments": segments,
-                "empty_histories": empty_histories,
+                "empty_segment_references": empty_references,
             }
         )
     snapshot = OmegaConf.create(OmegaConf.to_container(config, resolve=False))
@@ -114,7 +152,11 @@ def materialize(config, output_dir, *, input_paths=None, blob_root=None):
     OmegaConf.save(snapshot, root / "training.yaml")
     (root / "preparation.json").write_text(
         json.dumps(
-            {"context_source": "preceding_reference", "validation_source": "generated", "sources": audits},
+            {
+                "context_source": "preceding_reference",
+                "validation_source": OmegaConf.to_container(options, resolve=True).get("validation_source", None),
+                "sources": audits,
+            },
             ensure_ascii=False,
             indent=2,
         )

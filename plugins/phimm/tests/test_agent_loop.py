@@ -17,6 +17,7 @@ from omegaconf import OmegaConf
 @pytest.fixture
 def agent_loop(monkeypatch):
     import ray
+
     import recipe.phimm
     import recipe.phimm.utils.audio  # Import TransferQueue before replacing ray.remote below.
 
@@ -334,7 +335,7 @@ def test_segments_have_independent_contexts_and_aligned_actor_inputs(multi_turn_
 @pytest.mark.parametrize("validate", [False, True])
 def test_context_enters_user_prompt_and_scores_only_new_tokens(multi_turn_loop, validate):
     loop, rows, generated = multi_turn_loop
-    loop.config.asr = {"context_aware": True}
+    loop.config.asr = {"context_aware": {"enable": True, "validation_source": "generated"}}
     loop.rollout_config.prompt_length = 512
     outputs, texts = asyncio.run(loop.generate_segments(rows, {"logprobs": not validate}, validate=validate))
     requests = [call.kwargs for call in loop.server_manager.generate.call_args_list]
@@ -364,7 +365,7 @@ def test_context_enters_user_prompt_and_scores_only_new_tokens(multi_turn_loop, 
 
 def test_context_resets_between_parents_and_uses_only_previous_segment(multi_turn_loop):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": True}
+    loop.config.asr = {"context_aware": {"enable": True, "validation_source": "generated"}}
     loop.rollout_config.prompt_length = 512
 
     async def evaluate():
@@ -531,7 +532,9 @@ def test_filler_filter_can_be_disabled_and_does_not_change_previous_text(multi_t
 @pytest.mark.parametrize("mode", ["text", "bias"])
 def test_response_window_reaches_prompts_and_resets_per_trajectory(multi_turn_loop, validate, mode):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": {"enable": True, "mode": mode, "max_history": 2}}
+    loop.config.asr = {
+        "context_aware": {"enable": True, "mode": mode, "max_history": 2, "validation_source": "generated"}
+    }
     loop.rollout_config.prompt_length = 512
     transcripts = iter(["Alpha.", "Beta.", "Gamma.", "Delta."])
     loop.tokenizer.decode = lambda ids, **kwargs: next(transcripts)
@@ -592,7 +595,7 @@ def test_context_contains_only_transcript_and_preserves_raw_scoring(
     multi_turn_loop, validate, raw_response, transcript
 ):
     loop, rows, generated = multi_turn_loop
-    loop.config.asr = {"context_aware": True}
+    loop.config.asr = {"context_aware": {"enable": True, "validation_source": "generated"}}
     loop.rollout_config.prompt_length = 512
     loop.tokenizer.decode = lambda ids, **kwargs: raw_response if ids[0] == 900 else "current transcript"
     outputs, texts = asyncio.run(loop.generate_segments(rows, {"logprobs": True}, validate=validate))
@@ -615,6 +618,7 @@ def test_prefix_reaches_model(multi_turn_loop, validate):
         "context_aware": {
             "enable": True,
             "mode": "text",
+            "validation_source": "generated",
             "prefix": "Previous segment transcript (for context):",
         }
     }
@@ -628,7 +632,7 @@ def test_prefix_reaches_model(multi_turn_loop, validate):
 
 def test_context_counts_towards_prompt_limit(multi_turn_loop):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": True}
+    loop.config.asr = {"context_aware": {"enable": True, "validation_source": "generated"}}
     text = loop.processor.apply_chat_template(rows[0]["prompt"], add_generation_prompt=True)
     loop.rollout_config.prompt_length = len(loop.tokenizer.encode(text)) + rows[0]["frames"] // 8 - 1
     with pytest.raises(ValueError, match="Audio prompt has"):
@@ -688,10 +692,11 @@ def test_greedy_baseline_uses_its_own_segment_context(multi_turn_loop, context_e
 
 @pytest.mark.parametrize("trajectory", ["sampled", "greedy", "validation"])
 @pytest.mark.parametrize("context_enabled", [False, True])
-def test_training_and_validation_share_history_flag(multi_turn_loop, trajectory, context_enabled):
+def test_training_and_validation_default_context_sources(multi_turn_loop, trajectory, context_enabled):
     loop, rows, _ = multi_turn_loop
     loop.config.asr = {"context_aware": {"enable": context_enabled}}
     loop.rollout_config.prompt_length = 512
+    uses_context = context_enabled and trajectory != "validation"
     if trajectory == "greedy":
         loop.run.__globals__["score_response"] = Mock(return_value={"score": 0.5})
         asyncio.run(loop.greedy_baseline({**rows[0], "asr_segments": rows}))
@@ -700,12 +705,12 @@ def test_training_and_validation_share_history_flag(multi_turn_loop, trajectory,
         outputs, _ = asyncio.run(loop.generate_segments(rows, {"logprobs": not validate}, validate=validate))
         assert [o.extra_fields["asr_previous_context"] for o in outputs] == [
             "",
-            "Previous context: transcript-900" if context_enabled else "",
+            "Previous context: transcript-900" if uses_context else "",
         ]
-    expected_prefix = "transcript-900" if context_enabled else ""
+    expected_prefix = "transcript-900" if uses_context else ""
     second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == rows[1]["frames"])
     assert second_text.endswith("<|im_start|>assistant\n")
-    assert (f"Previous context: {expected_prefix}<|im_end|>" in second_text) is context_enabled
+    assert (f"Previous context: {expected_prefix}<|im_end|>" in second_text) is uses_context
 
 
 def test_sampled_and_greedy_contexts_are_isolated(multi_turn_loop):
@@ -762,8 +767,8 @@ def test_reference_training_context_submits_all_segments_before_any_completes(mu
     loop, rows, generated = multi_turn_loop
     loop.config.asr = {"context_aware": {"enable": True, "training_source": "reference", "max_history": 1}}
     loop.rollout_config.prompt_length = 512
-    rows[0]["asr_reference_context"] = []
-    rows[1]["asr_reference_context"] = ["Annotated previous segment."]
+    rows[0]["asr_reference_text"] = "Annotated previous segment."
+    rows[1]["asr_reference_text"] = "Future reference."
     original_generate = loop.server_manager.generate.side_effect
     requests = []
 
@@ -805,32 +810,66 @@ def test_reference_training_context_never_enters_validation(multi_turn_loop):
     loop.config.asr = {"context_aware": {"enable": True, "training_source": "reference"}}
     loop.rollout_config.prompt_length = 512
     for row in rows:
-        row["asr_reference_context"] = ["SECRET VALIDATION LABEL"]
+        row["asr_reference_text"] = "SECRET VALIDATION LABEL"
     outputs, _ = asyncio.run(loop.generate_segments(rows, {}, validate=True))
-    assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", "Previous context: transcript-900"]
+    assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", ""]
     assert all("SECRET" not in text[0][0] for text in loop.processor.calls)
 
 
-@pytest.mark.parametrize("history", [None, "label", [None], [1]])
-def test_reference_context_rejects_missing_or_malformed_data_before_generation(multi_turn_loop, history):
+@pytest.mark.parametrize("trajectory", ["sampled", "greedy", "validation"])
+def test_own_reference_text_builds_previous_only_prompts(multi_turn_loop, trajectory):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {
+        "context_aware": {
+            "enable": True,
+            "training_source": "reference",
+            "validation_source": "reference",
+            "max_history": 4,
+        }
+    }
+    loop.rollout_config.prompt_length = 512
+    rows[0]["asr_reference_text"] = "First reference."
+    rows[1]["asr_reference_text"] = "Future reference must never enter its own prompt."
+    outputs, _ = asyncio.run(
+        loop.generate_segments(rows, {}, validate=trajectory != "sampled", training_context=trajectory != "validation")
+    )
+    assert [output.extra_fields["asr_previous_context"] for output in outputs] == [
+        "",
+        "Previous context: First reference.",
+    ]
+    assert all("Future reference" not in text[0][0] for text in loop.processor.calls)
+
+
+@pytest.mark.parametrize("window,expected", [(1, ""), (2, "Previous context: First reference.")])
+def test_own_reference_text_history_keeps_empty_turns(multi_turn_loop, window, expected):
+    loop, rows, _ = multi_turn_loop
+    rows = [dict(rows[0], asr_reference_text=text) for text in ["First reference.", "", "Current."]]
+    prompts = loop._reference_prompts({"max_history": window}, rows)
+    assert prompts == ["", "Previous context: First reference.", expected]
+
+
+@pytest.mark.parametrize("invalid", [None, 1, ["text"]])
+def test_own_reference_text_rejects_malformed_segments_before_decode(multi_turn_loop, invalid):
     loop, rows, _ = multi_turn_loop
     loop.config.asr = {"context_aware": {"enable": True, "training_source": "reference"}}
-    rows[0]["asr_reference_context"] = []
-    rows[1]["asr_reference_context"] = history
-    with pytest.raises(ValueError, match="offline_reference_context"):
+    rows[0]["asr_reference_text"] = "First reference."
+    rows[1]["asr_reference_text"] = invalid
+    with pytest.raises(ValueError, match="segment_reference_texts"):
         asyncio.run(loop.generate_segments(rows, {}, validate=False))
     loop.server_manager.generate.assert_not_called()
 
 
-@pytest.mark.parametrize("history_size, expected", [(1, ""), (2, "Previous context: Annotated text.")])
-def test_fixed_reference_window_counts_empty_segments(multi_turn_loop, history_size, expected):
+@pytest.mark.parametrize("reference", [None, ["label"], [None], 1])
+@pytest.mark.parametrize("validate", [False, True])
+def test_reference_context_rejects_missing_or_malformed_data_before_generation(multi_turn_loop, reference, validate):
     loop, rows, _ = multi_turn_loop
-    loop.config.asr = {"context_aware": {"enable": True, "training_source": "reference", "max_history": history_size}}
-    loop.rollout_config.prompt_length = 512
-    rows[0]["asr_reference_context"] = ["Annotated text.", ""]
-    rows[1]["asr_reference_context"] = []
-    outputs, _ = asyncio.run(loop.generate_segments(rows, {}, validate=False))
-    assert [o.extra_fields["asr_previous_context"] for o in outputs] == [expected, ""]
+    source_key = "validation_source" if validate else "training_source"
+    loop.config.asr = {"context_aware": {"enable": True, source_key: "reference"}}
+    rows[0]["asr_reference_text"] = "First label."
+    rows[1]["asr_reference_text"] = reference
+    with pytest.raises(ValueError, match="offline_reference_context"):
+        asyncio.run(loop.generate_segments(rows, {}, validate=validate))
+    loop.server_manager.generate.assert_not_called()
 
 
 @pytest.mark.parametrize("trajectory", ["sampled", "greedy", "validation"])
@@ -865,8 +904,8 @@ def test_context_schedule_boundaries_reach_sampled_greedy_and_validation(
     loop.rollout_config.prompt_length = 512
     # Context-off and generated phases must not require annotated data.
     if training_prompt == "Annotated text.":
-        rows[0]["asr_reference_context"] = []
-        rows[1]["asr_reference_context"] = [training_prompt]
+        rows[0]["asr_reference_text"] = training_prompt
+        rows[1]["asr_reference_text"] = "Current label."
     loop.run.__globals__["score_response"] = Mock(return_value={"score": 0.5})
     if trajectory == "greedy":
         asyncio.run(loop.greedy_baseline({**rows[0], "asr_segments": rows, "global_steps": step}))
@@ -880,12 +919,73 @@ def test_context_schedule_boundaries_reach_sampled_greedy_and_validation(
                 global_steps=step,
             )
         )
-    expected = "transcript-900" if trajectory == "validation" else training_prompt
+    expected = "" if trajectory == "validation" else training_prompt
     second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == 8)
     assert ("Previous context:" in second_text) is bool(expected)
     if expected:
         assert f"Previous context: {expected}<|im_end|>" in second_text
     assert loop.config.asr.context_aware.enable is True
+
+
+@pytest.mark.parametrize("trajectory", ["sampled", "greedy", "validation"])
+@pytest.mark.parametrize(
+    "step,validation_prompt",
+    [(0, ""), (1, ""), (200, ""), (201, "Annotated text."), (400, "Annotated text."), (401, "transcript-900")],
+)
+def test_validation_schedule_is_independent_of_training(multi_turn_loop, trajectory, step, validation_prompt):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = OmegaConf.create(
+        {
+            "context_aware": {
+                "enable": True,
+                "training_source": "generated",
+                "validation_source": [
+                    {"start_step": 1, "source": None},
+                    {"start_step": 201, "source": "reference"},
+                    {"start_step": 401, "source": "generated"},
+                ],
+            }
+        }
+    )
+    loop.rollout_config.prompt_length = 512
+    if validation_prompt == "Annotated text.":
+        rows[0]["asr_reference_text"] = validation_prompt
+        rows[1]["asr_reference_text"] = "Current label."
+    loop.run.__globals__["score_response"] = Mock(return_value={"score": 0.5})
+    if trajectory == "greedy":
+        asyncio.run(loop.greedy_baseline({**rows[0], "asr_segments": rows, "global_steps": step}))
+    else:
+        asyncio.run(
+            loop.run(
+                {"logprobs": trajectory == "sampled"},
+                asr_validate=trajectory == "validation",
+                asr_segments=rows,
+                extra_info={},
+                global_steps=step,
+            )
+        )
+    expected = validation_prompt if trajectory == "validation" else "transcript-900"
+    second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == 8)
+    assert ("Previous context:" in second_text) is bool(expected)
+    if expected:
+        assert f"Previous context: {expected}<|im_end|>" in second_text
+
+
+@pytest.mark.parametrize(
+    "source,expected", [(None, ""), ("reference", "Annotated text."), ("generated", "transcript-900")]
+)
+def test_validation_fixed_sources_reach_prompt(multi_turn_loop, source, expected):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": {"enable": True, "validation_source": source}}
+    loop.rollout_config.prompt_length = 512
+    if source == "reference":
+        rows[0]["asr_reference_text"] = expected
+        rows[1]["asr_reference_text"] = "Current label."
+    outputs, _ = asyncio.run(loop.generate_segments(rows, {}, validate=True))
+    assert [o.extra_fields["asr_previous_context"] for o in outputs] == [
+        "",
+        f"Previous context: {expected}" if expected else "",
+    ]
 
 
 @pytest.mark.parametrize("source", [None, "None", "none"])
@@ -921,7 +1021,7 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
     loop = agent_loop["ASRAgentLoop"]()
     loop.config = OmegaConf.create(
         {
-            "asr": {"context_aware": True},
+            "asr": {"context_aware": {"enable": True, "validation_source": "generated"}},
             "data": {"version": 2609},
             "rewards": {
                 "test": {
@@ -964,6 +1064,7 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
 @pytest.mark.parametrize("validate", [False, True])
 def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop, validate):
     import datasets
+
     from recipe.phimm.agentic.dataset import ASRDataset
     from recipe.phimm.data.dataset import augment
     from recipe.phimm.tools.random_merge_list import random_merge
@@ -982,7 +1083,7 @@ def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop,
     dataset = ASRDataset.__new__(ASRDataset)
     dataset.ds, dataset.groups, dataset.prompt_key = prepared, None, "prompt"
     sample = dataset[0]
-    loop.config.asr = {"context_aware": True}
+    loop.config.asr = {"context_aware": {"enable": True, "validation_source": "generated"}}
     loop.rollout_config.prompt_length = 512
     frames = {"a.wav": 16, "b.wav": 8}
     loop.generate_segments.__globals__["load_audio"] = lambda row, duration: (frames[row["audio_path"]], 16000)

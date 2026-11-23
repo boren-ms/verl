@@ -25,33 +25,35 @@ def context_source(options, *, training, global_steps=None):
     """Return the context source for one decode: none, reference or generated."""
     if not options.get("enable", False):
         return "none"
-    if not training:
-        return "generated"
-    schedule = options.get("training_source", "generated")
+    source_key = "training_source" if training else "validation_source"
+    field = f"asr.context_aware.{source_key}"
+    schedule = options.get(source_key, "generated" if training else None)
     if schedule is None or isinstance(schedule, str):
-        return _normalize_source(schedule)
+        return _normalize_source(schedule, field=field)
     if not isinstance(schedule, Sequence) or not schedule:
-        raise ValueError("asr.context_aware.training_source must be a source or a non-empty phase list")
-    if isinstance(global_steps, bool) or not isinstance(global_steps, int) or global_steps < 1:
-        raise ValueError("A phased asr.context_aware.training_source requires a positive prompt global_steps")
+        raise ValueError(f"{field} must be a source or a non-empty phase list")
+    minimum_step = 1 if training else 0
+    if isinstance(global_steps, bool) or not isinstance(global_steps, int) or global_steps < minimum_step:
+        step_kind = "positive" if training else "non-negative"
+        raise ValueError(f"A phased {field} requires a {step_kind} prompt global_steps")
     starts = [phase["start_step"] for phase in schedule]
     if (
         any(isinstance(start, bool) or not isinstance(start, int) for start in starts)
         or starts[0] != 1
         or any(current <= previous for previous, current in zip(starts, starts[1:], strict=False))
     ):
-        raise ValueError("asr.context_aware.training_source start_step values must start at 1 and increase")
-    sources = [_normalize_source(phase["source"]) for phase in schedule]
-    return next(
-        source for start, source in zip(reversed(starts), reversed(sources), strict=True) if start <= global_steps
-    )
+        raise ValueError(f"{field} start_step values must start at 1 and increase")
+    sources = [_normalize_source(phase["source"], field=field) for phase in schedule]
+    # Initial validation at step zero uses the first phase of the same one-based schedule.
+    step = max(1, global_steps)
+    return next(source for start, source in zip(reversed(starts), reversed(sources), strict=True) if start <= step)
 
 
-def _normalize_source(source):
+def _normalize_source(source, *, field):
     if source is None or (isinstance(source, str) and source.lower() == "none"):
         return "none"
     if not isinstance(source, str) or source not in {"generated", "reference"}:
-        raise ValueError("asr.context_aware.training_source must be none, generated or reference")
+        raise ValueError(f"{field} must be none, generated or reference")
     return source
 
 

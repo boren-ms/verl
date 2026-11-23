@@ -26,19 +26,22 @@ def jsonl_dataset(jsonl_paths, **kwargs):
     """Load a JSONL dataset from the specified paths.
 
     Supports both plain ``.jsonl`` files and gzip-compressed ``.jsonl.gz`` files.
+    ``jsonl_block_size`` can increase Arrow's read block for large parent rows.
     """
 
     parse_options = pjson.ParseOptions(
         explicit_schema=pa.schema([pa.field("keywords", pa.list_(pa.string()))]),
         unexpected_field_behavior="infer",
     )
+    # Parent rows with all preceding histories can exceed Arrow's default 1 MiB block.
+    read_options = pjson.ReadOptions(block_size=kwargs.get("jsonl_block_size", 1024 * 1024))
 
     def load_jsonl(file_path):
         with bf.BlobFile(file_path, "rb") as file_obj:
             if file_path.endswith(".gz"):
                 with gzip.GzipFile(fileobj=file_obj, mode="rb") as gz:
-                    return Dataset(pjson.read_json(gz, parse_options=parse_options))
-            return Dataset(pjson.read_json(file_obj, parse_options=parse_options))
+                    return Dataset(pjson.read_json(gz, parse_options=parse_options, read_options=read_options))
+            return Dataset(pjson.read_json(file_obj, parse_options=parse_options, read_options=read_options))
 
     return _load_expanded_datasets(jsonl_paths, ext=("jsonl", "jsonl.gz"), load_fn=load_jsonl)
 

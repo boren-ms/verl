@@ -15,22 +15,38 @@ SCHEDULE = [
     ("step", "source"),
     [(1, "none"), (200, "none"), (201, "reference"), (400, "reference"), (401, "generated"), (1748, "generated")],
 )
-def test_schedule_selects_source_from_absolute_step(step, source):
-    options = OmegaConf.create({"enable": True, "training_source": SCHEDULE})
-    assert context_source(options, training=True, global_steps=step) == source
-    assert context_source(options, training=False, global_steps=step) == "generated"
+@pytest.mark.parametrize("training,source_key", [(True, "training_source"), (False, "validation_source")])
+def test_schedule_selects_source_from_absolute_step(step, source, training, source_key):
+    options = OmegaConf.create({"enable": True, source_key: SCHEDULE})
+    assert context_source(options, training=training, global_steps=step) == source
+    assert context_source(options, training=not training, global_steps=step) == ("none" if training else "generated")
 
 
-@pytest.mark.parametrize("source", [None, "None", "none"])
-def test_none_and_disabled_context_select_none(source):
-    assert context_source({"enable": True, "training_source": source}, training=True) == "none"
-    assert context_source({"enable": False, "training_source": SCHEDULE}, training=True, global_steps=201) == "none"
+@pytest.mark.parametrize("source", [None, "None", "none", "reference", "generated"])
+@pytest.mark.parametrize("training,source_key", [(True, "training_source"), (False, "validation_source")])
+def test_fixed_and_disabled_context_sources(source, training, source_key):
+    expected = "none" if source in (None, "None", "none") else source
+    assert context_source({"enable": True, source_key: source}, training=training) == expected
+    assert context_source({"enable": False, source_key: SCHEDULE}, training=training) == "none"
+
+
+def test_initial_validation_uses_first_schedule_phase():
+    options = {"enable": True, "validation_source": SCHEDULE}
+    assert context_source(options, training=False, global_steps=0) == "none"
+    options["validation_source"] = [{"start_step": 1, "source": "reference"}]
+    assert context_source(options, training=False, global_steps=0) == "reference"
 
 
 @pytest.mark.parametrize("step", [None, True, 0, "201"])
 def test_schedule_requires_prompt_step(step):
     with pytest.raises(ValueError, match="global_steps"):
         context_source({"enable": True, "training_source": SCHEDULE}, training=True, global_steps=step)
+
+
+@pytest.mark.parametrize("step", [None, True, -1, "201", 1.5])
+def test_validation_schedule_requires_non_negative_prompt_step(step):
+    with pytest.raises(ValueError, match="validation_source.*global_steps"):
+        context_source({"enable": True, "validation_source": SCHEDULE}, training=False, global_steps=step)
 
 
 @pytest.mark.parametrize(
@@ -42,9 +58,10 @@ def test_schedule_requires_prompt_step(step):
         [{"start_step": 1, "source": None}, {"start_step": 401, "source": "typo"}],
     ],
 )
-def test_invalid_schedule_is_rejected(schedule):
-    with pytest.raises(ValueError):
-        context_source({"enable": True, "training_source": schedule}, training=True, global_steps=1)
+@pytest.mark.parametrize("training,source_key", [(True, "training_source"), (False, "validation_source")])
+def test_invalid_schedule_is_rejected(schedule, training, source_key):
+    with pytest.raises(ValueError, match=source_key):
+        context_source({"enable": True, source_key: schedule}, training=training, global_steps=1)
 
 
 def test_text_window_cleans_orders_and_expires_empty_responses():

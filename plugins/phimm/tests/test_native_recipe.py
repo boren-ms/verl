@@ -37,6 +37,21 @@ def test_context_defaults_to_one_previous_text_response(compose_recipe):
     assert config.asr.context_aware.mode == "text"
     assert config.asr.context_aware.max_history == 1
     assert config.asr.context_aware.max_terms == -1
+    assert config.asr.context_aware.validation_source is None
+
+
+@pytest.mark.parametrize(
+    "source",
+    ["null", "none", "reference", "generated", "[{start_step:1,source:null},{start_step:201,source:reference}]"],
+)
+def test_validation_source_supports_native_overrides(compose_recipe, source):
+    from recipe.phimm.agentic.context_prompt import context_source
+
+    config = compose_recipe(
+        overrides=["asr.context_aware.enable=true", f"asr.context_aware.validation_source={source}"]
+    )
+    expected = "none" if source in ("null", "none") else "reference" if source.startswith("[") else source
+    assert context_source(config.asr.context_aware, training=False, global_steps=201) == expected
 
 
 @pytest.mark.parametrize("mode", ["text", "bias"])
@@ -66,6 +81,50 @@ def test_five_segment_text_preset_matches_unique_window_budget(compose_recipe):
     assert config.data.max_prompt_length == 4096
     assert config.actor_rollout_ref.actor.ppo_max_token_len_per_gpu == config.data.max_model_length
     assert config.actor_rollout_ref.ref.log_prob_max_token_len_per_gpu == config.data.max_model_length
+
+
+def test_contig5_schedule_uses_reference_ready_data_and_reaches_all_phases(compose_recipe):
+    from recipe.phimm.agentic.context_prompt import context_source
+
+    name = "remax_contig5_text_h4_lr2x_context_schedule_openlong_reference"
+    config = compose_recipe(kind="earnings", name=f"prompt_ctx/{name}")
+    base = compose_recipe(kind="earnings", name="prompt_ctx/remax_earnings_short_contiguous5_text_history4")
+    OmegaConf.resolve(config)
+    assert config.actor_rollout_ref.actor.optim.lr == 2 * base.actor_rollout_ref.actor.optim.lr
+    assert config.asr.context_aware.enable
+    assert config.asr.context_aware.mode == "text"
+    assert config.asr.context_aware.max_history == 4
+    assert config.data.mix == base.data.mix
+    assert config.data.max_prompt_length == 4096
+    assert len(config.data.train_data) == 5
+    for source in config.data.train_data:
+        assert "earnings_short_contiguous5_reference_text_v2" in source.jsonl_paths
+        assert "segment_reference_texts" in source.post_process.verl_format.extra_keys
+    assert {source.post_process.add_field.fields.data_source for source in config.data.val_data[0]} == {
+        "earnings21",
+        "earnings22",
+        "coraal",
+    }
+    for source in config.data.val_data[0]:
+        assert "OpenLong_reference_text_consensus_v2" in source.jsonl_paths
+        assert "segment_reference_texts" in source.post_process.verl_format.extra_keys
+    for step, expected in [
+        (1, "none"),
+        (399, "none"),
+        (400, "reference"),
+        (799, "reference"),
+        (800, "generated"),
+        (1200, "generated"),
+    ]:
+        assert context_source(config.asr.context_aware, training=True, global_steps=step) == expected
+        assert context_source(config.asr.context_aware, training=False, global_steps=step) == "reference"
+    assert context_source(config.asr.context_aware, training=False, global_steps=0) == "reference"
+    assert config.trainer.total_epochs == 7
+    assert config.trainer.total_training_steps == config.asr.expected_training_steps == 1200
+    assert config.asr.expected_training_rows == 24520
+    assert 24520 // config.data.train_batch_size * config.trainer.total_epochs >= 1200
+    assert config.trainer.save_freq == 100
+    assert config.trainer.test_freq == 400
 
 
 @pytest.mark.parametrize(

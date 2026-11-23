@@ -1,0 +1,79 @@
+# @package data.val_data
+# Complete canonical OpenLong, grouped by parent with audited preceding-reference histories.
+# Reference words are original; automatic segment boundaries retain quality flags.
+
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/earnings21.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings21
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - n_segments
+      - seg_start
+      - seg_end
+      - reference_scope
+      - segment_reference_texts
+      - source_metadata_json
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/earnings22.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - n_segments
+      - seg_start
+      - seg_end
+      - reference_scope
+      - segment_reference_texts
+      - source_metadata_json
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/coraal.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - id
+      - language
+      - audio_path
+      - parent_audio_path
+      - n_segments
+      - seg_start
+      - seg_end
+      - reference_scope
+      - segment_reference_texts
+      - source_metadata_json

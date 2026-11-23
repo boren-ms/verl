@@ -612,6 +612,7 @@ For context-aware OpenLong evaluation, select `eval_openlong_context_zip`:
 ```bash
 python plugins/phimm/submit.py --evaluate --submission-id <unique-context-eval-id> \
   --config-name eval_openlong_context_zip \
+  asr.context_aware.validation_source=generated \
   actor_rollout_ref.model.path=<verified-HF-path>
 ```
 

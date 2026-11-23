@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import ray
 import torch
+
 from recipe.phimm.agentic.context_prompt import (
     DEFAULT_CONTEXT_MODE,
     DEFAULT_MAX_BIAS_TERMS,
@@ -18,7 +19,6 @@ from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.audio import load_audio
-
 from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, DictConfigWrap, register
 from verl.trainer.ppo.v1.agent_loop_tq import AgentLoopManagerTQ, AgentLoopWorkerTQBase
 from verl.utils.profiler import simple_timer
@@ -105,7 +105,7 @@ class ASRAgentLoop(AgentLoopBase):
             return outputs, texts
 
         if source == "reference":
-            prompts = [self._reference_prompt(config, row) for row in rows]
+            prompts = self._reference_prompts(config, rows)
         else:
             prompts = [""] * len(rows)
         outputs = await asyncio.gather(
@@ -130,17 +130,19 @@ class ASRAgentLoop(AgentLoopBase):
             extra_common_words=config.get("common_words", ()),
         )
 
-    def _reference_prompt(self, config, row):
-        history = row.get("asr_reference_context")
-        if not isinstance(history, list) or any(not isinstance(text, str) for text in history):
+    def _reference_prompts(self, config, rows):
+        if any(not isinstance(row.get("asr_reference_text"), str) for row in rows):
             raise ValueError(
-                "Reference context requires offline segment_reference_contexts; "
-                "run recipe.phimm.tools.offline_reference_context before training"
+                "Reference context requires one string segment_reference_texts entry per segment; "
+                "prepare the dataset with recipe.phimm.tools.offline_reference_context"
             )
         context = self._context_prompt(config)
-        for text in history:
-            context.observe(text)
-        return context.prompt
+        prompts = []
+        for row in rows:
+            # Observe only after constructing this segment's prompt: no current/future label leakage.
+            prompts.append(context.prompt)
+            context.observe(row["asr_reference_text"])
+        return prompts
 
     async def greedy_baseline(self, row):
         params = dict(temperature=0.0, top_p=1.0, top_k=-1, logprobs=False)

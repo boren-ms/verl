@@ -1,0 +1,16 @@
+# @package _global_
+# Complete OpenLong parents with preceding references from audited consensus alignment.
+defaults:
+  - eval_openlong_zip
+  - /data/val_data/openasr/openlong_reference_context_zip@_openlong_reference
+  - _self_
+
+asr:
+  context_aware:
+    enable: true
+    validation_source: reference
+
+data:
+  max_prompt_length: 2048
+  val_data:
+    - ${_openlong_reference}

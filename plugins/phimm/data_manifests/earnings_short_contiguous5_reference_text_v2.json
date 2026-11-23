@@ -1,0 +1,54 @@
+{
+  "blob_root": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2",
+  "parents": 24520,
+  "segments": 122600,
+  "reference_label_source": "ordered normalized components[].text; exact parent-text join and segment IDs verified",
+  "stored_references": "one own text per segment; history constructed during prompt preparation",
+  "sources": [
+    {
+      "input": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_000/data.jsonl.gz",
+      "input_sha256": "9a65cdd3bab532e6832f807434f8d45df790976446389bc917adba30959e38be",
+      "manifest": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_000.jsonl.gz",
+      "sha256": "0fee6d31da1b9c514303ccedf470b6786a08de28cab2596cc2dec5aa37dac123",
+      "bytes": 1474754,
+      "parents": 4555,
+      "segments": 22775
+    },
+    {
+      "input": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_001/data.jsonl.gz",
+      "input_sha256": "b3baea83488b47aecba7d64b46f59f1f96b3f65088f673cc489e2b7d27e586ce",
+      "manifest": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_001.jsonl.gz",
+      "sha256": "a5c5171817082deb8d2d7fc3a4792c9357fad33dac8d0bd41f5410a1e5b720a1",
+      "bytes": 1725608,
+      "parents": 4717,
+      "segments": 23585
+    },
+    {
+      "input": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_002/data.jsonl.gz",
+      "input_sha256": "28e5d92bc2f406a8a9f2212d3a2073aeb0f5ae9808a76f83d270faee3d912355",
+      "manifest": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_002.jsonl.gz",
+      "sha256": "f97f36f26ab2c622082e77779d1b4ae57f68f434a0a55c63d9a1fecae781c6c5",
+      "bytes": 1176360,
+      "parents": 3033,
+      "segments": 15165
+    },
+    {
+      "input": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_003/data.jsonl.gz",
+      "input_sha256": "fc59b6aefac6a5dcac2ffd1d77e2d93f20bf445a440d22517ea3e2fcd1621eeb",
+      "manifest": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_003.jsonl.gz",
+      "sha256": "f299bf9e9b0a3ada4fc334d548417c75bd0ae5ea911904f2c6bac62273d4fea4",
+      "bytes": 2597638,
+      "parents": 6200,
+      "segments": 31000
+    },
+    {
+      "input": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_20261119_v1/source_004/data.jsonl.gz",
+      "input_sha256": "47cf58bd6e13764b7676af0e63e92acb2454bfebbcae215371b8dfd30930efe7",
+      "manifest": "az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_004.jsonl.gz",
+      "sha256": "b0d60d367020315f53cb7003c192b59193ac0d1d548dc608a49db86def5731b5",
+      "bytes": 2693045,
+      "parents": 6015,
+      "segments": 30075
+    }
+  ]
+}

@@ -237,6 +237,7 @@ reward_map:
 asr:
   context_aware:
     enable: false
+    validation_source: null  # null | reference | generated, or training_source-style step phases.
     mode: text  # text | bias
     prefix: null  # Override the text before context; null keeps the mode's default instruction.
     max_history: 1  # Number of previous response turns used as context in either mode.

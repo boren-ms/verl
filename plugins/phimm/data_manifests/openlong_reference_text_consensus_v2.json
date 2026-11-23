@@ -1,0 +1,33 @@
+{
+  "blob_root": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2",
+  "reference_scope": "parent",
+  "reference_field": "segment_reference_texts",
+  "stored_references": "one own text per segment; previous-only context constructed during prompt preparation",
+  "alignment_source": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_testref_baseline_qwen_consensus_2609r2b_v1/full",
+  "alignment_limit": "Reuses automatic consensus boundaries and retains all quality flags; not human verified.",
+  "preparation": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/preparation.json",
+  "loader_audit": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/loader.json",
+  "sources": {
+    "earnings21": {
+      "manifest": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/earnings21.jsonl.gz",
+      "manifest_sha256": "3c4f6f97992c97d6ba800ab2654baa0ea507417e0b6b448418c400ff135d3dac",
+      "compressed_bytes": 2512369,
+      "parents": 44,
+      "segments": 5552
+    },
+    "earnings22": {
+      "manifest": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/earnings22.jsonl.gz",
+      "manifest_sha256": "0d2a01f3834f2860cb0bfa9df040d677fd04320b1fa0ebd98adae8660d96fa1f",
+      "compressed_bytes": 6686693,
+      "parents": 125,
+      "segments": 17099
+    },
+    "coraal": {
+      "manifest": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_reference_text_consensus_v2/coraal.jsonl.gz",
+      "manifest_sha256": "0642498aab7fb3921643f16064e62716c823c7c51f2c1d4064ed0c02a4686d0e",
+      "compressed_bytes": 10097004,
+      "parents": 271,
+      "segments": 22041
+    }
+  }
+}
