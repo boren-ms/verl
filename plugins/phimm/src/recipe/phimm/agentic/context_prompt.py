@@ -3,6 +3,7 @@
 import re
 import unicodedata
 from collections import deque
+from collections.abc import Sequence
 from itertools import chain
 
 from recipe.phimm.reward.asr_response import get_hyp_text
@@ -18,6 +19,40 @@ def context_options(asr_config):
     if isinstance(options, bool):
         return {"enable": options}
     return options
+
+
+def context_source(options, *, training, global_steps=None):
+    """Return the context source for one decode: none, reference or generated."""
+    if not options.get("enable", False):
+        return "none"
+    if not training:
+        return "generated"
+    schedule = options.get("training_source", "generated")
+    if schedule is None or isinstance(schedule, str):
+        return _normalize_source(schedule)
+    if not isinstance(schedule, Sequence) or not schedule:
+        raise ValueError("asr.context_aware.training_source must be a source or a non-empty phase list")
+    if isinstance(global_steps, bool) or not isinstance(global_steps, int) or global_steps < 1:
+        raise ValueError("A phased asr.context_aware.training_source requires a positive prompt global_steps")
+    starts = [phase["start_step"] for phase in schedule]
+    if (
+        any(isinstance(start, bool) or not isinstance(start, int) for start in starts)
+        or starts[0] != 1
+        or any(current <= previous for previous, current in zip(starts, starts[1:], strict=False))
+    ):
+        raise ValueError("asr.context_aware.training_source start_step values must start at 1 and increase")
+    sources = [_normalize_source(phase["source"]) for phase in schedule]
+    return next(
+        source for start, source in zip(reversed(starts), reversed(sources), strict=True) if start <= global_steps
+    )
+
+
+def _normalize_source(source):
+    if source is None or (isinstance(source, str) and source.lower() == "none"):
+        return "none"
+    if not isinstance(source, str) or source not in {"generated", "reference"}:
+        raise ValueError("asr.context_aware.training_source must be none, generated or reference")
+    return source
 
 
 # English function words and frequent conversational words. Recipes

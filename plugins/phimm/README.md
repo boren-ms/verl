@@ -25,6 +25,8 @@ corpus metrics, durable checkpoint resume and validation artifacts.
 
 See [REFACTOR.md](REFACTOR.md) for the dependency boundaries, removals and local
 validation limits. Historical reproduction reports remain unchanged.
+See [REFERENCE_CONTEXT.md](REFERENCE_CONTEXT.md) for parallel segment rollout
+with fixed preceding-reference context and its offline data preparation.
 
 Install into the existing GPU environment without replacing its dependencies:
 

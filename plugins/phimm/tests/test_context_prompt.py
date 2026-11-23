@@ -1,7 +1,50 @@
 """Response-window boundaries for transcript and bias context."""
 
 import pytest
-from recipe.phimm.agentic.context_prompt import ContextPrompt
+from omegaconf import OmegaConf
+from recipe.phimm.agentic.context_prompt import ContextPrompt, context_source
+
+SCHEDULE = [
+    {"start_step": 1, "source": None},
+    {"start_step": 201, "source": "reference"},
+    {"start_step": 401, "source": "generated"},
+]
+
+
+@pytest.mark.parametrize(
+    ("step", "source"),
+    [(1, "none"), (200, "none"), (201, "reference"), (400, "reference"), (401, "generated"), (1748, "generated")],
+)
+def test_schedule_selects_source_from_absolute_step(step, source):
+    options = OmegaConf.create({"enable": True, "training_source": SCHEDULE})
+    assert context_source(options, training=True, global_steps=step) == source
+    assert context_source(options, training=False, global_steps=step) == "generated"
+
+
+@pytest.mark.parametrize("source", [None, "None", "none"])
+def test_none_and_disabled_context_select_none(source):
+    assert context_source({"enable": True, "training_source": source}, training=True) == "none"
+    assert context_source({"enable": False, "training_source": SCHEDULE}, training=True, global_steps=201) == "none"
+
+
+@pytest.mark.parametrize("step", [None, True, 0, "201"])
+def test_schedule_requires_prompt_step(step):
+    with pytest.raises(ValueError, match="global_steps"):
+        context_source({"enable": True, "training_source": SCHEDULE}, training=True, global_steps=step)
+
+
+@pytest.mark.parametrize(
+    "schedule",
+    [
+        [],
+        [{"start_step": 2, "source": None}],
+        [{"start_step": 1, "source": None}, {"start_step": 1, "source": "reference"}],
+        [{"start_step": 1, "source": None}, {"start_step": 401, "source": "typo"}],
+    ],
+)
+def test_invalid_schedule_is_rejected(schedule):
+    with pytest.raises(ValueError):
+        context_source({"enable": True, "training_source": schedule}, training=True, global_steps=1)
 
 
 def test_text_window_cleans_orders_and_expires_empty_responses():

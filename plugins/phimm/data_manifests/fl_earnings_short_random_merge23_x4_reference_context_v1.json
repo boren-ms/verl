@@ -1,0 +1,69 @@
+{
+  "dataset": "fl_earnings_short_random_merge23_x4_reference_context_v1",
+  "blob_root": "az://orngwus2cresco/data/boren/data/Training/fl_earnings_short_random_merge23_x4_reference_context_v1",
+  "parents": 111888,
+  "segments": 279720,
+  "merge_count_histogram": {
+    "2": 55944,
+    "3": 55944
+  },
+  "training_context_source": "preceding_reference",
+  "validation_context_source": "generated",
+  "files": {
+    "README.md": {
+      "bytes": 1146,
+      "sha256": "900bfc2aaf15816fa81ec798ef712fb3d0b9200eed8f42f4c1da5a558606073b",
+      "md5": "8c0963a23193043ef939ee40257a3f4f"
+    },
+    "full_data_verification.json": {
+      "bytes": 5652,
+      "sha256": "819117ff5339207fdb0ca888c4250c57edb8717d22aee7b6e2104b28f20c30e8",
+      "md5": "6cbf65cc69fddbbbc5e13121aacc853f"
+    },
+    "preparation.json": {
+      "bytes": 4633,
+      "sha256": "a0f9c390005fab5c9c06baf2eb3bf7fa09cbf264c1f8e3f2c2c7352599b9a4d0",
+      "md5": "caec371b404e5722ee3b1151e70055d8"
+    },
+    "source_000.jsonl": {
+      "bytes": 134598760,
+      "sha256": "16bc95bd1c1f15f77a37093478a937070ffea3601e0ea41799ae941d1ea25a33",
+      "md5": "19afa2677ff1c3159adcb4c96dbaad9e"
+    },
+    "source_001.jsonl": {
+      "bytes": 146107917,
+      "sha256": "a0e38c422752d178e48bd1d89719d22610d320592348fb361a939190d50fc6d3",
+      "md5": "e2fbd67d6a6bf1d505ab377a9f2eb4ff"
+    },
+    "source_002.jsonl": {
+      "bytes": 89555895,
+      "sha256": "a8ba8f4da3c35bdbb86f9e5611fc8bb0b4a8ed66af1b0bf61042e0f605ae7c92",
+      "md5": "861931a40c28f3cdd8d890bef6ac3225"
+    },
+    "source_003.jsonl": {
+      "bytes": 188592647,
+      "sha256": "cf7452f370abc2d46ce4b1a0cd2f9ccf1a8bec013dad3d4be5ce0ccf402d8c1b",
+      "md5": "2796aaef37095f05e0d335d18fd8ff35"
+    },
+    "source_004.jsonl": {
+      "bytes": 185544023,
+      "sha256": "2f584a3b600feb316a953532ed2f75ac65fad736f2febafab3d11b8aee16b22f",
+      "md5": "3afcb49f340df7a2882ba6f11ccf620c"
+    },
+    "source_005.jsonl": {
+      "bytes": 82405619,
+      "sha256": "dcc2aa723b5a5ca9b7c8e3d9f021ea202a43da998fd1aed07806e7e0357aa68e",
+      "md5": "365bfa87daaafcc75b1596a5b599ed1d"
+    },
+    "train_data.yaml": {
+      "bytes": 4219,
+      "sha256": "13737c87b723443d462c8504fb70464b45ae5aa3e9af03a9d7f4b1b906f72fc3",
+      "md5": "bd0d6ede1f4df9f1ddbc11aedfbb1aca"
+    },
+    "training.yaml": {
+      "bytes": 66059,
+      "sha256": "b5a92488cc81aaefa879cc7362d9d91866923e3ab3b14503d74de267a9cd49e5",
+      "md5": "55e370ec4c360d8103c8f7f8a9b00416"
+    }
+  }
+}

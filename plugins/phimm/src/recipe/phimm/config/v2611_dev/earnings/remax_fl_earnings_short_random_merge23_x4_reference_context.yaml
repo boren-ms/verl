@@ -1,0 +1,20 @@
+# @package _global_
+# Published fixed reference contexts; parent groups and joint rewards stay fixed.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_text_history2
+  - /data/train_data/foreign/fl_earnings_short_random_merge23_x4_reference_context@_fl_earnings_reference_train
+  - _self_
+
+data:
+  train_data:
+    - ${_fl_earnings_reference_train}
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 1
+    training_source: reference
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_reference_context

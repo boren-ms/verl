@@ -328,11 +328,27 @@ class ASRDataset(Dataset):
         segments = []
         for item in rows:
             paths = item.get("audio_path")
+            info = item.get("extra_info") or {}
+            contexts = info.get("segment_reference_contexts")
+            if "segment_reference_contexts" in info and (
+                not isinstance(paths, list)
+                or not isinstance(contexts, list)
+                or len(contexts) != len(paths)
+                or any(
+                    not isinstance(history, list)
+                    or len(history) != i
+                    or any(not isinstance(text, str) for text in history)
+                    for i, history in enumerate(contexts)
+                )
+            ):
+                raise ValueError("segment_reference_contexts must contain one preceding-reference list per audio path")
             if isinstance(paths, list):
                 if not paths or any(not isinstance(path, str) or not path for path in paths):
                     raise ValueError("ASR audio_path lists must contain at least one non-empty path")
-                for path in paths:
+                for i, path in enumerate(paths):
                     segment = {**item, "audio_path": path, "asr_full_reference": True}
+                    if contexts is not None:
+                        segment["asr_reference_context"] = contexts[i]
                     # Path selectors must take precedence over inline audio.
                     segment.pop("audio", None)
                     segments.append(segment)
