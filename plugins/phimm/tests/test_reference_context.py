@@ -129,3 +129,40 @@ def test_reference_preset_preserves_original_experiment_budget_and_changes_only_
     assert config.asr.expected_training_rows == 111888
     assert config.trainer.total_epochs == 2
     assert config.trainer.total_training_steps == config.asr.expected_training_steps == 1748
+
+
+def test_context_schedule_preset_uses_one_epoch_and_three_phases():
+    from recipe.phimm.agentic.context_prompt import context_source
+
+    config_dir = Path(__file__).resolve().parents[1] / "src/recipe/phimm/config/v2611_dev/earnings"
+    OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)
+    with initialize_config_dir(config_dir=str(config_dir), version_base=None):
+        config = compose(config_name="remax_fl_earnings_short_random_merge23_x4_context_schedule_history2_1epoch")
+        base = compose(config_name="remax_fl_earnings_short_random_merge23_x4_reference_context")
+    base.trainer.experiment_name = config.trainer.experiment_name
+    config_data = OmegaConf.to_container(config.data)
+    base_data = OmegaConf.to_container(base.data)
+    config_data.pop("val_data")
+    base_data.pop("val_data")
+    assert config_data == base_data and config.actor_rollout_ref == base.actor_rollout_ref
+    assert config.trainer.total_epochs == 1
+    assert config.trainer.total_training_steps == config.asr.expected_training_steps == 874
+    assert config.trainer.save_freq == 100
+    assert config.trainer.test_freq == 200
+    assert [source.post_process.add_field.fields.data_source for group in config.data.val_data for source in group] == [
+        "earnings21",
+        "earnings22",
+        "coraal",
+    ]
+    assert config.asr.context_aware.max_history == 2
+    assert [
+        context_source(config.asr.context_aware, training=True, global_steps=step)
+        for step in (1, 291, 292, 583, 584, 874)
+    ] == [
+        "none",
+        "none",
+        "reference",
+        "reference",
+        "generated",
+        "generated",
+    ]

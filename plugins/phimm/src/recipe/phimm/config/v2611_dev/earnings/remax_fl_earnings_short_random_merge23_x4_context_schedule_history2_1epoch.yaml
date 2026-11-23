@@ -1,0 +1,31 @@
+# @package _global_
+# One epoch: floor(111888 / 128) = 874 optimizer updates.
+# 1-291: no context; 292-583: reference h2; 584-874: generated h2.
+# Validation uses complete OpenLong with generated h2 context.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_reference_context
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong_full
+  - _self_
+
+asr:
+  expected_training_steps: 874
+  context_aware:
+    max_history: 2
+    training_source:
+      - start_step: 1
+        source: null
+      - start_step: 292
+        source: reference
+      - start_step: 584
+        source: generated
+
+data:
+  val_data:
+    - ${_openlong_full}
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_context_schedule_history2_1epoch
+  total_epochs: 1
+  total_training_steps: 874
+  save_freq: 100
+  test_freq: 200

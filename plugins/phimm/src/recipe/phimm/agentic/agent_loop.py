@@ -12,6 +12,7 @@ from recipe.phimm.agentic.context_prompt import (
     DEFAULT_MAX_BIAS_TERMS,
     ContextPrompt,
     context_options,
+    context_source,
 )
 from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
@@ -81,67 +82,65 @@ class ASRAgentLoop(AgentLoopBase):
             extra_fields={**output.extra_fields, "asr_previous_context": previous_context},
         )
 
-    async def generate_segments(self, rows, sampling_params, *, validate, training_context=None):
-        """Use generated history, or fixed reference history for parallel training."""
+    async def generate_segments(self, rows, sampling_params, *, validate, training_context=None, global_steps=None):
+        """Decode with no context, fixed reference context, or generated history."""
         if not rows:
             raise ValueError("ASR requires at least one segment")
+        # Greedy baselines use validation decoding limits but remain training trajectories.
+        training = not validate if training_context is None else training_context
         config = context_options(getattr(self.config, "asr", {}))
-        source = config.get("training_source", "generated")
-        if source not in {"generated", "reference"}:
-            raise ValueError("asr.context_aware.training_source must be generated or reference")
-        # Greedy training uses validation sampling limits, but must still use
-        # the same fixed input context as sampled training. Evaluation never
-        # reads reference context, even when the data happens to contain it.
-        use_reference = source == "reference" and (not validate if training_context is None else training_context)
-        if config.get("enable", False):
+        source = context_source(config, training=training, global_steps=global_steps)
+
+        if source == "generated":
             outputs, texts = [], []
-            context = ContextPrompt(
-                config.get("mode", DEFAULT_CONTEXT_MODE),
-                prefix=config.get("prefix"),
-                max_history=config.get("max_history", 1),
-                max_terms=config.get("max_terms", DEFAULT_MAX_BIAS_TERMS),
-                filter_common=config.get("filter_common", True),
-                filter_numbers=config.get("filter_numbers", True),
-                filter_fillers=config.get("filter_fillers", True),
-                extra_common_words=config.get("common_words", ()),
-            )
-            if use_reference:
-                prompts = []
-                for row in rows:
-                    history = row.get("asr_reference_context")
-                    if not isinstance(history, list) or any(not isinstance(text, str) for text in history):
-                        raise ValueError(
-                            "Reference context requires offline segment_reference_contexts; "
-                            "run recipe.phimm.tools.offline_reference_context before training"
-                        )
-                    # Reset for each segment; empty references advance the
-                    # history window exactly as empty generated responses do.
-                    fixed_context = copy.deepcopy(context)
-                    for text in history:
-                        fixed_context.observe(text)
-                    prompts.append(fixed_context.prompt)
-                outputs = await asyncio.gather(
-                    *[
-                        self.generate_row(row, sampling_params, validate=validate, previous_context=prompt)
-                        for row, prompt in zip(rows, prompts, strict=True)
-                    ]
-                )
-                texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
-                return outputs, texts
-            # Use the supplied segment order. Each invocation has its own context.
+            context = self._context_prompt(config)
             for row in rows:
                 output = await self.generate_row(
                     row, sampling_params, validate=validate, previous_context=context.prompt
                 )
-                outputs.append(output)
-                # Score raw new responses; the context builder consumes cleaned text.
                 text = self.tokenizer.decode(output.response_ids, skip_special_tokens=True)
+                outputs.append(output)
                 texts.append(text)
                 context.observe(text)
             return outputs, texts
-        outputs = await asyncio.gather(*[self.generate_row(row, sampling_params, validate=validate) for row in rows])
+
+        if source == "reference":
+            prompts = [self._reference_prompt(config, row) for row in rows]
+        else:
+            prompts = [""] * len(rows)
+        outputs = await asyncio.gather(
+            *[
+                self.generate_row(row, sampling_params, validate=validate, previous_context=prompt)
+                for row, prompt in zip(rows, prompts, strict=True)
+            ]
+        )
         texts = [self.tokenizer.decode(output.response_ids, skip_special_tokens=True) for output in outputs]
         return outputs, texts
+
+    @staticmethod
+    def _context_prompt(config):
+        return ContextPrompt(
+            config.get("mode", DEFAULT_CONTEXT_MODE),
+            prefix=config.get("prefix"),
+            max_history=config.get("max_history", 1),
+            max_terms=config.get("max_terms", DEFAULT_MAX_BIAS_TERMS),
+            filter_common=config.get("filter_common", True),
+            filter_numbers=config.get("filter_numbers", True),
+            filter_fillers=config.get("filter_fillers", True),
+            extra_common_words=config.get("common_words", ()),
+        )
+
+    def _reference_prompt(self, config, row):
+        history = row.get("asr_reference_context")
+        if not isinstance(history, list) or any(not isinstance(text, str) for text in history):
+            raise ValueError(
+                "Reference context requires offline segment_reference_contexts; "
+                "run recipe.phimm.tools.offline_reference_context before training"
+            )
+        context = self._context_prompt(config)
+        for text in history:
+            context.observe(text)
+        return context.prompt
 
     async def greedy_baseline(self, row):
         params = dict(temperature=0.0, top_p=1.0, top_k=-1, logprobs=False)
@@ -149,7 +148,9 @@ class ASRAgentLoop(AgentLoopBase):
         # validate=True selects greedy decoding limits. This is still a
         # training trajectory: it shares fixed reference inputs with sampled
         # training, or builds its own generated history under the default policy.
-        _, texts = await self.generate_segments(rows, params, validate=True, training_context=True)
+        _, texts = await self.generate_segments(
+            rows, params, validate=True, training_context=True, global_steps=row.get("global_steps")
+        )
         text = "\n".join(texts)
         info = copy.deepcopy(row.get("extra_info") or {})
         info.pop("greedy_reward", None)
@@ -160,7 +161,9 @@ class ASRAgentLoop(AgentLoopBase):
     async def run(self, sampling_params, **kwargs):
         validate = kwargs["asr_validate"]
         rows = kwargs["asr_segments"]
-        outputs, texts = await self.generate_segments(rows, sampling_params, validate=validate)
+        outputs, texts = await self.generate_segments(
+            rows, sampling_params, validate=validate, global_steps=kwargs.get("global_steps")
+        )
         output = outputs[0]
         if validate:
             info = copy.deepcopy(rows[0].get("extra_info") or {})

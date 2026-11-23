@@ -833,6 +833,86 @@ def test_fixed_reference_window_counts_empty_segments(multi_turn_loop, history_s
     assert [o.extra_fields["asr_previous_context"] for o in outputs] == [expected, ""]
 
 
+@pytest.mark.parametrize("trajectory", ["sampled", "greedy", "validation"])
+@pytest.mark.parametrize(
+    "step,training_prompt",
+    [
+        (1, ""),
+        (200, ""),
+        (201, "Annotated text."),
+        (400, "Annotated text."),
+        (401, "transcript-900"),
+        (600, "transcript-900"),
+        (601, "transcript-900"),
+    ],
+)
+def test_context_schedule_boundaries_reach_sampled_greedy_and_validation(
+    multi_turn_loop, trajectory, step, training_prompt
+):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = OmegaConf.create(
+        {
+            "context_aware": {
+                "enable": True,
+                "training_source": [
+                    {"start_step": 1, "source": None},
+                    {"start_step": 201, "source": "reference"},
+                    {"start_step": 401, "source": "generated"},
+                ],
+            }
+        }
+    )
+    loop.rollout_config.prompt_length = 512
+    # Context-off and generated phases must not require annotated data.
+    if training_prompt == "Annotated text.":
+        rows[0]["asr_reference_context"] = []
+        rows[1]["asr_reference_context"] = [training_prompt]
+    loop.run.__globals__["score_response"] = Mock(return_value={"score": 0.5})
+    if trajectory == "greedy":
+        asyncio.run(loop.greedy_baseline({**rows[0], "asr_segments": rows, "global_steps": step}))
+    else:
+        asyncio.run(
+            loop.run(
+                {"logprobs": trajectory == "sampled"},
+                asr_validate=trajectory == "validation",
+                asr_segments=rows,
+                extra_info={},
+                global_steps=step,
+            )
+        )
+    expected = "transcript-900" if trajectory == "validation" else training_prompt
+    second_text = next(text[0][0] for text in loop.processor.calls if text[1][0][0] == 8)
+    assert ("Previous context:" in second_text) is bool(expected)
+    if expected:
+        assert f"Previous context: {expected}<|im_end|>" in second_text
+    assert loop.config.asr.context_aware.enable is True
+
+
+@pytest.mark.parametrize("source", [None, "None", "none"])
+def test_no_context_source_submits_segments_in_parallel(multi_turn_loop, source):
+    loop, rows, _ = multi_turn_loop
+    loop.config.asr = {"context_aware": {"enable": True, "training_source": source}}
+    loop.rollout_config.prompt_length = 512
+    original_generate = loop.server_manager.generate.side_effect
+
+    async def run():
+        started = asyncio.Event()
+        requests = []
+
+        async def generate(**request):
+            requests.append(request)
+            if len(requests) == len(rows):
+                started.set()
+            await asyncio.wait_for(started.wait(), timeout=5)
+            return await original_generate(**request)
+
+        loop.server_manager.generate.side_effect = generate
+        outputs, _ = await loop.generate_segments(rows, {"logprobs": True}, validate=False)
+        assert [o.extra_fields["asr_previous_context"] for o in outputs] == ["", ""]
+
+    asyncio.run(run())
+
+
 def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent_loop):
     import json
 

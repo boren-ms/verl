@@ -37,6 +37,65 @@ The checked-in datasource YAML and the published `training.yaml` snapshot both
 use Orange paths. They do not depend on the preparation machine's local data
 directory. The model and runtime still require the normal GPU preflight.
 
+## Switch training context by optimizer step
+
+Use the prepared reference data for all phases. `asr.context_aware.training_source`
+accepts either one source or a list of step phases. The checked-in schedule
+preset uses one epoch, history 2 and three nearly equal phases:
+
+```yaml
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 2
+    training_source:
+      - start_step: 1
+        source: null
+      - start_step: 292
+        source: reference
+      - start_step: 584
+        source: generated
+```
+
+Launch it with:
+
+```bash
+python -m recipe.phimm.main_asr_remax \
+  --config-path config/v2611_dev/earnings \
+  --config-name remax_fl_earnings_short_random_merge23_x4_context_schedule_history2_1epoch
+```
+
+It trains 874 updates (`111888 // 128`): steps 1–291 use no context, 292–583
+use reference context and 584–874 use generated context. History 2 uses up to
+two preceding segments in both context phases and in validation. The published
+reference data stores all preceding references, so no new data preparation is
+needed.
+
+Validation uses complete OpenLong Earnings21, Earnings22 and CORAAL. Checkpoints
+are saved every 100 steps and validation runs every 200 steps. The trainer also
+saves and validates the final step 874.
+
+The code first selects one source for each decode:
+
+1. If `enable` is false, use no context.
+2. For validation and evaluation, use generated context.
+3. For training, use `training_source` directly when it is one value. When it is
+   a list, use the last phase whose `start_step` is at or before the prompt's
+   absolute `global_steps`.
+
+A phase list must start at step 1, and start steps must increase. The final
+phase remains active until training ends. Sources are YAML `null` (or
+`none`/`None`), `reference` and `generated`. Sampled rollout and its ReMax
+greedy baseline use the same prompt step, and resumed training continues from
+the restored absolute step. Asynchronous rollout uses the step assigned when
+the prompt was issued.
+
+No-context and reference segments decode concurrently. Generated segments
+decode in order because each prompt uses earlier generated text. Reference
+phases require the offline context field described below; other phases do not
+read it. Validation never reads reference labels as prompt context.
+
 ## Reproduce the data
 
 Run from the worktree root in an environment containing this recipe:
