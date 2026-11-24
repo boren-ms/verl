@@ -22,6 +22,55 @@ an explicitly English-only environment without DyNet, the repository provides
 `recipe/phimm/data/short/english_shims/nagisa.py`; it raises if Japanese
 segmentation is attempted. Never use that shim to claim Japanese support.
 
+## Full-parent alignment for existing segment references
+
+Use `plugins/phimm/src/recipe/phimm/tools/align_mix4_reference.py` for this
+workflow. Each datasource JSONL row contains a unique `id`, full parent `text`,
+one physical parent `audio_path` without a time selector, and
+`original_segment_audio_paths`, an ordered list of ranges of that same parent.
+The ranges must cover the actual parent duration once, without gaps/overlaps.
+Keep datasources separate and record parent identity, input/model/settings hashes.
+
+The runner loads the full parent waveform and aligns its full transcript once.
+`assign_parent_alignment()` validates actual bounds, removes exact zero-duration
+words, and assigns each retained word by its absolute parent midpoint to one
+original segment. A midpoint exactly on a boundary belongs to the next segment;
+crossing words are recorded in `reference_boundary_crossings`. Preserve original
+audio cuts, without re-aligning a sliced waveform against the full transcript.
+
+Outputs retain original `text` and `unaltered_word_timestamps`, plus cleaned
+`reference_text`, `word_timestamps`, `segment_reference_texts`, original character
+spans and `removed_zero_duration_words`. Exact retained transcript slices supply
+the references, including punctuation/whitespace. Downstream materialization must
+use these cleaned references for both context and reward targets, preserving the
+original transcript separately; copying full original text would reintroduce
+removed words. If every aligned word is removed, retain the parent and segment
+count with empty references and `NO_POSITIVE_DURATION_REFERENCE`; report its count
+and check loader support rather than silently excluding the sample. Punctuation-only
+parents remain explicitly `NO_LEXICAL_REFERENCE`, without invented timestamps.
+
+For strict-bound recovery, `--duration-bounded --batch-size 1` restricts Qwen
+timestamp logits to bins inside actual audio duration **before argmax**, preserving
+raw/bounded bins as evidence. This is not proof that the transcript matches the
+audio. Nonfinite, reversed, out-of-duration or nonmonotonic timestamps remain
+errors; never clip/pad/stretch them. Settings changes require a fresh output
+location: changed policies must not resume an older journal as if unchanged.
+
+```bash
+python -m recipe.phimm.tools.align_mix4_reference \
+  --input-dir /path/to/full-parent-inputs \
+  --output-dir /path/to/new-parent-alignment \
+  --model /path/to/Qwen3-ForcedAligner-0.6B \
+  --ray-address auto --batch-size 1 --duration-bounded
+```
+
+Saved full-parent outputs can be postprocessed locally without requesting GPUs,
+provided source/recovery SHA and exact row identities are verified first. Preserve
+old journals and write a new manifest/proof. Check retained and removed word
+counts, parent/segment coverage, reference concatenation and actual loader behavior
+before marking the dataset ready. This workflow does not authorize resuming
+resources that the user has explicitly released.
+
 ## Commands
 
 The commands below are examples; substitute actual paths and allocated GPUs.
@@ -34,12 +83,9 @@ network-mounted directory, for intensive audio I/O.
 python "$SKILL/scripts/audio_subset.py" shard --input input.jsonl \
   --output-dir input-shards --count 2 --seed 42
 
-# On each GPU node, use its own input shard and unique output path. The Qwen
-# runner writes alignment_error for failures and exits nonzero if any occurred.
-python -m recipe.phimm.data.short.run_alignment \
-  --input shard-0000.jsonl --output aligned-0000.jsonl \
-  --model /path/to/Qwen3-ForcedAligner-0.6B --language English \
-  --n-gpus 8 --batch-size 8 --workers-per-gpu 1 --io-threads 3
+# Prepare aligned-0000.jsonl using a verified Qwen runner and the data contract
+# above. For existing segment references, use the full-parent command in the
+# preceding section instead; those existing audio cuts need no crop step.
 
 python "$SKILL/scripts/audio_subset.py" crop \
   --input aligned-0000.jsonl --output-dir crop-0000 \
