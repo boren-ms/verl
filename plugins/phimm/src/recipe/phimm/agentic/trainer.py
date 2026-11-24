@@ -8,7 +8,6 @@ import blobfile as bf
 import numpy as np
 import torch
 import transfer_queue as tq
-from recipe.phimm.agentic.resume import restore_dataloader
 from recipe.phimm.agentic.scoring import _compute_reward_metrics, aggregate_error_rates
 
 from verl.trainer.ppo.checkpoint_callback import CheckpointCallback
@@ -85,7 +84,7 @@ class ASRTrainerMixin:
         if self.use_critic:
             raise ValueError("This ReMax ASR adapter does not use a critic")
         state = torch.load(copy_to_local(f"{checkpoint}/data.pt"), weights_only=False)
-        epoch_boundary = restore_dataloader(self.train_dataloader, state, self.global_steps)
+        self.train_dataloader.load_state_dict(state)
         print(
             "ASR_RESUME_STATE="
             + json.dumps(
@@ -93,7 +92,6 @@ class ASRTrainerMixin:
                     "step": self.global_steps,
                     "checkpoint": checkpoint,
                     "dataloader_state_restored": True,
-                    "epoch_boundary_drained": epoch_boundary,
                     "snapshot_step": state.get("_snapshot", {}).get("_snapshot_step"),
                 }
             ),
