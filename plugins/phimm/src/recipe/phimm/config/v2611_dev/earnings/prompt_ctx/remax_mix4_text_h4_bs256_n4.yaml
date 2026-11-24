@@ -1,23 +1,32 @@
 # @package _global_
-# Matched 32-GPU / batch-256 context comparison; preserve two data epochs.
+# Continue Context ON from step 976 for two more epochs on 32 GPUs.
 defaults:
   - remax_short_flrm23x4_contig5_text_h4_equal
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_continuation_openlong
   - _self_
 
 data:
   train_batch_size: 256
+  val_data:
+    - ${_continuation_openlong}
 
 actor_rollout_ref:
   actor:
     ppo_mini_batch_size: 256
 
 asr:
-  expected_training_steps: 976
+  expected_training_steps: 1952
+  context_aware:
+    validation_source: generated
 
 trainer:
-  experiment_name: remax_mix4_text_h4_bs256_n4
+  experiment_name: remax-mix4-ctxon-bs256-32gpu-20261124-continue-s976-to1952
   nnodes: 4
   n_gpus_per_node: 8
-  # floor(125,000 / 256) * 2 = 976 optimizer steps.
-  total_epochs: 2
-  total_training_steps: 976
+  # floor(125,000 / 256) * 4 = 1952; resume after the first 976 updates.
+  total_epochs: 4
+  total_training_steps: 1952
+  save_freq: 100
+  test_freq: 400
+  resume_mode: resume_path
+  resume_from_path: az://orngwus2cresco/data/boren/outputs/v2611/remax-mix4-ctxon-bs256-32gpu-20261122/global_step_976
