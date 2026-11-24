@@ -140,7 +140,7 @@ trainer:
   experiment_name: null
   total_training_steps: null
   resume_mode: auto
-  val_before_train: true
+  val_before_train: false
 
 reward_map:
   monsoon_hi_in: val_openasr_hi_in
