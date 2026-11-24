@@ -1,0 +1,40 @@
+# @package _global_
+# Extend the one-epoch staged-context h2 run to two epochs (1748 updates).
+# 1-291: no context; 292-583: reference h2; 584-874: generated h2;
+# 875-1748: reference h2. Validation from the extension uses reference h2
+# on complete OpenLong. Resume from the verified one-epoch global_step_874.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_context_schedule_history2_1epoch
+  - /data/train_data/foreign/fl_earnings_short_random_merge23_x4_reference_text_v2@_fl_earnings_reference_text_train
+  - /data/val_data/openasr/openlong_reference_context_zip@_fl_earnings_reference_openlong
+  - _self_
+
+data:
+  train_data:
+    - ${_fl_earnings_reference_text_train}
+  val_data:
+    - ${_fl_earnings_reference_openlong}
+
+asr:
+  expected_training_steps: 1748
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 2
+    training_source:
+      - start_step: 1
+        source: null
+      - start_step: 292
+        source: reference
+      - start_step: 584
+        source: generated
+      - start_step: 875
+        source: reference
+    validation_source: reference
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_context_schedule_history2_2epoch_refext
+  total_epochs: 2
+  total_training_steps: 1748
+  save_freq: 100
+  test_freq: 400
