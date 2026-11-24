@@ -1,6 +1,6 @@
 ---
 name: run-asr-exp
-description: Run, monitor, and recover scoped verl ASR jobs on Brix. Training defaults to final-checkpoint export, full OpenASR evaluation and an Excel comparison unless explicitly disabled, with 30-minute monitoring and validation-triggered reports.
+description: Run, monitor, and recover scoped verl ASR jobs on Brix, with current-chat local timers, status comparison figures and validation-triggered reports. Training includes final export, evaluation and Excel comparison unless disabled.
 ---
 
 # Run ASR Exp
@@ -12,7 +12,12 @@ export, full OpenASR evaluation and an Excel comparison by default unless the
 user explicitly disables them (including a training-only request). State this
 pipeline at launch. This default does not expand status-only, generation-only,
 export-only or standalone evaluation requests. During
-authorized execution, monitor tracked work every 30 minutes and invoke
+authorized execution, use [schedule-current-thread](../schedule-current-thread/SKILL.md)
+to create or update one local 30-minute timer in the current chat for tracking,
+scoped automatic recovery and status replies. Each status update includes
+WER-versus-step comparison figures for the user's selected datasets, defaulting
+to OpenLong, using the current chat's figure style. This figure default does not
+change the requested evaluation suites. Invoke
 [report-experiment](../report-experiment/SKILL.md) when new or corrected
 completed validation is ready, rather than on every monitor pass. Honor an
 explicit different monitoring cadence, report opt-out or status-only boundary.
@@ -67,12 +72,14 @@ minimal recovery within the authorized boundary. A successful submission,
 intermediate checkpoint, completed evaluation/report, or Ray `SUCCEEDED`
 below `T` does not fulfill the training request. Keep unfinished training in the
 tracked set and diagnose early exits under the recovery reference. Continue in
-the current chat with one 30-minute monitor that tracks progress, applies
+the current chat with one 30-minute monitor installed through
+`schedule-current-thread` that tracks progress, applies
 authorized minimal fixes, and invokes `report-experiment` when new or corrected
 completed validation is ready. Keep monitoring and recovery
 active if reporting fails. Honor an explicit different cadence or read-only
 boundary. Follow the monitoring reference for persistence, report refreshes,
 and stop conditions.
+Skill edits and timer drafts alone do not create or activate a timer.
 If the user stops work or recovery requires a decision outside scope, report
 training as incomplete with the last verified step, remaining steps and blocker.
 

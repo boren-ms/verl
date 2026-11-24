@@ -9,22 +9,27 @@ Ray submissions on each pass and update identity after a scoped replacement.
 A status-only or read-only request never authorizes recovery or other mutations.
 
 For authorized execution, use one monitor in the current chat, defaulting to
-30 minutes if no cadence was specified. Keep checking a specific job through
-completion in this chat; do not create a scheduled task solely to watch that
-job. If the user explicitly requests a recurring scheduled workflow and runtime
-instructions permit it, search for `automation_update` first, inspect existing
-schedules and ownership, and use the native tool with its current schema.
-Never edit automation files or claim a schedule exists without a tool result.
+30 minutes if no cadence was specified. Read and apply
+[schedule-current-thread](../../schedule-current-thread/SKILL.md) to install or
+update its local `cron -> codex queue` timer bound to the verified current chat.
+Reuse this chat's existing timer for the same pipeline; preserve other schedules.
+Follow that skill's config, cron/service verification, delivery logging and
+disable procedure. Editing this skill or drafting a prompt alone does not
+activate scheduling. A read-only status request does not install a timer.
 For a pipeline use one monitor for all phases, not one per job. Its durable
 state identifies this skill, the state path where applicable, tracked identities,
 queue policy, recovery/read-only
 boundary, target `T`, validation reporting cursor, exact resource pause targets
 and pause status/exceptions, comparison run identities/reference, report output
 root, last verified report/evidence fingerprint, report delivery cursor,
-end and stop conditions. Update state when phase or submission changes.
-For an explicitly requested schedule, confirm the saved cadence, client time
-zone, chat destination and active state from the native tool result.
-Keep unchanged passes quiet unless the user asks for an update every pass. On a
+end and stop conditions. Include comparison datasets (OpenLong by default),
+identified baseline runs, metric/context/decoding and coverage definitions,
+figure style, generator and stable output paths in state and the execution prompt.
+Update state when phase or submission changes. Confirm saved cadence, time
+zone, destination and enabled state against the installed local configuration.
+Every delivered status update includes the comparison figures below; give a
+brief honest status and regenerate them even on unchanged passes, unless the
+user requests silence or opts out of figures. On a
 report, include each tracked job and its phase, live identity/pods, progress and
 delta (including `no progress change`), latest per-dataset validation and
 checkpoint evidence, GPU/process health, changed risks and required action.
@@ -54,6 +59,8 @@ or changed pause blocker. Never resume completed resources merely to poll them.
 
 After the live health/recovery checks, check for the validation trigger below.
 Invoke reporting only for newly ready validation or a pending report retry.
+Then regenerate and deliver the status comparison figures below, including on
+passes without new validation; this does not trigger a full PDF/workbook refresh.
 Reporting uses collected evidence and must not delay an urgent
 recovery action or keep GPU resources running after durable collection is done.
 
@@ -74,9 +81,53 @@ cursor or artifact fingerprint. Mark results reported only after the report
 is delivered. On restart or recovery, reconcile these records so old or replayed
 metrics are not presented as new; changed results at the same step must be
 identified as reruns or corrections. Keep a compact durable record of every
-pass even when unchanged. Stay quiet if no new validation, meaningful progress,
-failure/recovery, changed blocker or verified completion is observed, unless
-the user explicitly requested a report every pass.
+pass even when unchanged. Record timer delivery time and actual processing time
+separately; a queued message is not proof that the check, fix or figure ran.
+
+## Comparison figures on status updates
+
+Use the user's specified datasets; otherwise show OpenLong's Earnings21,
+Earnings22 and CORAAL. Keep this choice separate from final evaluation scope.
+Use only identified comparison runs and their verified result paths. If a
+baseline is missing, label it pending and continue tracking; do not invent one
+or launch an extra evaluation solely to populate a status figure.
+
+Preserve the current chat's established layout, series order, colors, markers
+and labels across ticks. The Contig5 H4 style uses one panel per dataset plus
+an additional macro-average figure, x = absolute optimizer step and y = WER
+(%). Its generated-H4 series uses blue circles, its fixed no-context reference
+uses an orange dashed line with a marker at the measured step, and its current
+schedule job uses green diamonds. Reuse these assignments when those same
+comparison roles are present; adapt labels and series to the actual request.
+
+Plot only completed, verified dataset validations at their actual steps,
+including step 0 when available. Standalone checkpoint evaluations use the
+producer checkpoint's step, not the evaluator's step-zero counter. Connect
+measured observations only; a single observation is a marker. A fixed baseline
+line is explicitly labeled as a reference, not repeated measurements. Include
+new or corrected audited results while retaining earlier valid observations.
+Do not turn optimizer progress, partial validation, missing scores or replayed
+logs into new WER points. Disclose differing checkpoints, context policies,
+decoding or coverage rather than presenting them as a matched ablation.
+
+Compute the additional macro-average WER as the arithmetic mean of complete
+dataset WER rates with equal weights over the fixed selected dataset set;
+label it explicitly. For OpenLong this is (Earnings21 + Earnings22 + CORAAL) / 3.
+Show macro points only when all three dataset results are complete at that
+step. Do not silently substitute pooled word-count WER. When showing WERR,
+use the matched baseline rate or matched macro average.
+
+Save reproducible plotting data with steps, fractions/percent units, coverage,
+context/provenance, exact source paths and fingerprints alongside the generator
+and stable PNG/PDF outputs under the pipeline report root. Execute the generator
+after collecting current evidence on every tick, inspect both figures for
+legible labels and correct series, and embed the per-dataset and macro PNGs
+inline in the same chat using absolute paths. Record generation time, included
+validation fingerprints and delivery separately from the full-report cursor.
+If no new validation completed, say the plotted results are unchanged. If a
+source or rendering is unavailable, name the concrete failure and label any
+retained figure with its last verified data time. Retry without stopping
+authorized training or recovery.
 
 ## Invoke `report-experiment` when new validation is ready
 
