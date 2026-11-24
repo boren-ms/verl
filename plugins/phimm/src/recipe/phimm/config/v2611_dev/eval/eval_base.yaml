@@ -24,3 +24,5 @@ trainer:
   experiment_name: ???
   resume_mode: disable
   val_only: true
+  # val_only only short-circuits after the initial validation pass.
+  val_before_train: true

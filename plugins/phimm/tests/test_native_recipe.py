@@ -327,6 +327,13 @@ def test_evaluation_requires_explicit_model_and_experiment(compose_recipe):
     assert config.trainer.experiment_name is None
 
 
+@pytest.mark.parametrize("name", ["eval_openfull_zip", "eval_openlong_zip", "eval_openlong_reference_context_zip"])
+def test_evaluation_validates_once_without_training(compose_recipe, name):
+    config = compose_recipe(kind="eval", name=name)
+    assert config.trainer.val_only is True
+    assert config.trainer.val_before_train is True
+
+
 def test_raw_dataset_mixes_without_loading_audio_or_tokenizing(monkeypatch):
     import datasets
 
