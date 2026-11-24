@@ -143,6 +143,47 @@ def test_actor_inputs_without_multimodal_data(agent_loop):
     assert worker._compute_multi_modal_inputs(SimpleNamespace(multi_modal_data=None), torch.tensor([1])) is None
 
 
+def test_hard_chunk_debug_compaction_preserves_raw_scoring(agent_loop):
+    import json
+
+    paths = [f"audio.zip!100:160044#{i * 2}:{(i + 1) * 2}" for i in range(3)]
+    info = {"audio_path": paths, "n_segments": 3, "chunking_method": "hard_nonoverlapping"}
+    parent_reference = "The exact full-parent reference."
+    rows = [
+        {
+            "data_source": "test",
+            "audio_path": path,
+            "asr_full_reference": True,
+            "extra_info": info,
+            "reward_model": {"ground_truth": parent_reference},
+        }
+        for path in paths
+    ]
+    texts = ["<verbatim>The exact</verbatim>", "<verbatim>full-parent</verbatim>", "<verbatim>reference.</verbatim>"]
+    outputs = [
+        SimpleNamespace(response_ids=[i], extra_fields={}, metrics=SimpleNamespace(generate_sequences=1.0))
+        for i in range(3)
+    ]
+    loop = agent_loop["ASRAgentLoop"]()
+    loop.config = SimpleNamespace(data=SimpleNamespace(version=2609))
+    loop.generate_segments = AsyncMock(return_value=(outputs, texts))
+    loop.tokenizer = SimpleNamespace(encode=lambda text, **kwargs: [30])
+    scorer = Mock(return_value={"score": 1.0, "n_err": 0, "n_ref": 5})
+    loop.run.__globals__["score_response"] = scorer
+
+    result = asyncio.run(loop.run({}, asr_validate=True, asr_segments=rows))
+
+    assert scorer.call_args.args[2] is texts
+    assert scorer.call_args.args[1]["reward_model"]["ground_truth"] == parent_reference
+    assert scorer.call_args.kwargs["extra_info"] == info
+    assert result.reward_score == 1.0
+    detail = json.loads(result.extra_fields["reward_extra_info"]["asr_detail"])
+    assert detail["segment_rows_encoding"] == "parent_row_plus_overrides_v1"
+    assert detail["parent_info"] == info
+    assert detail["segment_outputs"] == texts
+    assert [row["audio_path"] for row in detail["segment_rows"]] == paths
+
+
 def test_grouped_validation_retains_first_segments_features(agent_loop):
     features = {"input_audio_embeds": torch.ones(1, 16, 80)}
     outputs = [

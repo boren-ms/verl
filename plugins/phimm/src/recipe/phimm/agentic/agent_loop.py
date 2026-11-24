@@ -15,6 +15,7 @@ from recipe.phimm.agentic.context_prompt import (
     context_options,
     context_source,
 )
+from recipe.phimm.agentic.details import validation_detail
 from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
@@ -182,13 +183,13 @@ class ASRAgentLoop(AgentLoopBase):
             **result,
             "asr_data_source": rows[0]["data_source"],
             "asr_detail": json.dumps(
-                {
-                    "parent_info": info,
-                    "segment_outputs": texts,
-                    "segment_info": [r.get("extra_info") or {} for r in rows],
-                    "previous_contexts": [o.extra_fields.get("asr_previous_context", "") for o in outputs],
-                    **({"segment_rows": rows} if validate else {}),
-                },
+                validation_detail(
+                    rows,
+                    texts,
+                    info,
+                    [o.extra_fields.get("asr_previous_context", "") for o in outputs],
+                    validate=validate,
+                ),
                 ensure_ascii=False,
             ),
         }
