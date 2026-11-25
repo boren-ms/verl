@@ -4,8 +4,25 @@ import copy
 import json
 
 import pytest
+from recipe.phimm.agentic.details import pack_segment_rows, restore_segment_rows, validation_detail
 
-from recipe.phimm.agentic.details import validation_detail
+
+def test_transport_survives_json_expansion_with_exact_rows_and_bounded_metadata():
+    rows, _ = sample(1000)
+    packed = pack_segment_rows(rows, validate=True)
+    wire = json.dumps(packed)
+    assert restore_segment_rows(json.loads(wire)) == rows
+    assert len(wire) < len(json.dumps(rows)) / 100
+    assert pack_segment_rows(rows, validate=False) is rows
+
+
+def test_legacy_transport_stays_unchanged_and_unknown_encoding_fails():
+    rows, info = sample(2)
+    info["chunking_method"] = "original_processed_30s"
+    assert pack_segment_rows(rows, validate=True) is rows
+    assert restore_segment_rows(rows) is rows
+    with pytest.raises(ValueError, match="transport encoding"):
+        restore_segment_rows({"segment_rows_encoding": "unknown"})
 
 
 def sample(count):

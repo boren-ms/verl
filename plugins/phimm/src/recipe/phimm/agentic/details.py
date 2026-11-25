@@ -1,6 +1,28 @@
 """Lossless debug records for full recordings with many hard chunks."""
 
 
+def pack_segment_rows(rows, *, validate):
+    """Avoid repeating full-parent metadata through TransferQueue serialization."""
+    if not validate or not rows:
+        return rows
+    detail = validation_detail(rows, [], rows[0].get("extra_info") or {}, [], validate=True)
+    if "segment_rows_encoding" not in detail:
+        return rows
+    return {key: detail[key] for key in ("segment_rows_encoding", "parent_row", "parent_info", "segment_rows")}
+
+
+def restore_segment_rows(value):
+    """Restore exact original rows before generation, reference context or scoring."""
+    if isinstance(value, list):
+        return value
+    if not isinstance(value, dict) or value.get("segment_rows_encoding") != "parent_row_plus_overrides_v1":
+        raise ValueError("Unknown ASR segment row transport encoding")
+    return [
+        {**value["parent_row"], **row, "extra_info": {**value["parent_info"], **row["extra_info"]}}
+        for row in value["segment_rows"]
+    ]
+
+
 def validation_detail(rows, texts, parent_info, previous_contexts, *, validate):
     """Store shared hard-chunk fields once, preserving exact reconstructed rows.
 

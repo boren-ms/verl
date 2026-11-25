@@ -7,10 +7,9 @@ from collections.abc import Mapping, Sequence
 
 import datasets
 import pyarrow as pa
-from torch.utils.data import Dataset
-
 from recipe.phimm.data.dataset import create_audio_dataset
 from recipe.phimm.utils.audio import set_chunk_load_mode
+from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -352,7 +351,9 @@ class ASRDataset(Dataset):
                 segments.append(item)
         row["raw_prompt"] = row[self.prompt_key]
         row["index"] = index
-        row["asr_segments"] = segments
+        from recipe.phimm.agentic.details import pack_segment_rows
+
+        row["asr_segments"] = pack_segment_rows(segments, validate=self.groups is not None)
         row["asr_validate"] = self.groups is not None
         row["agent_name"] = "asr"
         return row

@@ -17,9 +17,9 @@ from omegaconf import OmegaConf
 @pytest.fixture
 def agent_loop(monkeypatch):
     import ray
+    import recipe.phimm.utils.audio  # Import TransferQueue before replacing ray.remote below.
 
     import recipe.phimm
-    import recipe.phimm.utils.audio  # Import TransferQueue before replacing ray.remote below.
 
     class Output(SimpleNamespace):
         def __init__(self, **kwargs):
@@ -215,7 +215,9 @@ def test_grouped_validation_retains_first_segments_features(agent_loop):
 
 
 @pytest.mark.parametrize("validate", [False, True])
-def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate):
+@pytest.mark.parametrize("packed", [False, True])
+def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate, packed):
+    from recipe.phimm.agentic.details import pack_segment_rows
     from recipe.phimm.agentic.scoring import score_response
 
     texts = ["<src=English><tgt=English>\n<verbatim>hello</verbatim>", ""]
@@ -247,8 +249,16 @@ def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate)
     rows = [
         {"data_source": "test", "reward_model": {"ground_truth": "segment reference"}, "extra_info": {}} for _ in texts
     ]
+    if packed:
+        for index, row in enumerate(rows):
+            row.update(audio_path=f"parent.wav#{index}:{index + 1}", asr_full_reference=True)
+            row["extra_info"] = {"chunking_method": "hard_nonoverlapping", "audio_path": ["parent.wav"]}
     parent = {"ground_truth": "hello world"}
-    output = asyncio.run(loop.run({}, asr_validate=validate, asr_segments=rows, reward_model=parent, extra_info={}))
+    transport = pack_segment_rows(rows, validate=validate) if packed else rows
+    output = asyncio.run(
+        loop.run({}, asr_validate=validate, asr_segments=transport, reward_model=parent, extra_info={})
+    )
+    assert loop.generate_segments.call_args.args[0] == rows
     if not validate:
         assert len(output) == 2
         assert all(segment.reward_score == 0.5 for segment in output)
@@ -1105,7 +1115,6 @@ def test_u2_validation_decodes_with_history_and_scores_full_reference_once(agent
 @pytest.mark.parametrize("validate", [False, True])
 def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop, validate):
     import datasets
-
     from recipe.phimm.agentic.dataset import ASRDataset
     from recipe.phimm.data.dataset import augment
     from recipe.phimm.tools.random_merge_list import random_merge
