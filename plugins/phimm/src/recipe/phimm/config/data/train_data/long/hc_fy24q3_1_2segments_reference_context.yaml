@@ -1,0 +1,36 @@
+# Prepared after verified Qwen alignment; publication pending.
+# Original recordings are excluded if any word is below 0.04 s or above 3 s.
+# Ordered word-timed audio selectors; no cropped audio files.
+# Sliding adjacent pairs, stride 1, restricted to one original recording.
+- dataset_name: jsonl
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/pairs.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/pairs.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/pairs.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/pairs.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/pairs.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/pairs.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/pairs.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/pairs.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_fy24q3_1_2segments_reference_context
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - audio_length
+        - transcription_source
+        - word_duration_filter
+        - segment_reference_texts
+        - segments
+        - segment_metadata
+        - alignment_flags
+        - parent_id
+        - parent_audio_path
+        - segment_indices
+        - pairing_policy

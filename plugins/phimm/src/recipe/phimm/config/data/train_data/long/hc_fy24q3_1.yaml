@@ -1,0 +1,28 @@
+# Full FY24Q3-1 parent utterances with normalized adjusted human captions.
+# Binary .transcription text is retained on Orange as a source artifact.
+# Preparation reads tn_transcription from .info, with
+# transcription_source=display_human_caption_adjusted; empty references are omitted.
+# audio_chunk uses the existing file:count:index reader, preserving full audio.
+# Use data.max_audio_dur=null for full-parent training, or configure ASR segmentation.
+# Source storage: .audio=16,032,004,867,660 bytes; .transcription=6,309,288,980 bytes.
+# Source index: 4,045 chunks / 757,156 utterances / 139,193.733056 hours.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/hc_fy24q3_1.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_fy24q3_1_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - chunk_name
+        - chunk_count
+        - chunk_index
+        - audio_length
+        - source_filename
+        - transcription_source
+        - normalized_wer

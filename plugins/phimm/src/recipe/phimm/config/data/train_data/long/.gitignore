@@ -1,0 +1,4 @@
+# Generated training manifests are published to Orange; keep their local copies.
+*.jsonl
+*.partial
+*.jsonl.gz

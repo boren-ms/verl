@@ -1,0 +1,32 @@
+# Prepared after verified Qwen alignment; publication pending.
+# Original recordings are excluded if any word is below 0.04 s or above 3 s.
+# Ordered word-timed audio selectors; no cropped audio files.
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  jsonl_paths:
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/segments.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/segments.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/segments.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/segments.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/segments.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/segments.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/segments.jsonl.gz
+    - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/segments.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_fy24q3_1_segments
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+        - audio_length
+        - transcription_source
+        - word_duration_filter
+        - segment_reference_texts
+        - segments
+        - segment_metadata
+        - alignment_flags
