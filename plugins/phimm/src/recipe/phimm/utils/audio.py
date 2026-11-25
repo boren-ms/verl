@@ -324,11 +324,12 @@ def load_raw_audio(x):
 
 
 def load_audio(x, max_dur=None, min_dur=0.16):
+    """Load one segment and reject durations exceeding its configured limit."""
     data, fs = load_raw_audio(x)
-    if x.get("asr_full_reference") and max_dur is not None and len(data) / fs > max_dur:
+    if max_dur is not None and len(data) / fs > max_dur:
         raise ValueError(
-            "A segmented training sample would be truncated against its full reference; "
-            "set data.max_audio_dur=null or use shorter segments"
+            f"Audio segment duration {len(data) / fs:.6f}s exceeds max_audio_dur={max_dur}s; "
+            "use shorter segments or set data.max_audio_dur=null"
         )
     return limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur)
 

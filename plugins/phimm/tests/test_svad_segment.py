@@ -163,7 +163,6 @@ def test_offline_snapshot_keeps_full_reference_and_loads_asr_segments(tmp_path):
     parent = train[0]
     assert parent["reward_model"]["ground_truth"] == "full original reference"
     assert len(parent["asr_segments"]) == 3
-    assert parent["asr_full_reference"]
     assert all(set(segment) == {"audio_path"} for segment in parent["asr_segments"])
     assert len(ASRDataset("val", None, snapshot.data)[0]["asr_segments"]) == 1
     assert sorted(tmp_path.rglob("*.wav")) == [path]

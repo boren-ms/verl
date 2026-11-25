@@ -327,7 +327,6 @@ class ASRDataset(Dataset):
         rows = [self.ds[i] for i in indices]
         row = dict(rows[0])
         if isinstance(row.get("audio_path"), list):
-            row["asr_full_reference"] = True
             row.pop("audio", None)
         segments = []
         for item in rows:
@@ -343,7 +342,6 @@ class ASRDataset(Dataset):
                 raise ValueError("segment_reference_texts must contain one string per audio path")
             source = dict(item)
             if isinstance(paths, list):
-                source["asr_full_reference"] = True
                 source.pop("audio", None)
             fields = {
                 key: value

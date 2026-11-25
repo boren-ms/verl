@@ -106,6 +106,7 @@ def test_generation_reuses_features_for_actor(agent_loop, validate):
         for key, value in features.items():
             assert inputs[key] is value
     processor.assert_called_once_with(text=["task<audio>"], audios=[audio], return_tensors="pt")
+    namespace["load_audio"].assert_called_once_with({"prompt": ["task"], "extra_info": {}}, 40)
     tokenizer.decode.assert_not_called()
     assert "audios" not in output.multi_modal_data
 
@@ -153,7 +154,6 @@ def test_hard_chunk_debug_compaction_preserves_raw_scoring(agent_loop):
         {
             "data_source": "test",
             "audio_path": path,
-            "asr_full_reference": True,
             "extra_info": info,
             "reward_model": {"ground_truth": parent_reference},
         }
@@ -252,13 +252,12 @@ def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate,
     ]
     if segment_only:
         for index, row in enumerate(rows):
-            row.update(audio_path=f"parent.wav#{index}:{index + 1}", asr_full_reference=True)
+            row.update(audio_path=f"parent.wav#{index}:{index + 1}")
             row["extra_info"] = {"chunking_method": "hard_nonoverlapping", "audio_path": ["parent.wav"]}
     parent = {"ground_truth": "hello world"}
     shared = {"data_source": "test", "reward_model": parent, "extra_info": rows[0]["extra_info"]}
     transport = rows
     if segment_only:
-        shared["asr_full_reference"] = True
         transport = [{"audio_path": row["audio_path"], "reward_model": row["reward_model"]} for row in rows]
     output = asyncio.run(loop.run({}, asr_validate=validate, asr_segments=transport, **shared))
     assert loop.generate_segments.call_args.args[0] == rows
@@ -384,6 +383,39 @@ def test_segments_have_independent_contexts_and_aligned_actor_inputs(multi_turn_
         assert output.prompt_ids.count(248076) == rows[index]["frames"] // 8
     assert texts == ["transcript-900", "transcript-902"]
     assert len(loop.processor.calls) == 2
+
+
+@pytest.mark.parametrize("validate", [False, True])
+def test_max_audio_duration_is_checked_per_segment(multi_turn_loop, validate):
+    import numpy as np
+
+    from recipe.phimm.utils.audio import load_audio
+
+    loop, rows, _ = multi_turn_loop
+    loop.config.data.max_audio_dur = 1
+    loop.generate_row.__globals__["load_audio"] = load_audio
+    for row in rows:
+        row.update(audio=np.zeros(12000, dtype=np.float32), sr=16000)
+    loop.processor = Mock(
+        side_effect=lambda **kwargs: {"input_ids": torch.tensor([[10]]), "attention_mask": torch.ones(1, 1)}
+    )
+    loop.processor.chat_template = "test"
+    loop.processor.apply_chat_template.return_value = "task<audio>"
+    loop.server_manager.generate = AsyncMock(
+        return_value=SimpleNamespace(token_ids=[900], log_probs=None, extra_fields={})
+    )
+
+    outputs, _ = asyncio.run(loop.generate_segments(rows, {}, validate=validate))
+
+    assert len(outputs) == 2  # Total 1.5s is allowed: each segment is 0.75s.
+    assert [len(call.kwargs["audio_data"][0][0]) for call in loop.server_manager.generate.call_args_list] == [12000] * 2
+    loop.processor.reset_mock()
+    loop.server_manager.generate.reset_mock()
+    rows[0]["audio"] = np.zeros(16001, dtype=np.float32)
+    with pytest.raises(ValueError, match="exceeds max_audio_dur=1"):
+        asyncio.run(loop.generate_row(rows[0], {}, validate=validate))
+    loop.processor.assert_not_called()
+    loop.server_manager.generate.assert_not_called()
 
 
 @pytest.mark.parametrize("validate", [False, True])

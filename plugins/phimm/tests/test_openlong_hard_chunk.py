@@ -63,7 +63,6 @@ def test_real_validation_loader_and_audio_preserve_every_sample(tmp_path, frames
     segments = [{**shared, **segment} for segment in sample["asr_segments"]]
     assert all(set(segment) == {"audio_path"} for segment in sample["asr_segments"])
     assert len(segments) == sample["extra_info"]["n_segments"] == 3
-    assert all(segment["asr_full_reference"] for segment in segments)
     decoded = [_load_time_chunk(segment["audio_path"])[0] for segment in segments]
     assert [len(audio) for audio in decoded] == [32000, 32000, frames - 64000]
     np.testing.assert_array_equal(np.concatenate(decoded), waveform)

@@ -17,7 +17,6 @@ def sample(count):
         "audio_path": paths,
         "reward_model": {"ground_truth": "Exact full-recording reference. " * 1000},
         "extra_info": {"id": "recording", "audio_path": paths, "n_segments": count},
-        "asr_full_reference": True,
     }
     dataset = ASRDataset.__new__(ASRDataset)
     dataset.ds, dataset.groups, dataset.prompt_key = [source], [[0]], "prompt"

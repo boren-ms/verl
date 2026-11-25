@@ -1,6 +1,8 @@
 """Turn the Base3a JSONL audio mix into teacher-forced Qwen audio examples."""
 
 import torch
+from torch.utils.data import Dataset
+
 from recipe.phimm.agentic.dataset import (
     _align_source_features,
     _combine_datasets,
@@ -8,7 +10,6 @@ from recipe.phimm.agentic.dataset import (
 )
 from recipe.phimm.data.dataset import create_audio_dataset
 from recipe.phimm.utils.audio import load_audio, set_chunk_load_mode
-from torch.utils.data import Dataset
 
 
 class ASRSFTDataset(Dataset):
@@ -45,8 +46,6 @@ class ASRSFTDataset(Dataset):
         target = row["reward_model"].get("gt_output")
         if not isinstance(target, str) or not target:
             raise ValueError(f"ASR SFT row {index} requires a nonempty reward_model.gt_output")
-        # Never crop a waveform while retaining the complete supervised target.
-        row["asr_full_reference"] = True
         paths = row.get("audio_path")
         if isinstance(paths, list):
             if not paths or any(not isinstance(path, str) or not path for path in paths):
