@@ -412,8 +412,8 @@ class PPOTrainer(ABC):
             experiment_name=self.config.trainer.experiment_name,
         )
 
-        # perform validation before training
-        if self.config.trainer.get("val_before_train", True):
+        # Evaluation-only runs must validate even when pre-training validation is disabled.
+        if self.config.trainer.get("val_only", False) or self.config.trainer.get("val_before_train", True):
             self.on_validate_begin()
             val_metrics = self._validate()
             self.on_validate_end()
