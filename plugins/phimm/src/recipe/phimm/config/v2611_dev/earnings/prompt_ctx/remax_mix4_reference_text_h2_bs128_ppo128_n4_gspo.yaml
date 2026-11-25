@@ -20,6 +20,7 @@ actor_rollout_ref:
 asr:
   context_aware:
     max_history: 2
+    validation_source: generated
 
 trainer:
   experiment_name: remax-mix4-reference-h2-bs128-ppo128-32gpu-gspo-from-base38000
