@@ -1,5 +1,5 @@
 # @package _global_
-# Same ReMax + GSPO recipe; double learning rate and optimizer budget.
+# Same ReMax + GSPO recipe; twice the original LR and extended optimizer budget.
 
 defaults:
   - remax_main_base3a_2611r2_gspo_openlong
@@ -12,8 +12,8 @@ actor_rollout_ref:
 
 trainer:
   experiment_name: remax_main_base3a_2611r2_gspo_openlong_lr2_steps2
-  total_training_steps: 1736
-  total_epochs: 4
+  total_training_steps: 3472
+  total_epochs: 8
 
 asr:
-  expected_training_steps: 1736
+  expected_training_steps: 3472

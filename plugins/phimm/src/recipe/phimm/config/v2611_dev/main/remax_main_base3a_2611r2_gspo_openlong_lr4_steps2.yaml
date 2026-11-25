@@ -1,5 +1,5 @@
 # @package _global_
-# Four times the original 6e-7 learning rate; retain the 1736-step budget.
+# Four times the original 6e-7 learning rate; inherit the extended 3472-step budget.
 
 defaults:
   - remax_main_base3a_2611r2_gspo_openlong_lr2_steps2
