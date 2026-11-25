@@ -121,6 +121,96 @@ def test_unreliable_caption_mapping_is_rejected_instead_of_dividing_text_evenly(
         )
 
 
+def test_model_window_context_is_checked_but_every_human_word_is_emitted_once():
+    captions = [
+        {"start_time": i * 10, "end_time": (i + 1) * 10, "transcription": f"first{i} middle{i} last{i}"}
+        for i in range(8)
+    ]
+    reference = " ".join(caption["transcription"] for caption in captions).split()
+    windows = alignment.alignment_windows(" ".join(reference), 80, captions, maximum=42)
+    timestamps = []
+    for window in windows:
+        assert window["end"] - window["start"] <= 42
+        if window["word_start"]:
+            assert window["align_word_start"] < window["word_start"]
+        if window["word_end"] < len(reference):
+            assert window["align_word_end"] > window["word_end"]
+        result = [
+            SimpleNamespace(text=reference[i], start_time=i - window["start"], end_time=i + 0.5 - window["start"])
+            for i in range(window["align_word_start"], window["align_word_end"])
+        ]
+        timestamps.extend(alignment.window_timestamps(reference, window, result, window["start"]))
+    assert [item["text"] for item in timestamps] == reference
+    assert [(item["start"], item["end"]) for item in timestamps] == [(i, i + 0.5) for i in range(len(reference))]
+    result[0].text = "wrong context word"
+    with pytest.raises(ValueError, match="different alignment word"):
+        alignment.window_timestamps(reference, windows[-1], result, windows[-1]["start"])
+
+
+def test_caption_context_that_cannot_fit_is_retained_as_mapping_failure():
+    captions = [
+        {"start_time": i * 25, "end_time": (i + 1) * 25, "transcription": f"first{i} middle{i} last{i}"}
+        for i in range(4)
+    ]
+    with pytest.raises(ValueError, match="with context"):
+        alignment.alignment_windows(" ".join(c["transcription"] for c in captions), 100, captions, maximum=42)
+
+
+def test_stitching_selects_real_predictions_without_clamping_overlap():
+    windows = [
+        {"align_word_start": 0, "align_word_end": 5, "word_start": 0},
+        {"align_word_start": 2, "align_word_end": 7, "word_start": 4},
+    ]
+    left = [{"text": f"word{i}", "start": i, "end": i + 0.6} for i in range(5)]
+    right = [{"text": f"word{i}", "start": i - 0.5, "end": i + 0.1} for i in range(2, 7)]
+    # The planned seam overlaps. The preceding shared seam is ordered.
+    right[1]["start"] = 3.0
+    merged, seams = alignment.stitch_window_timestamps(windows, [left, right])
+    assert seams[0]["word_boundary"] == 3
+    assert merged == left[:3] + right[1:]
+    assert [x["text"] for x in merged] == [f"word{i}" for i in range(7)]
+    assert right[2]["start"] == 3.5 and left[3]["end"] == 3.6
+    for item in right:
+        item["start"] = 0.0
+    with pytest.raises(ValueError, match="No ordered model seam"):
+        alignment.stitch_window_timestamps(windows, [left, right])
+
+
+def test_owned_cache_releases_only_completed_chunks_and_preserves_other_data(tmp_path):
+    root, output = tmp_path / "cache", tmp_path / "output"
+    output.mkdir()
+    cache = alignment.OwnedChunkCache(root, output, "input-hash")
+    cache.visit("az://orngwus2cresco/data/task/first.audio:2:0")
+    first = root / "task/first.audio"
+    first.parent.mkdir()
+    first.write_bytes(b"whole chunk")
+    other = root / "task/keep.txt"
+    other.write_bytes(b"preserve")
+    cache.visit("az://orngwus2cresco/data/task/first.audio:2:1")
+    assert first.exists()
+    cache.visit("az://orngwus2cresco/data/task/second.audio:1:0")
+    assert not first.exists() and other.read_bytes() == b"preserve"
+    ledger = list(alignment.rows(output / "chunk_cache_releases.jsonl"))
+    assert ledger[0]["released_bytes"] == len(b"whole chunk")
+    with pytest.raises(ValueError, match="revisits"):
+        cache.visit("az://orngwus2cresco/data/task/first.audio:2:0")
+    cache.lock.close()
+    with pytest.raises(ValueError, match="different alignment"):
+        alignment.OwnedChunkCache(root, output, "other-input")
+
+
+def test_owned_cache_refuses_unowned_data_and_escaped_source(tmp_path):
+    unowned = tmp_path / "unowned"
+    unowned.mkdir()
+    (unowned / "keep.audio").write_bytes(b"keep")
+    with pytest.raises(ValueError, match="without alignment ownership"):
+        alignment.OwnedChunkCache(unowned, tmp_path, "input")
+    cache = alignment.OwnedChunkCache(tmp_path / "owned", tmp_path, "input")
+    with pytest.raises(ValueError, match="escapes"):
+        cache.visit("az://orngwus2cresco/data/../../keep.audio:1:0")
+    assert (unowned / "keep.audio").read_bytes() == b"keep"
+
+
 def test_failed_original_never_produces_pairs():
     row = alignment.filter_word_durations({**original(), "alignment_error": "model error"})
     assert list(alignment.paired_rows(row)) == []

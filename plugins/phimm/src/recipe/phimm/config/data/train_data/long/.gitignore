@@ -2,3 +2,4 @@
 *.jsonl
 *.partial
 *.jsonl.gz
+pilots/

@@ -20,11 +20,13 @@ anchors; uncertain mappings are retained as failures, never guessed by duration.
 
 import argparse
 import difflib
+import fcntl
 import gzip
 import hashlib
 import importlib.metadata
 import json
 import math
+import os
 import re
 import struct
 import unicodedata
@@ -33,6 +35,56 @@ from pathlib import Path
 MODEL = "Qwen/Qwen3-ForcedAligner-0.6B"
 MODEL_REVISION = "c7cbfc2048c462b0d63a45797104fc9db3ad62b7"
 QWEN_REVISION = "7c6daf77a2421100f5fb066495372c00129d39ff"
+
+
+class OwnedChunkCache:
+    """Release completed whole-chunk copies in one exclusively owned cache root."""
+
+    def __init__(self, root, output, input_sha256):
+        self.root = Path(root).resolve()
+        self.root.mkdir(parents=True, exist_ok=True)
+        self.lock = (self.root / ".alignment-owner.lock").open("a")
+        fcntl.flock(self.lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        owner = {"input_sha256": input_sha256, "output_dir": str(Path(output).resolve())}
+        marker = self.root / "ALIGNMENT_CACHE_OWNER.json"
+        if marker.exists():
+            if json.loads(marker.read_text()) != owner:
+                self.lock.close()
+                raise ValueError("Chunk cache belongs to a different alignment run")
+        elif any(path.name != ".alignment-owner.lock" for path in self.root.iterdir()):
+            self.lock.close()
+            raise ValueError("Refusing an existing cache without alignment ownership")
+        else:
+            save(marker, owner)
+        self.output, self.current, self.completed = Path(output), None, set()
+
+    def visit(self, source):
+        physical = source.rsplit(":", 2)[0]
+        prefix = "az://orngwus2cresco/data/"
+        if not physical.startswith(prefix) or not physical.endswith(".audio"):
+            raise ValueError("Owned chunk cache requires an Orange parent audio chunk")
+        path = self.root / physical.removeprefix(prefix)
+        if not path.resolve().is_relative_to(self.root) or path.is_symlink():
+            raise ValueError("Chunk cache path escapes its owned root")
+        if physical == self.current:
+            return
+        if physical in self.completed:
+            raise ValueError("Alignment input revisits a completed chunk")
+        self.release()
+        self.current = physical
+
+    def release(self):
+        if self.current is None:
+            return
+        path = self.root / self.current.removeprefix("az://orngwus2cresco/data/")
+        if not path.resolve().is_relative_to(self.root) or path.is_symlink():
+            raise ValueError("Refusing to release a chunk outside its owned cache")
+        size = path.stat().st_size if path.is_file() else 0
+        path.unlink(missing_ok=True)
+        with (self.output / "chunk_cache_releases.jsonl").open("a", encoding="utf-8") as ledger:
+            write_row(ledger, {"source": self.current, "released_bytes": size, "reason": "all_parent_rows_committed"})
+        self.completed.add(self.current)
+        self.current = None
 
 
 def write_row(handle, row):
@@ -60,19 +112,89 @@ def clean_word(word):
     return "".join(c for c in word if c == "'" or unicodedata.category(c)[0] in "LN").casefold()
 
 
+def verify_model_runtime(aligner, snapshot):
+    """Check actual tokenizer vocabulary and sampled loaded weights against files."""
+    import torch
+    from safetensors import safe_open
+
+    snapshot = Path(snapshot)
+    tokenizer = aligner.processor.tokenizer
+    if Path(tokenizer.name_or_path).resolve() != snapshot.resolve():
+        raise ValueError("Loaded tokenizer does not originate from the pinned snapshot")
+    if Path(aligner.model.config._name_or_path).resolve() != snapshot.resolve():
+        raise ValueError("Loaded model does not originate from the pinned snapshot")
+    vocabulary = json.loads((snapshot / "vocab.json").read_text())
+    tokenizer_config = json.loads((snapshot / "tokenizer_config.json").read_text())
+    vocabulary.update(
+        {token["content"]: int(index) for index, token in tokenizer_config["added_tokens_decoder"].items()}
+    )
+    if tokenizer.get_vocab() != vocabulary:
+        raise ValueError("Actual tokenizer vocabulary differs from the pinned tokenizer file")
+    expected_merges = [
+        tuple(line.split())
+        for line in (snapshot / "merges.txt").read_text().splitlines()
+        if line and not line.startswith("#version:")
+    ]
+    backend = json.loads(tokenizer.backend_tokenizer.to_str())
+    actual_merges = [
+        tuple(merge.split()) if isinstance(merge, str) else tuple(merge) for merge in backend["model"]["merges"]
+    ]
+    if actual_merges != expected_merges:
+        raise ValueError("Actual tokenizer merges differ from the pinned merge file")
+    samples = []
+    parameters = dict(aligner.model.named_parameters())
+    with safe_open(snapshot / "model.safetensors", framework="pt", device="cpu") as weights:
+        keys = sorted(key for key in weights.keys() if key in parameters and 16 <= parameters[key].numel() <= 1000000)
+        if not keys:
+            raise ValueError("No loaded model parameters available for snapshot comparison")
+        for key in dict.fromkeys((keys[0], keys[len(keys) // 2], keys[-1])):
+            actual = parameters[key].detach().reshape(-1)[:16].cpu()
+            expected = weights.get_tensor(key).reshape(-1)[:16].to(actual.dtype)
+            if not torch.equal(actual, expected):
+                raise ValueError("Loaded parameter sample differs from pinned model weights")
+            samples.append({"parameter": key, "elements_checked": len(actual)})
+    return {
+        "status": "actual_tokenizer_vocabulary_and_loaded_parameter_samples_verified",
+        "snapshot": str(snapshot),
+        "model_class": type(aligner.model).__name__,
+        "tokenizer_class": type(tokenizer).__name__,
+        "vocab_sha256": fingerprint(snapshot / "vocab.json"),
+        "merges_sha256": fingerprint(snapshot / "merges.txt"),
+        "tokenizer_config_sha256": fingerprint(snapshot / "tokenizer_config.json"),
+        "config_sha256": fingerprint(snapshot / "config.json"),
+        "parameter_samples": samples,
+        "device": str(next(aligner.model.parameters()).device),
+    }
+
+
 def anchor_tokens(text):
     return re.findall(r"[^\W_]+(?:'[^\W_]+)*", text.casefold().replace("’", "'"))
 
 
 def alignment_windows(text, duration, captions, *, maximum=180.0, padding=1.0):
-    """Partition exact reference words using conservative caption-boundary anchors."""
+    """Partition reference words, with caption-mapped context at internal edges.
+
+    Each word belongs to one output window. Adjacent model calls also align a
+    neighboring caption on each internal edge, so audio padding is accompanied
+    by its known human words. Context predictions are checked and retained;
+    timestamps are never clamped or moved to make an overlap disappear.
+    """
     words = text.split()
     if not words or not math.isfinite(duration) or duration <= 0:
         raise ValueError("Empty reference or invalid waveform duration")
     if any(not clean_word(w) for w in words):
         raise ValueError("Reference contains a punctuation-only alignment unit")
     if duration <= maximum:
-        return [{"start": 0.0, "end": duration, "word_start": 0, "word_end": len(words)}]
+        return [
+            {
+                "start": 0.0,
+                "end": duration,
+                "word_start": 0,
+                "word_end": len(words),
+                "align_word_start": 0,
+                "align_word_end": len(words),
+            }
+        ]
     if not captions:
         raise ValueError("Long recording has no adjusted caption timing spans")
     source, ends = [], []
@@ -101,25 +223,85 @@ def alignment_windows(text, duration, captions, *, maximum=180.0, padding=1.0):
                 position = block.b + boundary - block.a
                 if position in target_boundaries:
                     boundaries[boundary] = target_boundaries[position]
+    caption_boundaries = {0: 0, len(captions): len(words)}
+    caption_boundaries.update({index + 1: boundaries[end] for index, end in enumerate(ends[:-1]) if end in boundaries})
+    reliable = sorted(caption_boundaries)
     output, first_caption, first_word = [], 0, 0
     while first_caption < len(captions):
-        start = max(0.0, float(captions[first_caption]["start_time"]) - padding)
+        context_first = max((index for index in reliable if index < first_caption), default=0)
+        start = max(0.0, float(captions[context_first]["start_time"]) - padding)
         choices = []
-        for last in range(first_caption, len(captions)):
-            end = min(duration, float(captions[last]["end_time"]) + padding)
+        for stop_caption in reliable:
+            if stop_caption <= first_caption:
+                continue
+            context_stop = next((index for index in reliable if index > stop_caption), stop_caption)
+            end = min(duration, float(captions[context_stop - 1]["end_time"]) + padding)
             if end - start > maximum:
                 break
-            stop = len(words) if last == len(captions) - 1 else boundaries.get(ends[last])
-            if stop is not None and stop > first_word:
-                choices.append((last, end, stop))
+            stop = caption_boundaries[stop_caption]
+            if stop > first_word:
+                choices.append((stop_caption, context_stop, end, stop))
         if not choices:
-            raise ValueError("No reliable caption/reference boundary within model window limit")
-        last, end, stop = choices[-1]
-        output.append({"start": start, "end": end, "word_start": first_word, "word_end": stop})
-        first_caption, first_word = last + 1, stop
+            raise ValueError("No reliable caption/reference boundary with context within model window limit")
+        stop_caption, context_stop, end, stop = choices[-1]
+        output.append(
+            {
+                "start": start,
+                "end": end,
+                "word_start": first_word,
+                "word_end": stop,
+                "align_word_start": caption_boundaries[context_first],
+                "align_word_end": caption_boundaries[context_stop],
+            }
+        )
+        first_caption, first_word = stop_caption, stop
     if first_word != len(words):
         raise ValueError("Caption windows do not cover every reference word")
     return output
+
+
+def window_timestamps(reference, window, result, offset, *, include_context=False):
+    """Verify context units and retain unchanged, absolute model predictions."""
+    context_words = reference[window["align_word_start"] : window["align_word_end"]]
+    if len(result) != len(context_words):
+        raise ValueError("Qwen returned a different alignment unit count")
+    timestamps = []
+    for index, (word, item) in enumerate(zip(context_words, result, strict=True), window["align_word_start"]):
+        if clean_word(word) != clean_word(item.text):
+            raise ValueError("Qwen returned a different alignment word")
+        if include_context or window["word_start"] <= index < window["word_end"]:
+            timestamps.append(
+                {"text": word, "start": round(offset + item.start_time, 3), "end": round(offset + item.end_time, 3)}
+            )
+    return timestamps
+
+
+def stitch_window_timestamps(windows, predictions):
+    """Choose an ordered seam in shared words without modifying model times.
+
+    Prefer the caption-mapped boundary, then the nearest shared-word boundary
+    whose left end precedes the right start. Every selected timestamp comes from
+    one real model call. All context predictions remain in the raw parent row.
+    """
+    merged, seams, previous_seam = [], [], 0
+    for index, (window, predicted) in enumerate(zip(windows, predictions, strict=True)):
+        start, end = window["align_word_start"], window["align_word_end"]
+        if len(predicted) != end - start:
+            raise ValueError("Window predictions do not cover their reference context")
+        if index == 0:
+            if start != 0:
+                raise ValueError("First model context does not start at the first reference word")
+            merged = list(predicted)
+            continue
+        candidates = range(max(start, previous_seam + 1), min(len(merged), end - 1) + 1)
+        ordered = [seam for seam in candidates if merged[seam - 1]["end"] <= predicted[seam - start]["start"]]
+        if not ordered:
+            raise ValueError("No ordered model seam within shared reference context")
+        seam = min(ordered, key=lambda position: (abs(position - window["word_start"]), position))
+        merged = merged[:seam] + predicted[seam - start :]
+        seams.append({"window_index": index, "planned_word_boundary": window["word_start"], "word_boundary": seam})
+        previous_seam = seam
+    return merged, seams
 
 
 def segment_row(row, *, maximum=30.0):
@@ -290,26 +472,40 @@ def prepare(args):
 
 
 def align(args):
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    input_sha256 = fingerprint(args.input)
+    cache_root = getattr(args, "owned_chunk_cache", None)
+    cache = OwnedChunkCache(cache_root, args.output_dir, input_sha256) if cache_root else None
+    if cache is not None:
+        os.environ["VERL_AUDIO_CACHE_ROOT"] = str(cache.root)
     import numpy as np
     import torch
     from huggingface_hub import snapshot_download
     from qwen_asr import Qwen3ForcedAligner
 
     from recipe.phimm.utils.audio import load_raw_audio
+    from verl.audio_cache import LOCAL_DATA_ROOT
+
+    if cache is not None and LOCAL_DATA_ROOT.resolve() != cache.root:
+        raise ValueError("Native audio reader did not adopt the owned cache root")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     manifest = args.output_dir / "raw_segments.jsonl"
     settings = {
-        "input_sha256": fingerprint(args.input),
+        "input_sha256": input_sha256,
         "model": MODEL,
         "model_revision": MODEL_REVISION,
         "qwen_repository_revision": QWEN_REVISION,
         "runner_sha256": fingerprint(Path(__file__)),
         "maximum_window_seconds": 180.0,
+        "window_context_policy": "neighboring_reliably_mapped_captions_owned_words_once",
+        "window_seam_policy": "nearest_ordered_shared_word_boundary_preserve_model_predictions",
         "segment_max_seconds": args.segment_seconds,
         "word_duration_minimum": args.minimum_word_seconds,
         "word_duration_maximum": args.maximum_word_seconds,
         "seed": 42,
+        "owned_chunk_cache": str(cache.root) if cache is not None else None,
+        "cache_release_policy": "completed_whole_chunks_only" if cache is not None else None,
         "versions": {
             name: importlib.metadata.version(name)
             for name in ("qwen-asr", "torch", "transformers", "huggingface-hub", "soundfile", "blobfile")
@@ -333,17 +529,21 @@ def align(args):
     torch.manual_seed(42)
     model_path = snapshot_download(MODEL, revision=MODEL_REVISION)
     aligner = Qwen3ForcedAligner.from_pretrained(str(model_path), dtype=torch.bfloat16, device_map="cuda:0")
+    save(args.output_dir / "model_runtime.json", verify_model_runtime(aligner, model_path))
     count = failures = 0
     with manifest.open("a", encoding="utf-8") as output:
         for row in rows(args.input):
             if args.limit and count >= args.limit:
                 break
             count += 1
+            if cache is not None:
+                cache.visit(row["audio_chunk"])
             if row["id"] in done:
                 failures += done.pop(row["id"])
                 continue
             captions = row.pop("alignment_caption_spans", None)
             timestamps = []
+            predictions = []
             try:
                 waveform, sr = load_raw_audio({"audio_chunk": row["audio_chunk"]})
                 waveform = np.asarray(waveform, dtype=np.float32)
@@ -354,22 +554,19 @@ def align(args):
                 for window in windows:
                     first_frame, end_frame = int(window["start"] * sr), int(window["end"] * sr)
                     offset = first_frame / sr
-                    own_words = reference[window["word_start"] : window["word_end"]]
+                    context_words = reference[window["align_word_start"] : window["align_word_end"]]
                     result = aligner.align(
-                        audio=(waveform[first_frame:end_frame], sr), text=" ".join(own_words), language="English"
+                        audio=(waveform[first_frame:end_frame], sr), text=" ".join(context_words), language="English"
                     )[0]
-                    if len(result) != len(own_words):
-                        raise ValueError("Qwen returned a different alignment unit count")
-                    for word, item in zip(own_words, result, strict=True):
-                        if clean_word(word) != clean_word(item.text):
-                            raise ValueError("Qwen returned a different alignment word")
-                        timestamps.append(
-                            {
-                                "text": word,
-                                "start": round(offset + item.start_time, 3),
-                                "end": round(offset + item.end_time, 3),
-                            }
-                        )
+                    predicted = window_timestamps(reference, window, result, offset, include_context=True)
+                    predictions.append(predicted)
+                    # Keep planned ownership too if stitching later fails.
+                    first = window["word_start"] - window["align_word_start"]
+                    stop = window["word_end"] - window["align_word_start"]
+                    timestamps.extend(predicted[first:stop])
+                row["alignment_window_predictions"] = predictions
+                timestamps, seams = stitch_window_timestamps(windows, predictions)
+                row["alignment_window_seams"] = seams
                 row["word_timestamps"] = timestamps
                 row = segment_row(row, maximum=args.segment_seconds)
             except (ValueError, KeyError, TypeError, IndexError) as error:
@@ -377,6 +574,7 @@ def align(args):
                 row = {
                     **row,
                     "word_timestamps": timestamps,
+                    "alignment_window_predictions": predictions,
                     "segments": [],
                     "alignment_error": f"{type(error).__name__}: {error}",
                 }
@@ -393,9 +591,17 @@ def align(args):
                 print(json.dumps({"parents": count, "failures": failures}), flush=True)
     if done:
         raise ValueError("Resume output contains IDs absent from this input scope")
+    if cache is not None and not args.limit:
+        cache.release()
     save(
         args.output_dir / ("PILOT.json" if args.limit else "COMPLETE.json"),
-        {**settings, "rows": count, "failures": failures, "sha256": fingerprint(manifest)},
+        {
+            **settings,
+            "rows": count,
+            "failures": failures,
+            "sha256": fingerprint(manifest),
+            "model_runtime_sha256": fingerprint(args.output_dir / "model_runtime.json"),
+        },
     )
     if failures:
         raise SystemExit(2)
@@ -474,6 +680,7 @@ def pairs(args):
             "pairs_sha256": fingerprint(args.output_dir / "pairs.jsonl.gz"),
             "filtered_originals_sha256": fingerprint(args.output_dir / "filtered_originals.jsonl.gz"),
             "segments_sha256": fingerprint(args.output_dir / "segments.jsonl.gz"),
+            "pair_exclusions_sha256": fingerprint(args.output_dir / "pair_exclusions.jsonl"),
             "word_duration_limits": [args.minimum_word_seconds, args.maximum_word_seconds],
         },
     )
@@ -488,6 +695,7 @@ def main():
     runner = commands.add_parser("align")
     runner.add_argument("--segment-seconds", type=float, default=30.0)
     runner.add_argument("--limit", type=int)
+    runner.add_argument("--owned-chunk-cache", type=Path, help="Exclusive fresh cache; release each completed chunk")
     pairing = commands.add_parser("pairs")
     for command in (runner, pairing):
         command.add_argument("--minimum-word-seconds", type=float, default=0.04)
