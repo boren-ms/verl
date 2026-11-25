@@ -46,8 +46,10 @@ def segment_row(row, segment):
 def validation_detail(row, texts, previous_contexts):
     """Keep shared fields directly in the detail record, alongside its segments."""
     return {
-        **segment_row(row, {}),
-        "asr_segments": row["asr_segments"],
+        **{key: value for key, value in segment_row(row, {}).items() if key != "audio"},
+        "asr_segments": [
+            {key: value for key, value in segment.items() if key != "audio"} for segment in row["asr_segments"]
+        ],
         "segment_outputs": texts,
         "previous_contexts": previous_contexts,
     }

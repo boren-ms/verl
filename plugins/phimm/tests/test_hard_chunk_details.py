@@ -85,3 +85,6 @@ def test_inline_audio_arrays_are_segment_data_not_compared_as_shared_metadata():
     assert segment["audio"] is second
     assert "prompt" not in segment
     assert segment_row(row, segment)["audio"] is second
+    detail = validation_detail({**row, "asr_segments": [segment]}, ["raw hypothesis"], [""])
+    assert "audio" not in detail and "audio" not in detail["asr_segments"][0]
+    assert json.loads(json.dumps(detail))["segment_outputs"] == ["raw hypothesis"]
