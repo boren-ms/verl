@@ -1,0 +1,17 @@
+# @package _global_
+# Matched Contig23 GSPO run: reference-text training, generated-text validation.
+defaults:
+  - remax_earnings_short_contiguous23_text_history2_gspo
+  - /data/train_data/offline_audio/earnings_short_contiguous23_reference_context@_reference_train
+  - _self_
+
+data:
+  train_data: ${_reference_train}
+
+asr:
+  context_aware:
+    training_source: reference
+    validation_source: generated
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_reference_text_history2_gspo

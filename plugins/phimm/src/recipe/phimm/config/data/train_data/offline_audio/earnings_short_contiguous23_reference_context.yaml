@@ -1,0 +1,73 @@
+# Same 25,240 Contig23 windows; adds exact per-segment labels for reference context.
+# Original audio, text, ordering and metadata are verified unchanged.
+# Audit: tmp/run_openasr_exp/contig23_reftext_h2_400_20261125/preparation.json
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_001.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earn_fy27
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_002.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_1st23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_003.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_2nd48
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_004.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: quartr_3rd38
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
