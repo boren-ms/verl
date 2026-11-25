@@ -11,7 +11,7 @@ import soundfile as sf
 from omegaconf import OmegaConf
 
 from recipe.phimm.agentic.dataset import ASRDataset
-from recipe.phimm.agentic.details import segment_row
+from recipe.phimm.agentic.details import RUNTIME_FIELDS
 from recipe.phimm.tools.openlong_hard_chunk import hard_chunk_parent, validation_source
 from recipe.phimm.utils.audio import _load_time_chunk
 
@@ -59,7 +59,8 @@ def test_real_validation_loader_and_audio_preserve_every_sample(tmp_path, frames
     assert len(dataset) == 1
     sample = dataset[0]
     assert sample["reward_model"]["ground_truth"] == original["text"]
-    segments = [segment_row(sample, segment) for segment in sample["asr_segments"]]
+    shared = {key: value for key, value in sample.items() if key not in RUNTIME_FIELDS}
+    segments = [{**shared, **segment} for segment in sample["asr_segments"]]
     assert all(set(segment) == {"audio_path"} for segment in sample["asr_segments"])
     assert len(segments) == sample["extra_info"]["n_segments"] == 3
     assert all(segment["asr_full_reference"] for segment in segments)

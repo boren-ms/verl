@@ -1,55 +1,16 @@
-"""Keep shared fields on the row and only segment differences in its segments."""
+"""Shared-row metadata for compact ASR segment records."""
 
-
-def segment_fields(row, source):
-    """Extract per-segment fields without copying shared transcripts or metadata."""
-    fields = {
-        key: value
-        for key, value in source.items()
-        if key != "extra_info" and (key == "audio" or key not in row or not (value is row[key] or value == row[key]))
-    }
-    shared_info = row.get("extra_info") or {}
-    info = {
-        key: value
-        for key, value in (source.get("extra_info") or {}).items()
-        if key not in shared_info or not (value is shared_info[key] or value == shared_info[key])
-    }
-    if info:
-        fields["extra_info"] = info
-    return fields
-
-
-def segment_row(row, segment):
-    """Combine shared row fields with one segment when decoding or inspecting it."""
-    runtime_fields = {
-        "asr_segments",
-        "asr_validate",
-        "raw_prompt",
-        "index",
-        "agent_name",
-        "uid",
-        "global_steps",
-        "session_id",
-        "trajectory",
-        "trace",
-        "reward_baselines",
-        "segment_outputs",
-        "previous_contexts",
-    }
-    return {
-        **{key: value for key, value in row.items() if key not in runtime_fields},
-        **segment,
-        "extra_info": {**(row.get("extra_info") or {}), **(segment.get("extra_info") or {})},
-    }
+RUNTIME_FIELDS = frozenset(
+    "asr_segments asr_validate raw_prompt index agent_name uid global_steps session_id "
+    "trajectory trace reward_baselines segment_outputs previous_contexts".split()
+)
 
 
 def validation_detail(row, texts, previous_contexts):
-    """Keep shared fields directly in the detail record, alongside its segments."""
+    """Serialize metadata and segment outputs without waveform or runtime payloads."""
     return {
-        **{key: value for key, value in segment_row(row, {}).items() if key != "audio"},
-        "asr_segments": [
-            {key: value for key, value in segment.items() if key != "audio"} for segment in row["asr_segments"]
-        ],
+        **{key: value for key, value in row.items() if key not in RUNTIME_FIELDS and key != "audio"},
+        "asr_segments": [{key: value for key, value in s.items() if key != "audio"} for s in row["asr_segments"]],
         "segment_outputs": texts,
         "previous_contexts": previous_contexts,
     }

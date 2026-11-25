@@ -9,7 +9,6 @@ import datasets
 import pyarrow as pa
 from torch.utils.data import Dataset
 
-from recipe.phimm.agentic.details import segment_fields
 from recipe.phimm.data.dataset import create_audio_dataset
 from recipe.phimm.utils.audio import set_chunk_load_mode
 
@@ -342,19 +341,34 @@ class ASRDataset(Dataset):
                 or any(not isinstance(text, str) for text in references)
             ):
                 raise ValueError("segment_reference_texts must contain one string per audio path")
+            source = dict(item)
+            if isinstance(paths, list):
+                source["asr_full_reference"] = True
+                source.pop("audio", None)
+            fields = {
+                key: value
+                for key, value in source.items()
+                if key != "extra_info"
+                and (key == "audio" or key not in row or not (value is row[key] or value == row[key]))
+            }
+            shared_info = row.get("extra_info") or {}
+            overrides = {
+                key: value
+                for key, value in info.items()
+                if key not in shared_info or not (value is shared_info[key] or value == shared_info[key])
+            }
+            if overrides:
+                fields["extra_info"] = overrides
             if isinstance(paths, list):
                 if not paths or any(not isinstance(path, str) or not path for path in paths):
                     raise ValueError("ASR audio_path lists must contain at least one non-empty path")
-                source = {**item, "asr_full_reference": True}
-                source.pop("audio", None)
-                fields = segment_fields(row, source)
                 for i, path in enumerate(paths):
                     segment = {**fields, "audio_path": path}
                     if references is not None:
                         segment["asr_reference_text"] = references[i]
                     segments.append(segment)
             else:
-                segment = segment_fields(row, item)
+                segment = fields
                 if paths is not None:
                     segment["audio_path"] = paths
                 segments.append(segment)

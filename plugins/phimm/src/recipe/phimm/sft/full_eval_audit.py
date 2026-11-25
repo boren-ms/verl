@@ -273,12 +273,20 @@ def candidate_scored_rows(path, name, config, workers, content_sha):
                 if not line.strip():
                     continue
                 row = json.loads(line)
-                require(row["step"] == 0 and row.get("asr_data_source", row.get("data_source")) == name,
-                        f"Wrong candidate step/source: {name}")
+                require(
+                    row["step"] == 0 and row.get("asr_data_source", row.get("data_source")) == name,
+                    f"Wrong candidate step/source: {name}",
+                )
                 detail = row["asr_detail"]
                 detail = json.loads(detail) if isinstance(detail, str) else detail
-                payload = (config, name, row["gts"], detail["segment_outputs"], detail["parent_info"],
-                           {key: row[key] for key in ("n_err", "n_ref")})
+                payload = (
+                    config,
+                    name,
+                    row["gts"],
+                    detail["segment_outputs"],
+                    detail.get("extra_info", detail.get("parent_info", {})),
+                    {key: row[key] for key in ("n_err", "n_ref")},
+                )
                 if pool is None:
                     yield row, detail, score_candidate_parent(*payload)
                 else:
@@ -389,15 +397,15 @@ def audit_one(reference, suite, settings, config, metrics, current_baseline, cov
         candidate_rows += 1
         require(row["step"] == 0 and row.get("asr_data_source", row.get("data_source")) == name,
                 f"Wrong candidate step/source: {name}")
-        info = detail["parent_info"]
-        group = identity({**info, "gts": row["gts"], "data_source": name})
+        shared_info = detail.get("extra_info", detail.get("parent_info", {}))
+        group = identity({**shared_info, "gts": row["gts"], "data_source": name})
         require(group not in groups, f"Duplicate candidate scoring group: {name}")
         groups.add(group)
         candidate_errors += score["n_err"]
         candidate_refs += score["n_ref"]
         acoustic_segments += len(detail["segment_outputs"])
-        for segment in detail["segment_rows"]:
-            info = segment.get("extra_info") or {}
+        for segment in detail.get("asr_segments", detail.get("segment_rows", [])):
+            info = {**(detail.get("extra_info") or {}), **(segment.get("extra_info") or {})}
             source = {**info, "gts": row["gts"], "data_source": name}
             key = identity(source)
             identities.add(key)

@@ -171,10 +171,8 @@ def test_hard_chunk_debug_compaction_preserves_raw_scoring(agent_loop):
     scorer = Mock(return_value={"score": 1.0, "n_err": 0, "n_ref": 5})
     loop.run.__globals__["score_response"] = scorer
 
-    from recipe.phimm.agentic.details import segment_fields
-
     parent = {**rows[0], "audio_path": paths}
-    segments = [segment_fields(parent, row) for row in rows]
+    segments = [{"audio_path": path} for path in paths]
     result = asyncio.run(loop.run({}, asr_validate=True, asr_segments=segments, **parent))
 
     assert scorer.call_args.args[2] is texts
@@ -219,9 +217,8 @@ def test_grouped_validation_retains_first_segments_features(agent_loop):
 
 
 @pytest.mark.parametrize("validate", [False, True])
-@pytest.mark.parametrize("shared_parent", [False, True])
-def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate, shared_parent):
-    from recipe.phimm.agentic.details import segment_fields
+@pytest.mark.parametrize("segment_only", [False, True])
+def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate, segment_only):
     from recipe.phimm.agentic.scoring import score_response
 
     texts = ["<src=English><tgt=English>\n<verbatim>hello</verbatim>", ""]
@@ -253,16 +250,17 @@ def test_both_modes_score_raw_headers_and_parent_reference(agent_loop, validate,
     rows = [
         {"data_source": "test", "reward_model": {"ground_truth": "segment reference"}, "extra_info": {}} for _ in texts
     ]
-    if shared_parent:
+    if segment_only:
         for index, row in enumerate(rows):
             row.update(audio_path=f"parent.wav#{index}:{index + 1}", asr_full_reference=True)
             row["extra_info"] = {"chunking_method": "hard_nonoverlapping", "audio_path": ["parent.wav"]}
     parent = {"ground_truth": "hello world"}
-    shared = {"reward_model": parent, "extra_info": {}}
-    transport = [segment_fields(shared, row) for row in rows] if shared_parent else rows
-    output = asyncio.run(
-        loop.run({}, asr_validate=validate, asr_segments=transport, reward_model=parent, extra_info={})
-    )
+    shared = {"data_source": "test", "reward_model": parent, "extra_info": rows[0]["extra_info"]}
+    transport = rows
+    if segment_only:
+        shared["asr_full_reference"] = True
+        transport = [{"audio_path": row["audio_path"], "reward_model": row["reward_model"]} for row in rows]
+    output = asyncio.run(loop.run({}, asr_validate=validate, asr_segments=transport, **shared))
     assert loop.generate_segments.call_args.args[0] == rows
     if not validate:
         assert len(output) == 2
@@ -1143,9 +1141,13 @@ def test_random_merge_audio_list_enters_context_decode_in_order(multi_turn_loop,
     loop.rollout_config.prompt_length = 512
     frames = {"a.wav": 16, "b.wav": 8}
     loop.generate_segments.__globals__["load_audio"] = lambda row, duration: (frames[row["audio_path"]], 16000)
-    from recipe.phimm.agentic.details import segment_row
+    from recipe.phimm.agentic.details import RUNTIME_FIELDS
 
-    rows = [segment_row(sample, segment) for segment in sample["asr_segments"]]
+    shared = {key: value for key, value in sample.items() if key not in RUNTIME_FIELDS}
+    rows = [
+        {**shared, **s, "extra_info": {**shared["extra_info"], **s.get("extra_info", {})}}
+        for s in sample["asr_segments"]
+    ]
     outputs, texts = asyncio.run(loop.generate_segments(rows, {}, validate=validate))
     assert len(outputs) == 2
     assert [out.extra_fields["asr_previous_context"] for out in outputs] == ["", f"Previous context: {texts[0]}"]
