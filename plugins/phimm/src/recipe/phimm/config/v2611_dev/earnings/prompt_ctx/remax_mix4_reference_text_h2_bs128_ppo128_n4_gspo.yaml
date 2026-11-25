@@ -1,0 +1,26 @@
+# @package _global_
+# Mix4 data with the H2/PPO128 settings of the FL RM23x4 reference GSPO preset.
+# Keep the Mix4 125000-row mixture and absolute 2000-step target.
+defaults:
+  - remax_mix4_reference_text_h4_bs128_ppo512_n4_gspo
+  - _self_
+
+data:
+  max_prompt_length: 2048
+
+actor_rollout_ref:
+  actor:
+    ppo_mini_batch_size: 128
+    ppo_max_token_len_per_gpu: 2048
+  ref:
+    log_prob_max_token_len_per_gpu: 2048
+  rollout:
+    log_prob_max_token_len_per_gpu: 2048
+
+asr:
+  context_aware:
+    max_history: 2
+
+trainer:
+  experiment_name: remax-mix4-reference-h2-bs128-ppo128-32gpu-gspo-from-base38000
+  test_freq: 200
