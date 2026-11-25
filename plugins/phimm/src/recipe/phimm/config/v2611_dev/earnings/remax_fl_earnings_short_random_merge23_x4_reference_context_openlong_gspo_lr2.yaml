@@ -21,4 +21,6 @@ algorithm:
 
 trainer:
   experiment_name: remax_fl_earnings_short_random_merge23_x4_reference_context_openlong_gspo_lr2
+  nnodes: 4
+  n_gpus_per_node: 8
   test_freq: 200
