@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 from omegaconf import OmegaConf
+
 from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.tools.offline_audio import materialize
 from recipe.phimm.tools.svad_segment import prepare_manifest, segment_row, svad_segment
@@ -162,7 +163,7 @@ def test_offline_snapshot_keeps_full_reference_and_loads_asr_segments(tmp_path):
     parent = train[0]
     assert parent["reward_model"]["ground_truth"] == "full original reference"
     assert len(parent["asr_segments"]) == 3
-    assert all(segment["asr_full_reference"] for segment in parent["asr_segments"])
+    assert all(set(segment) == {"audio_path"} for segment in parent["asr_segments"])
     assert len(ASRDataset("val", None, snapshot.data)[0]["asr_segments"]) == 1
     assert sorted(tmp_path.rglob("*.wav")) == [path]
 
@@ -195,6 +196,7 @@ def test_long_recipes_preserve_earnings_controls_and_use_text_history4(
     from pathlib import Path
 
     from hydra import compose, initialize_config_dir
+
     from recipe.phimm.agentic.context_prompt import ContextPrompt
     from recipe.phimm.utils.offline_data import active_audio_transforms
 

@@ -1,0 +1,20 @@
+# @package _global_
+# Full OpenASR evaluation of the merged step-40 checkpoint, tagged 2611s3a.
+# The qwen_hf export must be complete before submitting this evaluation.
+
+defaults:
+  - eval_openfull_zip
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/xiaojul/amlt-results/fast-llm-2611-qwen3-5-9b-s2-vi-vn-it-it-flashenc-s2init-sft-only-contlora-mtpunfrozen-adapterfrozen-40steps-bv-notxt-lid/40_merged/qwen_hf/
+    lora_rank: 0
+
+trainer:
+  project_name: v2611_eval
+  experiment_name: 2611s3a
+  nnodes: 2
+  n_gpus_per_node: 8
+  resume_mode: disable
+  val_only: true

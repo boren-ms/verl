@@ -7,8 +7,8 @@ import blobfile as bf
 import numpy as np
 import soundfile as sf
 from cachetools import FIFOCache, cached
-from recipe.phimm.data.chunk import load_chunk_example, load_chunk_sample
 
+from recipe.phimm.data.chunk import load_chunk_example, load_chunk_sample
 from verl.audio_cache import localize_audio_source, split_audio_sources
 from verl.audio_chunk import read_chunk_audio, split_chunk_audio_source
 from verl.audio_zip import read_zip_audio, split_zip_audio_source
@@ -256,7 +256,9 @@ def _load_time_chunk(spec):
         if not 0 <= start < end <= duration:
             raise ValueError(f"Invalid audio range in seconds: {tail!r}")
         start_frame = int(start * sr)
-        stop_frame = int(end * sr)
+        # Keep the final sample when seconds-to-frames rounding falls just below
+        # an integer (for example 2058.816 * 16000 == 32941055.999999996).
+        stop_frame = frames if end == duration else int(end * sr)
     stop_frame = max(start_frame + 1, min(stop_frame, frames))
     if chunk_audio is not None:
         return chunk_audio[start_frame:stop_frame], sr
@@ -322,11 +324,12 @@ def load_raw_audio(x):
 
 
 def load_audio(x, max_dur=None, min_dur=0.16):
+    """Load one segment and reject durations exceeding its configured limit."""
     data, fs = load_raw_audio(x)
-    if x.get("asr_full_reference") and max_dur is not None and len(data) / fs > max_dur:
+    if max_dur is not None and len(data) / fs > max_dur:
         raise ValueError(
-            "A segmented training sample would be truncated against its full reference; "
-            "set data.max_audio_dur=null or use shorter segments"
+            f"Audio segment duration {len(data) / fs:.6f}s exceeds max_audio_dur={max_dur}s; "
+            "use shorter segments or set data.max_audio_dur=null"
         )
     return limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur)
 

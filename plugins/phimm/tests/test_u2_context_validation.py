@@ -92,6 +92,7 @@ def test_full_reference_builder_retains_clips_and_uses_original_parent_text():
 
 def test_full_u2_dataset_groups_and_keeps_parent_reference_once(monkeypatch):
     import datasets
+
     from recipe.phimm.agentic import dataset
 
     rows = [
@@ -108,7 +109,10 @@ def test_full_u2_dataset_groups_and_keeps_parent_reference_once(monkeypatch):
     config = OmegaConf.create({"train_files": "train", "train_data": [], "val_data": [{}], "version": 2609})
     val = dataset.ASRDataset("val", tokenizer=None, config=config)
     assert len(val) == 1
-    assert [r["extra_info"]["seg_start"] for r in val[0]["asr_segments"]] == [0, 1]
+    parent = val[0]
+    assert [
+        {**parent["extra_info"], **segment.get("extra_info", {})}["seg_start"] for segment in parent["asr_segments"]
+    ] == [0, 1]
     assert val[0]["reward_model"]["ground_truth"] == "Hello World"
 
 

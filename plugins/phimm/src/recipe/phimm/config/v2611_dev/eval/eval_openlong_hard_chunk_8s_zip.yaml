@@ -1,0 +1,11 @@
+# @package _global_
+# Complete OpenLong with fixed 8-second cuts and full-parent scoring.
+
+defaults:
+  - eval_openlong_zip
+  - /data/val_data/openasr/openlong_hard_chunk_8s_verb_langhint_zip@_openlong_hard_chunk_8s
+  - _self_
+
+data:
+  val_data:
+    - ${_openlong_hard_chunk_8s}

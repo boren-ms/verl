@@ -1,0 +1,80 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+        original_data_source: earnings_batch1
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_001.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+        original_data_source: earnings_batch2
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_002.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+        original_data_source: quartr_first23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_003.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+        original_data_source: quartr_second48
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous5_reference_text_v2/source_004.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig5
+        original_data_source: quartr_final38
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source

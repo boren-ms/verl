@@ -1,0 +1,27 @@
+# @package _global_
+# Retain the reference preset's training mix and OpenLong U2 validation.
+# Training manifests retain the same windows and add segment_reference_texts.
+defaults:
+  - remax_earnings_short_contiguous23_text_history2
+  - /data/train_data/offline_audio/earnings_short_contiguous23_reference_context@_reference_train
+  - _self_
+
+data:
+  train_data: ${_reference_train}
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 2
+    training_source: reference
+    validation_source: generated
+  expected_training_steps: 400
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_reference_text_history2_openlong_generated
+  # 25,240 rows / batch 128 gives 197 steps per epoch; allow reaching step 400.
+  total_epochs: 3
+  total_training_steps: 400
+  save_freq: 200
+  test_freq: 200

@@ -8,6 +8,7 @@ import numpy as np
 import pytest
 import soundfile as sf
 from omegaconf import OmegaConf
+
 from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.tools.offline_audio import materialize
 from recipe.phimm.tools.random_segment import random_segment
@@ -240,8 +241,8 @@ def test_original_percent_selector_and_existing_chunk_grammar(tmp_path):
     second, _ = load_audio({"audio_path": f"{path}#50%:100%"}, min_dur=0)
     assert len(first) == len(second) == 8000
     assert _is_chunk_spec("archive.chunk:100:2")
-    with pytest.raises(ValueError, match="full reference"):
-        load_audio({"audio_path": f"{path}#0%:100%", "asr_full_reference": True}, max_dur=0.1)
+    with pytest.raises(ValueError, match="exceeds max_audio_dur"):
+        load_audio({"audio_path": f"{path}#0%:100%"}, max_dur=0.1)
 
 
 def test_random_partitions_support_archive_entries_and_concatenated_ranges(tmp_path):
@@ -493,8 +494,9 @@ def test_random_segments_partition_the_entire_concatenated_waveform(tmp_path):
 def test_multisegment_config_keeps_sample_counts_and_per_segment_budgets(duration_mode):
     from pathlib import Path
 
-    import recipe.phimm
     from hydra import compose, initialize_config_dir
+
+    import recipe.phimm
 
     directory = Path(recipe.phimm.__file__).parent / "config/v2611_dev/main"
     OmegaConf.register_new_resolver("eval", lambda text: eval(text, {"__builtins__": {}}, {}), replace=True)

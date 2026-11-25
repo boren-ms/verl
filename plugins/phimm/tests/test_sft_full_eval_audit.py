@@ -180,7 +180,8 @@ def test_ambiguous_duplicate_core_is_not_deduplicated_into_acceptance(policy):
         audit.approve_conditioning_change("monsoon_en_in", [old, copy.deepcopy(old)], [new], policy)
 
 
-def test_audit_one_preserves_observed9_and_independently_checks_scores(tmp_path, monkeypatch, policy):
+@pytest.mark.parametrize("compact", [False, True])
+def test_audit_one_preserves_observed9_and_independently_checks_scores(tmp_path, monkeypatch, policy, compact):
     old, new = pair()
     old.update(n_err=1, n_ref=2, output="historical")
     baseline = tmp_path / "baseline.jsonl"
@@ -192,6 +193,8 @@ def test_audit_one_preserves_observed9_and_independently_checks_scores(tmp_path,
     target.parent.mkdir(parents=True)
     emitted = {"step":0, "asr_data_source":"monsoon_en_in", "gts":new["gts"], "input":new["input"], "n_err":0, "n_ref":2,
                "asr_detail":{"parent_info":new, "segment_outputs":["candidate"], "segment_rows":[{"extra_info":new}]}}
+    if compact:
+        emitted["asr_detail"] = {"extra_info":new, "asr_segments":[{}], "segment_outputs":["candidate"]}
     target.write_text(json.dumps(emitted)+"\n")
     current = {"monsoon_en_in":{"source":str(baseline),"sha256":ref["sha256"],
                "coverage_sha256":audit.coverage_hash(audit.Counter([audit.identity(old)])),
@@ -210,9 +213,18 @@ def test_audit_one_preserves_observed9_and_independently_checks_scores(tmp_path,
     target.write_text(json.dumps(emitted)+"\n")
     with pytest.raises(ValueError,match="Independent candidate rescore differs"):
         audit.audit_one(ref,"OpenEN",settings,{},metrics,current,policy)
+    emitted["n_err"] = 0
+    if compact:
+        emitted["asr_detail"]["extra_info"] = {}
+    else:
+        emitted["asr_detail"]["segment_rows"][0]["extra_info"] = {}
+    target.write_text(json.dumps(emitted)+"\n")
+    with pytest.raises(ValueError, match="core8 source/reference coverage mismatch"):
+        audit.audit_one(ref,"OpenEN",settings,{},metrics,current,policy)
 
 
-def test_real_spawn_parent_scoring_matches_serial_counts_and_coverage(tmp_path):
+@pytest.mark.parametrize("compact", [False, True])
+def test_real_spawn_parent_scoring_matches_serial_counts_and_coverage(tmp_path, compact):
     config = audit.scorer_config({"model_path":"az://model", "experiment":"test-audit"})
     path = tmp_path / "parents.jsonl"
     rows = []
@@ -223,16 +235,29 @@ def test_real_spawn_parent_scoring_matches_serial_counts_and_coverage(tmp_path):
         rows.append({"step":0,"asr_data_source":"earnings21","gts":"hello world", "input":"same prompt",
                      "n_err":score["n_err"],"n_ref":score["n_ref"],
                      "asr_detail":{"parent_info":info,"segment_outputs":outputs,"segment_rows":[{"extra_info":info}]}})
+    if compact:
+        for row in rows:
+            detail = row["asr_detail"]
+            row["asr_detail"] = {"extra_info":detail["parent_info"], "asr_segments":[{}],
+                                 "segment_outputs":detail["segment_outputs"]}
     path.write_text("".join(json.dumps(row)+"\n" for row in rows))
     results = []
     for workers in (1,2):
         digest = hashlib.sha256()
-        scored = list(audit.candidate_scored_rows(str(path),"earnings21",config,workers,digest))
+        scored = list(audit.candidate_scored_rows(str(path), "earnings21", config, workers, digest))
         assert digest.hexdigest() == hashlib.sha256(path.read_bytes()).hexdigest()
-        totals = tuple(sum(score[key] for _,_,score in scored) for key in ("n_err","n_ref"))
-        coverage = audit.Counter(audit.core_identity({**detail["parent_info"],"gts":row["gts"],"data_source":"earnings21"})
-                                 for row,detail,_ in scored)
-        results.append((totals,coverage))
+        totals = tuple(sum(score[key] for _, _, score in scored) for key in ("n_err", "n_ref"))
+        coverage = audit.Counter(
+            audit.core_identity(
+                {
+                    **detail.get("extra_info", detail.get("parent_info", {})),
+                    "gts": row["gts"],
+                    "data_source": "earnings21",
+                }
+            )
+            for row, detail, _ in scored
+        )
+        results.append((totals, coverage))
     assert results[0] == results[1]
     assert results[0][0] == (2,8)
 

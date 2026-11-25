@@ -26,16 +26,30 @@ character timestamps; it does not validate the transcript's truth.
 
 For the available commands, metadata schema, remote GPU scaling, storage
 verification and example invocations, read [references/workflow.md](references/workflow.md).
-The reusable utility is [scripts/audio_subset.py](scripts/audio_subset.py); the
-repository's Qwen runner is `recipe/phimm/data/short/run_alignment.py`.
+The reusable crop utility is [scripts/audio_subset.py](scripts/audio_subset.py).
+For existing segmented Mix4 parents, use the maintained Qwen runner
+`plugins/phimm/src/recipe/phimm/tools/align_mix4_reference.py`; read the
+full-parent segment-reference workflow in the reference before using it.
+
+For segment-reference preparation, align the **full parent audio with its full
+parent transcript once**, then assign timestamped words to the original segments.
+Never align each cut segment against the full parent reference. Remove words
+whose start equals end from both usable timestamps and segment references;
+retain the original text and removed word/character-span evidence. Require
+positive-duration retained words within actual audio length. Preserve waveform
+length and original cuts; do not pad audio, clip timestamps, or stretch words to
+make an alignment pass. This removal policy applies to reference preparation;
+the separate crop workflow retains its user-selected flag/exclude/error policy.
 
 ## Execute and validate
 
 1. Normalize the input to JSONL with unique string `id`, `text`, and `audio_path`.
    Verify paths and source split membership. Use the script's deterministic
    `shard` command to partition independent work; save its completion metadata.
-2. Align each shard on an appropriately reserved GPU node, then use `crop` on
-   each aligned shard. `crop` uses bounded, parallel I/O, writes physical FLAC
+2. For existing segment references, use the full-parent workflow above and
+   retain existing audio ranges; no physical crop is needed. For requested new
+   audio subsets, align each shard on an appropriately reserved GPU node, then
+   use `crop` on each aligned shard. `crop` uses bounded, parallel I/O, writes physical FLAC
    or WAV clips, records source and selected timestamps, and can resume an
    incomplete run only if input and settings match. `merge` combines completed
    shard manifests but does not copy their audio. Use a fresh output location;

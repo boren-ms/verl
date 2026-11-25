@@ -6,11 +6,12 @@ from pathlib import Path
 
 import hydra
 from omegaconf import OmegaConf
+
 from recipe.phimm.agentic.dataset import ASRDataset
+from recipe.phimm.agentic.details import RUNTIME_FIELDS
 from recipe.phimm.main_asr_remax import main as _register_resolvers  # noqa: F401
 from recipe.phimm.reward.openasr_expansion import measure_expansion
 from recipe.phimm.utils.audio import load_audio
-
 from verl.utils.config import omega_conf_to_dataclass
 
 
@@ -61,8 +62,15 @@ def main(config):
     inference_prompt_checks = {}
     for source_name in counts:
         index = next(i for i, name in enumerate(train.ds["data_source"]) if name == source_name)
-        segments = train[index]["asr_segments"]
-        for segment_index, row in enumerate(segments):
+        sample = train[index]
+        shared = {key: value for key, value in sample.items() if key not in RUNTIME_FIELDS}
+        segments = sample["asr_segments"]
+        for segment_index, segment in enumerate(segments):
+            row = {
+                **shared,
+                **segment,
+                "extra_info": {**(shared.get("extra_info") or {}), **(segment.get("extra_info") or {})},
+            }
             check_name = source_name if len(segments) == 1 else f"{source_name}/segment_{segment_index}"
             audio = load_audio(row, config.data.max_audio_dur)
             chat = model.processor if getattr(model.processor, "chat_template", None) else model.tokenizer

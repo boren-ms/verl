@@ -1,0 +1,3129 @@
+{
+  "chunking_method": "hard_nonoverlapping",
+  "chunk_length_seconds": 4.0,
+  "tail_policy": "retain_shorter_final_chunk",
+  "reference_scope": "parent",
+  "input_root": "/home/boren/data/OpenLong_hard_chunk_2s_v1",
+  "audio_storage": "Existing complete ZIP members with new time selectors",
+  "datasets": {
+    "earnings21": {
+      "manifest": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_hard_chunk_4s_v1/earnings21.jsonl.gz",
+      "input_manifest": "/home/boren/data/OpenLong_hard_chunk_2s_v1/earnings21.jsonl.gz",
+      "input_rows_sha256": "d3df7d6a7c0f33dc383e2581167bc421f2d85c40b3f461267df21ec60b60c3a8",
+      "manifest_sha256": "a087eacf3c092a21229a0023b15688bce6f25ad21e7385e8616e8e572b94151e",
+      "uncompressed_sha256": "1d6699ba875ec3db0d4ab7d3d11b05a24d7bfa4965aec88a4364c88af9a8f967",
+      "compressed_bytes": 960690,
+      "parents": 44,
+      "segments": 35356,
+      "audio_seconds": 141345.8525625,
+      "parent_audit": [
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00000-of-00010/audio/0.wav",
+          "duration": 3285.816,
+          "sampling_rate": 16000,
+          "segments": 822,
+          "reference_sha256": "9a2d2015ac5a89e0d53cfc6cf2db9039915cb7c34ff8c16191dcaa18dfb1f2ce"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00000-of-00010/audio/1.wav",
+          "duration": 2458.872,
+          "sampling_rate": 16000,
+          "segments": 615,
+          "reference_sha256": "88efec9b0d70fbd3a0a732c000273d03a803e5b9d5510c17dc252eed66fd7c8b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00000-of-00010/audio/2.wav",
+          "duration": 5740.608,
+          "sampling_rate": 16000,
+          "segments": 1436,
+          "reference_sha256": "6da7ff67dd4fd4e56d74fd6d636d4dee15fdb1c4615f00b3c0e64af22318626b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00000-of-00010/audio/3.wav",
+          "duration": 2720.9143125,
+          "sampling_rate": 16000,
+          "segments": 681,
+          "reference_sha256": "db8da1133f723f34421329eb7975f2442ede5afe8bd1ccbc960ba34feb390d76"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00000-of-00010/audio/4.wav",
+          "duration": 3275.424,
+          "sampling_rate": 16000,
+          "segments": 819,
+          "reference_sha256": "b22f21f6fcc91cad1bbe3a714d462d32204cd6e21cc84cec11a760dc607904da"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00001-of-00010/audio/0.wav",
+          "duration": 3971.9749375,
+          "sampling_rate": 16000,
+          "segments": 993,
+          "reference_sha256": "f6402bfdcfd47d6baecb6a5d167c74ce27f77eb3977f045abb874491f0df42ca"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00001-of-00010/audio/1.wav",
+          "duration": 4709.376,
+          "sampling_rate": 16000,
+          "segments": 1178,
+          "reference_sha256": "e385d33e2bfb7f06a8b76c03a273b97880370f7229527f0448ca74b5aefe09f1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00001-of-00010/audio/2.wav",
+          "duration": 4887.001875,
+          "sampling_rate": 16000,
+          "segments": 1222,
+          "reference_sha256": "a078e7b1bfe6cab2157424b5db0990b86c0ed0b5f4514ee01773cc842053dfdc"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00001-of-00010/audio/3.wav",
+          "duration": 3759.912,
+          "sampling_rate": 16000,
+          "segments": 940,
+          "reference_sha256": "c44218155c0235b704139975d28df6254c91d98245de7558a63427a6a1871018"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00001-of-00010/audio/4.wav",
+          "duration": 3906.72,
+          "sampling_rate": 16000,
+          "segments": 977,
+          "reference_sha256": "2e846592569426ebbd15cf2391acd57f027b39bec1d6f38d6b6a94f54a70d609"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00002-of-00010/audio/0.wav",
+          "duration": 3594.97575,
+          "sampling_rate": 16000,
+          "segments": 899,
+          "reference_sha256": "d379e22d89394896aa5e1ba52a3f8497b2636fd116f5e6d0ac64e47b936f498d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00002-of-00010/audio/1.wav",
+          "duration": 4511.28,
+          "sampling_rate": 16000,
+          "segments": 1128,
+          "reference_sha256": "d3565cf14f2efdbeb2465fcf1fee203dcaa1b463459d290734bbc66f3b4427ce"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00002-of-00010/audio/2.wav",
+          "duration": 4411.428625,
+          "sampling_rate": 16000,
+          "segments": 1103,
+          "reference_sha256": "c0bcc98ed7ea9deae733ed03622e6b93e40ff6566cb29ed1129240c1e990aa76"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00002-of-00010/audio/3.wav",
+          "duration": 5587.226125,
+          "sampling_rate": 16000,
+          "segments": 1397,
+          "reference_sha256": "820bd1ed1bc7a0e49d968da8bd2ebf2ea5fae0b6343e772b458ffb062f68d3f8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00002-of-00010/audio/4.wav",
+          "duration": 3506.0026875,
+          "sampling_rate": 16000,
+          "segments": 877,
+          "reference_sha256": "5a29edbea14e3b793fa0f7d736909a3cbcb8515906c9c3dbc9d59e8fa6840f72"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00003-of-00010/audio/0.wav",
+          "duration": 4328.676,
+          "sampling_rate": 16000,
+          "segments": 1083,
+          "reference_sha256": "1a5f7cdd250c842e05199f61e031917c99dce03140728fb2542257a3b2717956"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00003-of-00010/audio/1.wav",
+          "duration": 2518.9878125,
+          "sampling_rate": 16000,
+          "segments": 630,
+          "reference_sha256": "b2b8c7e35cd6c2f783af37ed10bb1a57a15c24de9efb905e068604d51bff4d14"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00003-of-00010/audio/2.wav",
+          "duration": 3595.0116875,
+          "sampling_rate": 16000,
+          "segments": 899,
+          "reference_sha256": "8c1531813b7ee4e7368cdf2d63536958463ec06c7b99ef37219052167398b29a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00003-of-00010/audio/3.wav",
+          "duration": 4010.4809375,
+          "sampling_rate": 16000,
+          "segments": 1003,
+          "reference_sha256": "c2dc8f303885817132979ed96223519d48052e48903c1154249e744c0f02d1af"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00003-of-00010/audio/4.wav",
+          "duration": 1817.730625,
+          "sampling_rate": 16000,
+          "segments": 455,
+          "reference_sha256": "5bd50482e2ec7766c50bfb144df1029f253aef66901bc0fb7eaadc5a8d15baf8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00004-of-00010/audio/0.wav",
+          "duration": 2366.352,
+          "sampling_rate": 16000,
+          "segments": 592,
+          "reference_sha256": "5f32dfcf7341d1a1fd5fddcc97049074d95969c00c23f3c37385912360374083"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00004-of-00010/audio/1.wav",
+          "duration": 1720.8,
+          "sampling_rate": 16000,
+          "segments": 431,
+          "reference_sha256": "dedc7d884096c902e21fbe5007f7a578616895392f84c195fd9a8240c30a8d94"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00004-of-00010/audio/2.wav",
+          "duration": 3175.296,
+          "sampling_rate": 16000,
+          "segments": 794,
+          "reference_sha256": "9f2f70d7c68033eb61d858ca9ba37ef26aa2042aef3b5bb89eaeb6decce8b890"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00004-of-00010/audio/3.wav",
+          "duration": 4221.988625,
+          "sampling_rate": 16000,
+          "segments": 1056,
+          "reference_sha256": "60401c83ba5d60433763e1771710a4199e86a8cfd78f2650b4bf630c296eafbf"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00005-of-00010/audio/0.wav",
+          "duration": 2028.504,
+          "sampling_rate": 16000,
+          "segments": 508,
+          "reference_sha256": "5d924722c3718269aa3d8545ef2330092f2ac50c8b23aeeb82eb2b4c46eba260"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00005-of-00010/audio/1.wav",
+          "duration": 3472.152,
+          "sampling_rate": 16000,
+          "segments": 869,
+          "reference_sha256": "eca28b371f19257c1566cacefdb0af765ba50a70205c3902a8146d313029cc45"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00005-of-00010/audio/2.wav",
+          "duration": 3795.109625,
+          "sampling_rate": 16000,
+          "segments": 949,
+          "reference_sha256": "16af7e5f1120553730acb17f10efff32613497310955c44e913038df29838c20"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00005-of-00010/audio/3.wav",
+          "duration": 3376.68,
+          "sampling_rate": 16000,
+          "segments": 845,
+          "reference_sha256": "4fa10e3931dbe2b7beafe88b3c942849af132ef3a26d23d5661ffa0eb9912f6e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00006-of-00010/audio/0.wav",
+          "duration": 2636.3439375,
+          "sampling_rate": 16000,
+          "segments": 660,
+          "reference_sha256": "39d84aa97d207292c9a5c46e42905952232b5ecf89e43d0de50b6812d3497545"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00006-of-00010/audio/1.wav",
+          "duration": 1476.744,
+          "sampling_rate": 16000,
+          "segments": 370,
+          "reference_sha256": "59490a5076292c677b72432134f91305b59fe0d9baf8e6aae01bbb3fd094d3aa"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00006-of-00010/audio/2.wav",
+          "duration": 3271.968,
+          "sampling_rate": 16000,
+          "segments": 818,
+          "reference_sha256": "ae70b73a25ddd3f9910a88e48bfbae2b918bb87cf1e7dfcaf567d026d6898661"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00006-of-00010/audio/3.wav",
+          "duration": 4022.592,
+          "sampling_rate": 16000,
+          "segments": 1006,
+          "reference_sha256": "ae0e0ac65f4cd41f0a1c929560fea8ade35b39fc5b6f096a0eef878224760822"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00007-of-00010/audio/0.wav",
+          "duration": 2559.986,
+          "sampling_rate": 16000,
+          "segments": 640,
+          "reference_sha256": "95256c791f3ce18ea48161b31ec67b99c7d9b91a28409b1716e1bc5ca0556aca"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00007-of-00010/audio/1.wav",
+          "duration": 4346.006,
+          "sampling_rate": 16000,
+          "segments": 1087,
+          "reference_sha256": "400596c85ac674dbe378852faaa04a28b97bc9fc7a4c7feedb32ff01bf4a9de4"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00007-of-00010/audio/2.wav",
+          "duration": 3049.8,
+          "sampling_rate": 16000,
+          "segments": 763,
+          "reference_sha256": "6e4ac8052ef21b5abcd8b42f088de8a7ec6d5e20a77220b763534372d365ba09"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00007-of-00010/audio/3.wav",
+          "duration": 1097.1,
+          "sampling_rate": 16000,
+          "segments": 275,
+          "reference_sha256": "183e16bafae118617112362a41467efa6b458e56fd795f9d930901836bdd0f06"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00008-of-00010/audio/0.wav",
+          "duration": 1310.16,
+          "sampling_rate": 16000,
+          "segments": 328,
+          "reference_sha256": "f0d5dbabc1c1aa9c4794c8dc43d76563ca4ce61af0e39489ddc6314aada0bf0d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00008-of-00010/audio/1.wav",
+          "duration": 2158.0539375,
+          "sampling_rate": 16000,
+          "segments": 540,
+          "reference_sha256": "ab0e5c24465d189944d4c7e194ae256921deec4d6cbd3ec065d930032ec264ce"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00008-of-00010/audio/2.wav",
+          "duration": 2162.5730625,
+          "sampling_rate": 16000,
+          "segments": 541,
+          "reference_sha256": "765f2eece629e59f51bada6763b300ab9e30f05748d60d910dcca92404ac037f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00008-of-00010/audio/3.wav",
+          "duration": 2058.816,
+          "sampling_rate": 16000,
+          "segments": 515,
+          "reference_sha256": "d5b5c51fb00c270ab5bfa4ef9fec423922e5ef42796779ed7477c9a02923ada7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00009-of-00010/audio/0.wav",
+          "duration": 1438.008,
+          "sampling_rate": 16000,
+          "segments": 360,
+          "reference_sha256": "dcc43cddde96fb2167d9d12a6f7fa4239c175a36c01d8cbe8b22b7e7f3c6605d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00009-of-00010/audio/1.wav",
+          "duration": 1758.024,
+          "sampling_rate": 16000,
+          "segments": 440,
+          "reference_sha256": "15ba566e8c5b1386109f88e26babb1ce46e12b6c394db8048ad8a842408c4b98"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00009-of-00010/audio/2.wav",
+          "duration": 2771.64,
+          "sampling_rate": 16000,
+          "segments": 693,
+          "reference_sha256": "3afefdcdc763ee65d7f7de0dc76466240cf417e7938c39a3fed7bf33b057d0fd"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings21/test-00009-of-00010/audio/3.wav",
+          "duration": 4472.736,
+          "sampling_rate": 16000,
+          "segments": 1119,
+          "reference_sha256": "0e4604573fd4e0cfd5de0b2c0aa9c9e9729ee0e720c9bac847a5ed6413c2c254"
+        }
+      ]
+    },
+    "earnings22": {
+      "manifest": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_hard_chunk_4s_v1/earnings22.jsonl.gz",
+      "input_manifest": "/home/boren/data/OpenLong_hard_chunk_2s_v1/earnings22.jsonl.gz",
+      "input_rows_sha256": "3c44040745c72b95fa86e61f8e5174ca5c6645247b0ec9ce5bf916094acdab88",
+      "manifest_sha256": "18957a5ea448d6ef9eb812d3ed7818d443e703e02e1f79bf519e526dc79078eb",
+      "uncompressed_sha256": "f5ce75b83d641d2dfe9aac61004cfd6a9cad9dc96d6927f75114b5d1946fd67f",
+      "compressed_bytes": 2572266,
+      "parents": 125,
+      "segments": 107965,
+      "audio_seconds": 431588.5806875,
+      "parent_audit": [
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00000-of-00028/audio/0.wav",
+          "duration": 3586.056,
+          "sampling_rate": 16000,
+          "segments": 897,
+          "reference_sha256": "eb4b2b8dfff1e774bc7a735a11f29d8603c11f313b7dc1795f6195491ef4eadd"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00000-of-00028/audio/1.wav",
+          "duration": 3649.104,
+          "sampling_rate": 16000,
+          "segments": 913,
+          "reference_sha256": "4971a905843f9d0bb50ea38deaa6f8e6a7715f420817a44343d65cb3390dcb1d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00000-of-00028/audio/2.wav",
+          "duration": 4281.24,
+          "sampling_rate": 16000,
+          "segments": 1071,
+          "reference_sha256": "39272142910642834237875671e6b0e13ad276289baff175d092cde477630168"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00000-of-00028/audio/3.wav",
+          "duration": 2644.224,
+          "sampling_rate": 16000,
+          "segments": 662,
+          "reference_sha256": "57005a5c4a12339c362e8b3b42cac5fc68c12867c1f30b13ceaab289c759c202"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00000-of-00028/audio/4.wav",
+          "duration": 4824.920875,
+          "sampling_rate": 16000,
+          "segments": 1207,
+          "reference_sha256": "147ae8b3dd7cdf42b3da3f1fb69e83be96a185e97df5492b60567e87f0c71511"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00001-of-00028/audio/0.wav",
+          "duration": 4634.1224375,
+          "sampling_rate": 16000,
+          "segments": 1159,
+          "reference_sha256": "7a27a08ccffb8f5b32285713d559af6da296907f5a911907d859ce4beaac5823"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00001-of-00028/audio/1.wav",
+          "duration": 4307.472,
+          "sampling_rate": 16000,
+          "segments": 1077,
+          "reference_sha256": "c709453c11c96252c103ee468f39574815d59d174da7ba41f3b961d27b41a5e7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00001-of-00028/audio/2.wav",
+          "duration": 1686.408,
+          "sampling_rate": 16000,
+          "segments": 422,
+          "reference_sha256": "16590617c0bf81cc449bf8e7bd503ea3443d4bff0d27809c951b42b026967e5d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00001-of-00028/audio/3.wav",
+          "duration": 2189.712,
+          "sampling_rate": 16000,
+          "segments": 548,
+          "reference_sha256": "81fae8d88ed44e806b6276a29b74be6ed77c7c3aad1264f426bf99fd384286ea"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00001-of-00028/audio/4.wav",
+          "duration": 3699.936,
+          "sampling_rate": 16000,
+          "segments": 925,
+          "reference_sha256": "d7066685b6e7b13f09cac11030e78c55e43a855a636ed5975f7a594f8241b08b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00002-of-00028/audio/0.wav",
+          "duration": 3407.2816875,
+          "sampling_rate": 16000,
+          "segments": 852,
+          "reference_sha256": "626d58f24148158f7992c0041e642143ebb84d7bf623fd4a5b9cbb82808b1672"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00002-of-00028/audio/1.wav",
+          "duration": 2939.52,
+          "sampling_rate": 16000,
+          "segments": 735,
+          "reference_sha256": "81c2ed05ee3802392fdf01965d4e0146c18c25add2d2173eb7cd4086b88bb61b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00002-of-00028/audio/2.wav",
+          "duration": 5180.16,
+          "sampling_rate": 16000,
+          "segments": 1296,
+          "reference_sha256": "d3071f4e9c339cbf53401995734c861d4cdd985484fec1723691e3b0085caa8d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00002-of-00028/audio/3.wav",
+          "duration": 3839.904,
+          "sampling_rate": 16000,
+          "segments": 960,
+          "reference_sha256": "f659cf38e2972fe706b71d2a7099b04ac76430d66f1c125a0f0b133f24232440"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00002-of-00028/audio/4.wav",
+          "duration": 1626.984,
+          "sampling_rate": 16000,
+          "segments": 407,
+          "reference_sha256": "14ed555dbdd7c6ea723fd92b0d839dcf1e800b797c4f78a842141c5e5c18c8ef"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00003-of-00028/audio/0.wav",
+          "duration": 1236.576,
+          "sampling_rate": 16000,
+          "segments": 310,
+          "reference_sha256": "0863199cbfa80a52c83f00d2a73e3f9fb83234f2478e3316c03103dc2b747869"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00003-of-00028/audio/1.wav",
+          "duration": 2841.948,
+          "sampling_rate": 16000,
+          "segments": 711,
+          "reference_sha256": "6c899394adcd0f284eda74c3d6819e6827231001affdbdd12191e78f8773425c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00003-of-00028/audio/2.wav",
+          "duration": 2643.84,
+          "sampling_rate": 16000,
+          "segments": 661,
+          "reference_sha256": "1f70266cf9a8e11e46d53dca471625fb1d2b174ddf8d85cae87f64130b1adc4c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00003-of-00028/audio/3.wav",
+          "duration": 874.728,
+          "sampling_rate": 16000,
+          "segments": 219,
+          "reference_sha256": "78dff6a88d5e6a4ff95a09cfc72098da73f9826d6812c26fa471b69b3bb2e70c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00003-of-00028/audio/4.wav",
+          "duration": 3653.52,
+          "sampling_rate": 16000,
+          "segments": 914,
+          "reference_sha256": "d70dee97e58fe6c5b5d83d5a69e2ca1cde167d7c469e119388163e098d362b54"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00004-of-00028/audio/0.wav",
+          "duration": 1694.9833125,
+          "sampling_rate": 16000,
+          "segments": 424,
+          "reference_sha256": "e58245699affef817fd6079530fb5c51d009e8a7856a956034c85206da286240"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00004-of-00028/audio/1.wav",
+          "duration": 3152.196,
+          "sampling_rate": 16000,
+          "segments": 789,
+          "reference_sha256": "5699e0d7eda0c3208c18dcd372ffeb3186b8307da6b65535721669528443512e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00004-of-00028/audio/2.wav",
+          "duration": 3709.56,
+          "sampling_rate": 16000,
+          "segments": 928,
+          "reference_sha256": "21eb9baf6220e7d770d01dab44d443852a3492a19c02683fbfa78167e129027f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00004-of-00028/audio/3.wav",
+          "duration": 4033.08,
+          "sampling_rate": 16000,
+          "segments": 1009,
+          "reference_sha256": "8ac16eef8d952c499d829318260608f98ef3de5e458807f2ae574f6fb1494e3a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00004-of-00028/audio/4.wav",
+          "duration": 4759.536,
+          "sampling_rate": 16000,
+          "segments": 1190,
+          "reference_sha256": "9301b5e543f6031067f94086ba3e9e71b1f54d242a6b27aab468560823feefea"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00005-of-00028/audio/0.wav",
+          "duration": 3819.816,
+          "sampling_rate": 16000,
+          "segments": 955,
+          "reference_sha256": "b708bba95a7f67d8b55732d28b86720901e0bb4cdcb21fdca744d33c01b21d63"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00005-of-00028/audio/1.wav",
+          "duration": 1671.504,
+          "sampling_rate": 16000,
+          "segments": 418,
+          "reference_sha256": "de568d2745d2f914cc53ee9ace8037e838552b41891e22e4aa34c968ff0542cc"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00005-of-00028/audio/2.wav",
+          "duration": 3892.53225,
+          "sampling_rate": 16000,
+          "segments": 974,
+          "reference_sha256": "84eacf2aa1bf0f8ffd168204b8a1a947e5d8b6cf73ff201e3262e2c00c99fcb0"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00005-of-00028/audio/3.wav",
+          "duration": 4318.008,
+          "sampling_rate": 16000,
+          "segments": 1080,
+          "reference_sha256": "4ba6155ad8c4394e901448928d58e377cf36c9761a79bbc59f1d3e210273121a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00005-of-00028/audio/4.wav",
+          "duration": 3192.12,
+          "sampling_rate": 16000,
+          "segments": 799,
+          "reference_sha256": "a63a237c933e64ef7dea5a00912ab624b8097954acd7fbc803555e9cee1c76a2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00006-of-00028/audio/0.wav",
+          "duration": 6396.288,
+          "sampling_rate": 16000,
+          "segments": 1600,
+          "reference_sha256": "3d552bbdd67192e7b21641ffa8705805b5338a93646d744df8da2d7a146dff7f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00006-of-00028/audio/1.wav",
+          "duration": 2515.776,
+          "sampling_rate": 16000,
+          "segments": 629,
+          "reference_sha256": "b63badbe5ee9778d9b03330f26239fdb759d540652df005ec1ae35a052520a7f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00006-of-00028/audio/2.wav",
+          "duration": 2655.9760625,
+          "sampling_rate": 16000,
+          "segments": 664,
+          "reference_sha256": "b75cca6f4fb4b317973ac5508cbb1c70b3ea8d815ae463d8b1b38de8422119b1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00006-of-00028/audio/3.wav",
+          "duration": 3004.63125,
+          "sampling_rate": 16000,
+          "segments": 752,
+          "reference_sha256": "88b2b7ce54870cdf39c61a0e96fd4930cd2df1b0990a2becdf5f5fa20f38cc29"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00006-of-00028/audio/4.wav",
+          "duration": 2480.448,
+          "sampling_rate": 16000,
+          "segments": 621,
+          "reference_sha256": "2fb524c510df5415f586aef89f2ff1ad4db5e2f395598236cd174f8863ae6d01"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00007-of-00028/audio/0.wav",
+          "duration": 3545.64,
+          "sampling_rate": 16000,
+          "segments": 887,
+          "reference_sha256": "1306cb9f04a2a13c0d1585e889aa893e9b94100401fdfdd8f188e2a8f1ad25f7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00007-of-00028/audio/1.wav",
+          "duration": 3829.14,
+          "sampling_rate": 16000,
+          "segments": 958,
+          "reference_sha256": "f79d394483cd858ae6ff57b84c3ca6a0ad9782620be43fabcfa3c5065b0caec7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00007-of-00028/audio/2.wav",
+          "duration": 2880.18,
+          "sampling_rate": 16000,
+          "segments": 721,
+          "reference_sha256": "d32583448191e78dbe2a1adc93a28e60dd2655bd881e1584b37a05fb2bc8950e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00007-of-00028/audio/3.wav",
+          "duration": 7407.0465625,
+          "sampling_rate": 16000,
+          "segments": 1852,
+          "reference_sha256": "9f8b1a8ae0c50584e8669dc826c76623899d6bb607dd336388211fc4a865b0a5"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00007-of-00028/audio/4.wav",
+          "duration": 5610.12,
+          "sampling_rate": 16000,
+          "segments": 1403,
+          "reference_sha256": "bd2cac0657151133c88559d6d35cb32db05102343a6836aad1c1296b3148c51b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00008-of-00028/audio/0.wav",
+          "duration": 4537.4433125,
+          "sampling_rate": 16000,
+          "segments": 1135,
+          "reference_sha256": "9e950f7073c91ff58918e6040e0ef1502caae53b43a9a267484823550273738a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00008-of-00028/audio/1.wav",
+          "duration": 3900.096,
+          "sampling_rate": 16000,
+          "segments": 976,
+          "reference_sha256": "140829bc3dc1fefe7cfb227c612f8b6787d2091c1b8b2725cc91c404d5c7958d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00008-of-00028/audio/2.wav",
+          "duration": 2795.992375,
+          "sampling_rate": 16000,
+          "segments": 699,
+          "reference_sha256": "28f13ba6e076604c8ab7801d3eb0402ee901a6733b5c74aacfe224533f0f5368"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00008-of-00028/audio/3.wav",
+          "duration": 4895.496,
+          "sampling_rate": 16000,
+          "segments": 1224,
+          "reference_sha256": "13e40444ec4fc8df99271d8b7f263b60a1cb4f76596ec55f47d9a2ad6f1a1d3e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00008-of-00028/audio/4.wav",
+          "duration": 3768.986,
+          "sampling_rate": 16000,
+          "segments": 943,
+          "reference_sha256": "f4504273df8b97dcdc097f266a29c9170967bc05056d9025699d61c6711ba9d9"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00009-of-00028/audio/0.wav",
+          "duration": 4586.088,
+          "sampling_rate": 16000,
+          "segments": 1147,
+          "reference_sha256": "995c9e7b72080f557ef190e8bcfa36e2e9ee22b9285a4c899cedd3851171a106"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00009-of-00028/audio/1.wav",
+          "duration": 2541.744,
+          "sampling_rate": 16000,
+          "segments": 636,
+          "reference_sha256": "453ba335ea75bd1d2d817f51b16ec296f37b431fddf1886b9333d7d488038edd"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00009-of-00028/audio/2.wav",
+          "duration": 3271.14,
+          "sampling_rate": 16000,
+          "segments": 818,
+          "reference_sha256": "3471d6b5ac87bfda2c5b9333f609d87d5dcfc5404d213bf6578e958ae994cf99"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00009-of-00028/audio/3.wav",
+          "duration": 3543.012,
+          "sampling_rate": 16000,
+          "segments": 886,
+          "reference_sha256": "0e4682c86377b633fd1e0cdceb5a0d8ea9d6ba57495983c69ebb7655e57d0589"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00009-of-00028/audio/4.wav",
+          "duration": 4292.136,
+          "sampling_rate": 16000,
+          "segments": 1074,
+          "reference_sha256": "4a0629ddff03b5634a19de1dac8986070c11fe6a02730ac872ac50803dc1537e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00010-of-00028/audio/0.wav",
+          "duration": 5325.12,
+          "sampling_rate": 16000,
+          "segments": 1332,
+          "reference_sha256": "9e119ef081753b2f3d02c7a8e554012b64b80e05eab2cef8e90bcdd09bf5034f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00010-of-00028/audio/1.wav",
+          "duration": 3556.128,
+          "sampling_rate": 16000,
+          "segments": 890,
+          "reference_sha256": "7637c2a6047a3b758073f6f9c96a29a5e821a297543d38f7329b777e7b4ee94c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00010-of-00028/audio/2.wav",
+          "duration": 4021.995125,
+          "sampling_rate": 16000,
+          "segments": 1006,
+          "reference_sha256": "4c96a05ff928b005bfe288c39dcc7216ae538d7d8315f8060590ea2f46e79a95"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00010-of-00028/audio/3.wav",
+          "duration": 3688.608,
+          "sampling_rate": 16000,
+          "segments": 923,
+          "reference_sha256": "b35bba72fa7915b03fc4df4f13eec5c74c04fcc47a0c517a92dccbfcada0fe0b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00010-of-00028/audio/4.wav",
+          "duration": 1681.994,
+          "sampling_rate": 16000,
+          "segments": 421,
+          "reference_sha256": "740fc4a51a75f24bb75e63f7c401c50c7b5b4836b7a6ba9a2bf1e999597c37ea"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00011-of-00028/audio/0.wav",
+          "duration": 1259.64,
+          "sampling_rate": 16000,
+          "segments": 315,
+          "reference_sha256": "05b9fcad73dace244fd07d449ceafd4be6595ca2cfb0aa9133fa028e63685c22"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00011-of-00028/audio/1.wav",
+          "duration": 2429.712,
+          "sampling_rate": 16000,
+          "segments": 608,
+          "reference_sha256": "8866d1b5fcfcd234f06a16323ba35c00659a48f11658be4b2ce17c6730385f8d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00011-of-00028/audio/2.wav",
+          "duration": 2855.17,
+          "sampling_rate": 16000,
+          "segments": 714,
+          "reference_sha256": "04cfb4a5abc3edbb918100959842adff1280cf247cda80d6d2ea84c2119e745a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00011-of-00028/audio/3.wav",
+          "duration": 2106.986625,
+          "sampling_rate": 16000,
+          "segments": 527,
+          "reference_sha256": "860360a23d4fbc71770e20d5fc9d8efc4caeb1f386abdefc425500803be5e207"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00011-of-00028/audio/4.wav",
+          "duration": 4428.8348125,
+          "sampling_rate": 16000,
+          "segments": 1108,
+          "reference_sha256": "2e1a499ab286e5fdb36848c6e0eef2e6dcd01223ef2e230b80d7e4a6dd2ce08b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00012-of-00028/audio/0.wav",
+          "duration": 5242.994,
+          "sampling_rate": 16000,
+          "segments": 1311,
+          "reference_sha256": "16d76b57c5b7e81d9bbd2e1ff437aac7c2093c14a976c94b579c69b196ba40b1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00012-of-00028/audio/1.wav",
+          "duration": 4277.136,
+          "sampling_rate": 16000,
+          "segments": 1070,
+          "reference_sha256": "18d4f0f0cd7b2ef5b266e71fe7ec4c01d2a6844d764c1b27f3bee73fc2017530"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00012-of-00028/audio/2.wav",
+          "duration": 1343.916,
+          "sampling_rate": 16000,
+          "segments": 336,
+          "reference_sha256": "fe0a6b5050478b73ed5ea7ef9d02480342b15817d2c60fe0f4520483e8cc17ce"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00012-of-00028/audio/3.wav",
+          "duration": 2048.498,
+          "sampling_rate": 16000,
+          "segments": 513,
+          "reference_sha256": "92f69a0ed9b6b45d75b4ed2f195d1a5a8c0417c1438d03e38cc22ec19c73fddb"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00012-of-00028/audio/4.wav",
+          "duration": 1244.64,
+          "sampling_rate": 16000,
+          "segments": 312,
+          "reference_sha256": "a5bc89eadf0d1d254b0a04be0540478423a2cdae270cd3bde99bc7e14bec2074"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00013-of-00028/audio/0.wav",
+          "duration": 2103.288,
+          "sampling_rate": 16000,
+          "segments": 526,
+          "reference_sha256": "b7f857e6e406fe0ee9adb92ca76c9f4bc53b4703fb6e0894097ff03eff541702"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00013-of-00028/audio/1.wav",
+          "duration": 3482.616,
+          "sampling_rate": 16000,
+          "segments": 871,
+          "reference_sha256": "c97035cc1455a3ca6654ed94abd2725155bfc2ef0320b4b68df14075fd69852f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00013-of-00028/audio/2.wav",
+          "duration": 2677.994,
+          "sampling_rate": 16000,
+          "segments": 670,
+          "reference_sha256": "7bf1ab3ced6b8c17db9b59bd35b9a431d1c869c1bb57294ac8fbc46e1e7f8d78"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00013-of-00028/audio/3.wav",
+          "duration": 2682.8278125,
+          "sampling_rate": 16000,
+          "segments": 671,
+          "reference_sha256": "2955a340f15501472ecf577e7edcb951c5484af2acf3d3b6a6ec55dd96296551"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00014-of-00028/audio/0.wav",
+          "duration": 3597.4829375,
+          "sampling_rate": 16000,
+          "segments": 900,
+          "reference_sha256": "7c92fca2dfb9cfe23adadde72d273c7b48a5e21872b3e83f149bb5c30bd1b41c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00014-of-00028/audio/1.wav",
+          "duration": 3281.472,
+          "sampling_rate": 16000,
+          "segments": 821,
+          "reference_sha256": "3e899dcd58ba2a76a679596f10787ad157d5afad272577c61c3180c40b4417e6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00014-of-00028/audio/2.wav",
+          "duration": 3057.192,
+          "sampling_rate": 16000,
+          "segments": 765,
+          "reference_sha256": "389f868f302e7203c42a43b7bd236e525477e433048d5534fe90240ed4591434"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00014-of-00028/audio/3.wav",
+          "duration": 5226.184875,
+          "sampling_rate": 16000,
+          "segments": 1307,
+          "reference_sha256": "194a827426b903471d267789d1f1cf1a9e0cf77629a59dbebc3171114b408a0f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00015-of-00028/audio/0.wav",
+          "duration": 3692.256,
+          "sampling_rate": 16000,
+          "segments": 924,
+          "reference_sha256": "b0d028cf3fdab9a21d9909614d00de1ff6bddfe05fee299155444bb9ef20fef8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00015-of-00028/audio/1.wav",
+          "duration": 3172.32,
+          "sampling_rate": 16000,
+          "segments": 794,
+          "reference_sha256": "5fbcfa11304daf0eb0651918c945d58bb5be6ccc2d9d5d7c423381725c293a73"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00015-of-00028/audio/2.wav",
+          "duration": 2598.156,
+          "sampling_rate": 16000,
+          "segments": 650,
+          "reference_sha256": "b73e2ae1688915738027729f54db0aa15fd136268f096d3815f140e1fd031ec2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00015-of-00028/audio/3.wav",
+          "duration": 4979.136,
+          "sampling_rate": 16000,
+          "segments": 1245,
+          "reference_sha256": "56701823b2ab8a3e0febc412be463b7f391ef04fd2c80d60f5ee25453e6a5b06"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00016-of-00028/audio/0.wav",
+          "duration": 1742.94,
+          "sampling_rate": 16000,
+          "segments": 436,
+          "reference_sha256": "085bf1e7aca86104ebff09c20cd7e0ee67378c82910001ffc4a047c9cf6a5085"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00016-of-00028/audio/1.wav",
+          "duration": 6269.3878125,
+          "sampling_rate": 16000,
+          "segments": 1568,
+          "reference_sha256": "6bfa488b38db153add1d1858fddcd5a02399b2a48253426e8b8efc819aa85680"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00016-of-00028/audio/2.wav",
+          "duration": 4495.0988125,
+          "sampling_rate": 16000,
+          "segments": 1124,
+          "reference_sha256": "1a1f31ac59b93f21da616f060c0e0465f67c3fefe10a83843cd95e09768683ad"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00016-of-00028/audio/3.wav",
+          "duration": 6280.49,
+          "sampling_rate": 16000,
+          "segments": 1571,
+          "reference_sha256": "9cf9f4258b464c839a386f19578951cc3053fcbc6d1d6b6939f017d3810c6d56"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00017-of-00028/audio/0.wav",
+          "duration": 3397.994,
+          "sampling_rate": 16000,
+          "segments": 850,
+          "reference_sha256": "c65a4d90e7284b587b65b47161ea9593ae9c5a1caab411b6660984d3361cfe7d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00017-of-00028/audio/1.wav",
+          "duration": 3082.824,
+          "sampling_rate": 16000,
+          "segments": 771,
+          "reference_sha256": "e006081769d0163325b6eba3e310ddca80ec7ab2507c3ac689a07e51e79974bb"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00017-of-00028/audio/2.wav",
+          "duration": 3099.066125,
+          "sampling_rate": 16000,
+          "segments": 775,
+          "reference_sha256": "efc9e3f54cf2818e22930d29786d1237fb7caff334ed19f4bd66f3caac84de44"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00017-of-00028/audio/3.wav",
+          "duration": 3660.168,
+          "sampling_rate": 16000,
+          "segments": 916,
+          "reference_sha256": "e6b33ae94c914604ab6d870108445cd0e44cdff3ea070b243dc88e1897df83c8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00018-of-00028/audio/0.wav",
+          "duration": 3300.336,
+          "sampling_rate": 16000,
+          "segments": 826,
+          "reference_sha256": "cf1f6f693943cf4dcd2d19049c2f15b5a84e05ef6bf159b497b405ffc8009b38"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00018-of-00028/audio/1.wav",
+          "duration": 3738.672,
+          "sampling_rate": 16000,
+          "segments": 935,
+          "reference_sha256": "e6b200de929eb0f45f0f24e010aee4e877b62a1d70b1276c8e4f686d5cb1c8af"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00018-of-00028/audio/2.wav",
+          "duration": 6246.635125,
+          "sampling_rate": 16000,
+          "segments": 1562,
+          "reference_sha256": "c3c69a81c4bd82354e368db9a5d1e75997a935d510f75535ce9b4007c80887a0"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00018-of-00028/audio/3.wav",
+          "duration": 1621.44,
+          "sampling_rate": 16000,
+          "segments": 406,
+          "reference_sha256": "79c82ba5b2b9a6392933574991d0fc450c6eed0dba8745df08049163e39ebbb1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00019-of-00028/audio/0.wav",
+          "duration": 1193.01225,
+          "sampling_rate": 16000,
+          "segments": 299,
+          "reference_sha256": "d4b6cccf186cf355928cf6e3465a6311c67347e9d6fd78eed59e5c01fa7dac86"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00019-of-00028/audio/1.wav",
+          "duration": 2702.952,
+          "sampling_rate": 16000,
+          "segments": 676,
+          "reference_sha256": "1f3a4a9b070de48d1100dcdc54e2c9736e8f3b4eafeac0304a68dd054555586b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00019-of-00028/audio/2.wav",
+          "duration": 2242.638375,
+          "sampling_rate": 16000,
+          "segments": 561,
+          "reference_sha256": "207db5fcaea4d0ae1d561b155eaba563b1e977115ae728fbbddefe87e913e271"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00019-of-00028/audio/3.wav",
+          "duration": 4341.6033125,
+          "sampling_rate": 16000,
+          "segments": 1086,
+          "reference_sha256": "13f9775d082beaa62288bedfd547bd6e32cb083cfea843bcf33d8965456a07cf"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00020-of-00028/audio/0.wav",
+          "duration": 4034.328,
+          "sampling_rate": 16000,
+          "segments": 1009,
+          "reference_sha256": "0e8ce3264fecc084114bbdc7c40815efe05eba6116c69ed43c43b890fbe76841"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00020-of-00028/audio/1.wav",
+          "duration": 2893.1135,
+          "sampling_rate": 16000,
+          "segments": 724,
+          "reference_sha256": "4e92f26ae350815ffdab493ca9752d0e44c948e58db63ea5d017a9f972ac77e4"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00020-of-00028/audio/2.wav",
+          "duration": 4153.488,
+          "sampling_rate": 16000,
+          "segments": 1039,
+          "reference_sha256": "9a56d2f8ddf85ad55afa69334185ef1f682048704baaf982a02cd82a36f9a208"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00020-of-00028/audio/3.wav",
+          "duration": 5176.152,
+          "sampling_rate": 16000,
+          "segments": 1295,
+          "reference_sha256": "1dc4ccb390076d4121e134432cb693a715d3f9faa2f0ac72150ebb0661e912af"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00021-of-00028/audio/0.wav",
+          "duration": 4492.878375,
+          "sampling_rate": 16000,
+          "segments": 1124,
+          "reference_sha256": "d66e92f4c6193b80cd00580344a877aaa49f30e25a2e5d6269ea92aa13050e43"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00021-of-00028/audio/1.wav",
+          "duration": 5492.558375,
+          "sampling_rate": 16000,
+          "segments": 1374,
+          "reference_sha256": "5fed05241f6e535c8ace0f1e0e2b3bcd9ea3b85b4282fa7385f0d0c9e1c2cc23"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00021-of-00028/audio/2.wav",
+          "duration": 2023.0791875,
+          "sampling_rate": 16000,
+          "segments": 506,
+          "reference_sha256": "2250fc04eebcf69eada2d664d5991ebf8dc255006f3c317260517c9ce339d5ae"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00021-of-00028/audio/3.wav",
+          "duration": 3293.232,
+          "sampling_rate": 16000,
+          "segments": 824,
+          "reference_sha256": "9c2150aabd1d74d343b0b51fbcc9283c5313b9cf4d3734ef39b6d8ac86d4a5b5"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00022-of-00028/audio/0.wav",
+          "duration": 2748.6,
+          "sampling_rate": 16000,
+          "segments": 688,
+          "reference_sha256": "0fe303fb145f4a0d5987d83be7b272fb2b61fed9db7958becd5607044e5a601c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00022-of-00028/audio/1.wav",
+          "duration": 1490.112,
+          "sampling_rate": 16000,
+          "segments": 373,
+          "reference_sha256": "b6b7d1385e031d61a077bb9816d793bf4e05eb6f28cd05bda87f463071c44e35"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00022-of-00028/audio/2.wav",
+          "duration": 2569.32,
+          "sampling_rate": 16000,
+          "segments": 643,
+          "reference_sha256": "cc2ae6dd2a9434cca88a0dac43135c24a6e7404762f45832ebcb68ecfc8d2eeb"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00022-of-00028/audio/3.wav",
+          "duration": 2168.424,
+          "sampling_rate": 16000,
+          "segments": 543,
+          "reference_sha256": "1586b8c93ab3056c32ed04adddd7f686216d462fb9087d82e486f7ee0e7f0bfb"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00023-of-00028/audio/0.wav",
+          "duration": 4385.844,
+          "sampling_rate": 16000,
+          "segments": 1097,
+          "reference_sha256": "02764c8d7a33b1c86effe0e9a667aabc29619a3db8f7a1bb04407b87d4f4c548"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00023-of-00028/audio/1.wav",
+          "duration": 3793.296,
+          "sampling_rate": 16000,
+          "segments": 949,
+          "reference_sha256": "690dab32e0676973f3817e5a8d486914a966dbd76f3e0ab58c279aa67bde5200"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00023-of-00028/audio/2.wav",
+          "duration": 3975.936,
+          "sampling_rate": 16000,
+          "segments": 994,
+          "reference_sha256": "28088a4b0a2329978bbcd90d6cfeb17b872acf185fd57267ebaddaecb72df525"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00023-of-00028/audio/3.wav",
+          "duration": 3771.504,
+          "sampling_rate": 16000,
+          "segments": 943,
+          "reference_sha256": "57f73e20ce99fbf17b38615dc28e81f22779188df349c1d0fadc6507c6b4e2ea"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00024-of-00028/audio/0.wav",
+          "duration": 3472.2,
+          "sampling_rate": 16000,
+          "segments": 869,
+          "reference_sha256": "0dc382a7015ab6696dbb46224d5d3cc8d9ca2294e77c059eed27dad71795ba49"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00024-of-00028/audio/1.wav",
+          "duration": 3552.12,
+          "sampling_rate": 16000,
+          "segments": 889,
+          "reference_sha256": "471084d1f9a68c5f6308c58229603c7209e831038d78afd838dc4e853538a2c8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00024-of-00028/audio/2.wav",
+          "duration": 4159.896,
+          "sampling_rate": 16000,
+          "segments": 1040,
+          "reference_sha256": "cd705bee44ad6dc67488343aa298465846a8c855c8bd8f7775d7eb020947811d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00024-of-00028/audio/3.wav",
+          "duration": 3665.064,
+          "sampling_rate": 16000,
+          "segments": 917,
+          "reference_sha256": "e97a56de26cfe5b788be3ac1f8cc59253bb2ca29d61466753dd919fca5e19255"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00025-of-00028/audio/0.wav",
+          "duration": 3076.956,
+          "sampling_rate": 16000,
+          "segments": 770,
+          "reference_sha256": "7e3fba71381a1d0372009119c18053ad0eee8ae9b9182760b62bd785b72ab668"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00025-of-00028/audio/1.wav",
+          "duration": 2736.875125,
+          "sampling_rate": 16000,
+          "segments": 685,
+          "reference_sha256": "7c27d14d3fe8ae8449ad8c264ee302ca72118aa6fdf004ada0cebd18191ccbc0"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00025-of-00028/audio/2.wav",
+          "duration": 4125.384,
+          "sampling_rate": 16000,
+          "segments": 1032,
+          "reference_sha256": "4be2dde84f388dc2c501a979eacd76bc4fe63e7bdb806b863b9c559ebebd0ae7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00025-of-00028/audio/3.wav",
+          "duration": 3961.584,
+          "sampling_rate": 16000,
+          "segments": 991,
+          "reference_sha256": "c424b664e4445c92704070812c75add48f4260629d4aaeb32ab45e4dc4f3ad2b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00026-of-00028/audio/0.wav",
+          "duration": 1214.4870625,
+          "sampling_rate": 16000,
+          "segments": 304,
+          "reference_sha256": "08a9a35937f5d8b3296c821932dc8985d36605faff7f16e85736c1a2b408a693"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00026-of-00028/audio/1.wav",
+          "duration": 5489.424,
+          "sampling_rate": 16000,
+          "segments": 1373,
+          "reference_sha256": "a63406c6eb75a45e57350d71cd6477cdc3b5900a8c938a2afd6e021e89fd2ef9"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00026-of-00028/audio/2.wav",
+          "duration": 3692.808,
+          "sampling_rate": 16000,
+          "segments": 924,
+          "reference_sha256": "9be962dd6b89566e49097473c51d32983b9f22eec34387cdfb91114ac4892a9b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00026-of-00028/audio/3.wav",
+          "duration": 1225.92,
+          "sampling_rate": 16000,
+          "segments": 307,
+          "reference_sha256": "c538d1b3b1c4b3844f6de47d3bedd587019b679aa564a78173f63b74b4af6cae"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00027-of-00028/audio/0.wav",
+          "duration": 3668.136,
+          "sampling_rate": 16000,
+          "segments": 918,
+          "reference_sha256": "402aa25dda419cd8a829efa3c999fe4db647bd179c0f7e4dc57815dd4631d974"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00027-of-00028/audio/1.wav",
+          "duration": 4696.296,
+          "sampling_rate": 16000,
+          "segments": 1175,
+          "reference_sha256": "343320063e9671d353eac8e2c07d197a4db4e20f5200bde6526a9303ee043e6a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00027-of-00028/audio/2.wav",
+          "duration": 3783.552,
+          "sampling_rate": 16000,
+          "segments": 946,
+          "reference_sha256": "96961b219bc3b098941fa45eae009665a5503d3143bc556de583c15ca4f4f2fe"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/earnings22/test-00027-of-00028/audio/3.wav",
+          "duration": 2680.0849375,
+          "sampling_rate": 16000,
+          "segments": 671,
+          "reference_sha256": "f36d34a9115902350041fa7fa8676b29c27c66b79254f28858a1d5c8951ecf2c"
+        }
+      ]
+    },
+    "coraal": {
+      "manifest": "az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_hard_chunk_4s_v1/coraal.jsonl.gz",
+      "input_manifest": "/home/boren/data/OpenLong_hard_chunk_2s_v1/coraal.jsonl.gz",
+      "input_rows_sha256": "7c939a035c7b4442761b3f6a3656c20ae3e115f8465f0e70817ebb10aee64a79",
+      "manifest_sha256": "8815891a494fbaf91d1f89107d8123b83b8e6bb9a3f4819f1253a64690a0632c",
+      "uncompressed_sha256": "e9288f88f4cbc6834c4fb391b0200ea0c2ec3678ffb85964fcefd81c9237d978",
+      "compressed_bytes": 4083604,
+      "parents": 271,
+      "segments": 144984,
+      "audio_seconds": 579381.5589115646,
+      "parent_audit": [
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00000-of-00006/audio/0.wav",
+          "duration": 2546.399931972789,
+          "sampling_rate": 44100,
+          "segments": 637,
+          "reference_sha256": "dc4c94d157628c57180c775c8ef840f63943a1815ca04db2f192ceff3f5fc685"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00000-of-00006/audio/1.wav",
+          "duration": 2499.000068027211,
+          "sampling_rate": 44100,
+          "segments": 625,
+          "reference_sha256": "2af89d15ac945538fefdc3c6e953492a3c6c2de375cd5f49c7b2e432de955208"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00000-of-00006/audio/2.wav",
+          "duration": 2441.499909297052,
+          "sampling_rate": 44100,
+          "segments": 611,
+          "reference_sha256": "323cef0e4462724faf48ba105b942470a71f1d8aefef1a837fd21005f7dc5e2b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00001-of-00006/audio/0.wav",
+          "duration": 2341.0,
+          "sampling_rate": 44100,
+          "segments": 586,
+          "reference_sha256": "f85b05f696562e8aea73fd36f011a4194c6dfd71f8e3ded8771dec1d384bf3a6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00001-of-00006/audio/1.wav",
+          "duration": 2889.499909297052,
+          "sampling_rate": 44100,
+          "segments": 723,
+          "reference_sha256": "20200aaa3cd537f818e8ff599fae300ab2427ea245858b06e7f2d25734193064"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00001-of-00006/audio/2.wav",
+          "duration": 2352.200022675737,
+          "sampling_rate": 44100,
+          "segments": 589,
+          "reference_sha256": "707c43f035cdeb410ed520f14ebd06edeb03913c309c9c6986bae46e95104381"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00002-of-00006/audio/0.wav",
+          "duration": 1808.8,
+          "sampling_rate": 44100,
+          "segments": 453,
+          "reference_sha256": "799c05d2073a3afef69f8616f793a75225f7ec13cbe1492a10bec153b38dfc94"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00002-of-00006/audio/1.wav",
+          "duration": 2756.499931972789,
+          "sampling_rate": 44100,
+          "segments": 690,
+          "reference_sha256": "7ed4b7093c1d845df1765dec92a7f88722c1352227a50ff8eb56b572e87e4fae"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00003-of-00006/audio/0.wav",
+          "duration": 2760.799931972789,
+          "sampling_rate": 44100,
+          "segments": 691,
+          "reference_sha256": "0b71020b058af75939d7752f12fcc5e56e1a31b0ed92c27b08df8b01f603faca"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00003-of-00006/audio/1.wav",
+          "duration": 1862.9999092970522,
+          "sampling_rate": 44100,
+          "segments": 466,
+          "reference_sha256": "4d26123fc370b7721db45f00d221c6349ccbedcfd091f22a55514473e8052c78"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00004-of-00006/audio/0.wav",
+          "duration": 1130.999954648526,
+          "sampling_rate": 44100,
+          "segments": 283,
+          "reference_sha256": "ad1e40ada8241dad8de9b429c346ecd8ea00c069d560827d601dc1cc9f61b6f1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00004-of-00006/audio/1.wav",
+          "duration": 997.999977324263,
+          "sampling_rate": 44100,
+          "segments": 250,
+          "reference_sha256": "905e6e7ca89c30882dfc1114ebac51bd6fc97df1e24380c10b415e2e4872f1d6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00005-of-00006/audio/0.wav",
+          "duration": 2434.799931972789,
+          "sampling_rate": 44100,
+          "segments": 609,
+          "reference_sha256": "0acfec19f5cf68b662ec966d891072aadfe05caadf1ad8870df553ae67973cdc"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ATL/test-00005-of-00006/audio/1.wav",
+          "duration": 2211.799977324263,
+          "sampling_rate": 44100,
+          "segments": 553,
+          "reference_sha256": "41ad8d9832d7aa23d09dfabb1c5491ee16455a8157dcf16ace1b7a446a92a603"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00000-of-00022/audio/0.wav",
+          "duration": 1334.7,
+          "sampling_rate": 44100,
+          "segments": 334,
+          "reference_sha256": "0818780783d82f4946745d086a56278ede950f719081eaaff8d91d8e7113628d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00000-of-00022/audio/1.wav",
+          "duration": 2837.8,
+          "sampling_rate": 44100,
+          "segments": 710,
+          "reference_sha256": "c3f12a0412029bb59d6a2d1d0685b85d8d46f18cda68b1ba774873563872e252"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00000-of-00022/audio/2.wav",
+          "duration": 1640.5,
+          "sampling_rate": 44100,
+          "segments": 411,
+          "reference_sha256": "b36a72183b6398fe7ace9dff415271e55ce12b3ca941408676188769f1b39429"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00000-of-00022/audio/3.wav",
+          "duration": 1772.5,
+          "sampling_rate": 44100,
+          "segments": 444,
+          "reference_sha256": "dc3ca004686476fc37492d97b86514f8fefd398aba2491b65e51100be739a90b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00001-of-00022/audio/0.wav",
+          "duration": 1148.792993197279,
+          "sampling_rate": 44100,
+          "segments": 288,
+          "reference_sha256": "6736166be302168ad03a18fb34ab97ba9954bf9be2be14f59885aeafe3b7ac36"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00001-of-00022/audio/1.wav",
+          "duration": 2117.1,
+          "sampling_rate": 44100,
+          "segments": 530,
+          "reference_sha256": "6d0266001074278ac7cdb9a95d822ca94c424816cc840b1077b8bf176316e0d2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00001-of-00022/audio/2.wav",
+          "duration": 1633.9000226757369,
+          "sampling_rate": 44100,
+          "segments": 409,
+          "reference_sha256": "7cf14e391d1bdab2c969b37b4b9ad82972759518c77e71be83407e4025efca04"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00001-of-00022/audio/3.wav",
+          "duration": 1266.0999773242631,
+          "sampling_rate": 44100,
+          "segments": 317,
+          "reference_sha256": "f3608d65c358d0893e81c7bf738433341e64e8a441f066e68d3b26ed637dc73b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00002-of-00022/audio/0.wav",
+          "duration": 1828.899954648526,
+          "sampling_rate": 44100,
+          "segments": 458,
+          "reference_sha256": "17cf69e9e163af98607062f33ad6707818268f4b138f5c1fc2e3d215638d8f01"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00002-of-00022/audio/1.wav",
+          "duration": 2715.3000453514737,
+          "sampling_rate": 44100,
+          "segments": 679,
+          "reference_sha256": "429eb7e384c53cd28de35d2a6fbbd153776e63eef2c35d769ce645e82057556f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00002-of-00022/audio/2.wav",
+          "duration": 1723.600022675737,
+          "sampling_rate": 44100,
+          "segments": 431,
+          "reference_sha256": "3191cf2cb5da863a45f0651248fb401c185a4d0d949d16aea8604983cc788811"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00002-of-00022/audio/3.wav",
+          "duration": 880.0,
+          "sampling_rate": 44100,
+          "segments": 220,
+          "reference_sha256": "0cc4ff1244e521de9051ceb4de1c9a4df28d26ada8ab816830e7c9ae383b2d8f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00003-of-00022/audio/0.wav",
+          "duration": 2129.999977324263,
+          "sampling_rate": 44100,
+          "segments": 533,
+          "reference_sha256": "00552bf4f670813c6e5211b5047b7d70e85419a112718fdaf7f2ca070ca5166d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00003-of-00022/audio/1.wav",
+          "duration": 1368.2,
+          "sampling_rate": 44100,
+          "segments": 343,
+          "reference_sha256": "0cd3fb3b3abe72a7695089812dea9b5363b895eb32f4824488edd33466014063"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00003-of-00022/audio/2.wav",
+          "duration": 1678.199931972789,
+          "sampling_rate": 44100,
+          "segments": 420,
+          "reference_sha256": "b9ec105b99025df70464be3c048e6f1fd530b8d503c89f9334f882f8ff05b6f0"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00003-of-00022/audio/3.wav",
+          "duration": 552.4,
+          "sampling_rate": 44100,
+          "segments": 139,
+          "reference_sha256": "107d1e92e1b0344beda4fc384c6fce06704eff95c37ebfa942cd41fff0eb6214"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00004-of-00022/audio/0.wav",
+          "duration": 1378.1946712018141,
+          "sampling_rate": 44100,
+          "segments": 345,
+          "reference_sha256": "69540e70b581231ebdc4734d974188c2e6013aa1b645af3f600ef8ba5a0b71f7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00004-of-00022/audio/1.wav",
+          "duration": 1478.6,
+          "sampling_rate": 44100,
+          "segments": 370,
+          "reference_sha256": "1b19f521f7c097eb61afb76768e71918f73e15e00fd47c07489a777b94d320e4"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00004-of-00022/audio/2.wav",
+          "duration": 566.9,
+          "sampling_rate": 44100,
+          "segments": 142,
+          "reference_sha256": "9a9f940c89d36b1f8694ee5a9d167623b1dc4cefb296d9e888b2d9e41c70985b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00004-of-00022/audio/3.wav",
+          "duration": 1145.100045351474,
+          "sampling_rate": 44100,
+          "segments": 287,
+          "reference_sha256": "ba73d78e6ddef88741c0f804cf82dfa0f017dfdff5e003a2744cf34d19314a21"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00005-of-00022/audio/0.wav",
+          "duration": 1070.89,
+          "sampling_rate": 44100,
+          "segments": 268,
+          "reference_sha256": "c0295563cc4b3fc1b1c916252c953003c61a1b4869790f778fe5d2e5b530917e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00005-of-00022/audio/1.wav",
+          "duration": 1163.199977324263,
+          "sampling_rate": 44100,
+          "segments": 291,
+          "reference_sha256": "c947cc2826e00090fa9fcc9b205f51b7ec9e5b2c5ddbd4470fab49af34d43d70"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00005-of-00022/audio/2.wav",
+          "duration": 1080.999977324263,
+          "sampling_rate": 44100,
+          "segments": 271,
+          "reference_sha256": "2aedeb851cd0332e07418901ec568b9e8cb02ee6e969ef0d32d15006bc7cc76c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00005-of-00022/audio/3.wav",
+          "duration": 1000.3,
+          "sampling_rate": 44100,
+          "segments": 251,
+          "reference_sha256": "fee99c89611d0b68eb8b0341dd4d038e78d27ce586e85ed52aa53c12ca381967"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00006-of-00022/audio/0.wav",
+          "duration": 2815.900045351474,
+          "sampling_rate": 44100,
+          "segments": 704,
+          "reference_sha256": "fccc2910cb043aa2827ed98f33516f272e7a4c43c6507765318602936ed7b25c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00006-of-00022/audio/1.wav",
+          "duration": 2853.0,
+          "sampling_rate": 44100,
+          "segments": 714,
+          "reference_sha256": "83cc17ee129c5a0561059b3eb0ccf7642c62530d67688d329bce62e363babdff"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00006-of-00022/audio/2.wav",
+          "duration": 1801.0,
+          "sampling_rate": 44100,
+          "segments": 451,
+          "reference_sha256": "78637fdb1b51781d520c60e1a316ef1eb1a2b4384d08ab468cc5f92b71d13c06"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00006-of-00022/audio/3.wav",
+          "duration": 1042.989977324263,
+          "sampling_rate": 44100,
+          "segments": 261,
+          "reference_sha256": "89bd29b909e17879c8fed61fca6ae765175fb259145dfee434c004492113ec24"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00007-of-00022/audio/0.wav",
+          "duration": 767.8,
+          "sampling_rate": 44100,
+          "segments": 192,
+          "reference_sha256": "c3ee270fc01bc0307223f23bb63f9111748b77e98b1cb4c0cd74d9289e79c314"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00007-of-00022/audio/1.wav",
+          "duration": 1434.100090702948,
+          "sampling_rate": 44100,
+          "segments": 359,
+          "reference_sha256": "fe46db494b926a69c87213e314425b4ece1fee9419b2381f637f9ccfaa8e71c5"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00007-of-00022/audio/2.wav",
+          "duration": 2119.999886621315,
+          "sampling_rate": 44100,
+          "segments": 530,
+          "reference_sha256": "1f5ab3048dddb16083ebd22cb04eea229171d87ed90f461cf72c01a038d98bb6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00007-of-00022/audio/3.wav",
+          "duration": 1966.500022675737,
+          "sampling_rate": 44100,
+          "segments": 492,
+          "reference_sha256": "c11041f446d57c965a8c4980737c9fcf416e80fc57d5189d0f3e7ed9909ab234"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00008-of-00022/audio/0.wav",
+          "duration": 924.3999773242631,
+          "sampling_rate": 44100,
+          "segments": 232,
+          "reference_sha256": "9360c303e947d51eb67ad9e308ac98f44d9eb4928fac18376e0bf19803505ab5"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00008-of-00022/audio/1.wav",
+          "duration": 2996.999024943311,
+          "sampling_rate": 44100,
+          "segments": 750,
+          "reference_sha256": "c8af985059c42cdc726cbd61f1aedb7c6e4d361ee055cd08abd11768242fd992"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00008-of-00022/audio/2.wav",
+          "duration": 2344.699977324263,
+          "sampling_rate": 44100,
+          "segments": 587,
+          "reference_sha256": "c6a4cdcae8665a0aa7261b8b3d5af1c18c728dacf06195bb7d9c79a77781dda6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00009-of-00022/audio/0.wav",
+          "duration": 1513.5,
+          "sampling_rate": 44100,
+          "segments": 379,
+          "reference_sha256": "2ae17e720e09f1b7e92c1fd3a32bbfbe70f957086efa212f607d179426ab6cdb"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00009-of-00022/audio/1.wav",
+          "duration": 944.800022675737,
+          "sampling_rate": 44100,
+          "segments": 237,
+          "reference_sha256": "1d31787799a0d958382917753d4ad7ece2616a9cd1d7a5f1c3d65178fb7909d1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00009-of-00022/audio/2.wav",
+          "duration": 2190.600022675737,
+          "sampling_rate": 44100,
+          "segments": 548,
+          "reference_sha256": "98324a456e7144a69ee78945c1140878575e6c3f1b055a1dd433b31edef9d450"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00010-of-00022/audio/0.wav",
+          "duration": 2046.1,
+          "sampling_rate": 44100,
+          "segments": 512,
+          "reference_sha256": "a175b834b27208b5586de3394a7a7e5b0d4ec565fbea324a4efe4225f91680a6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00010-of-00022/audio/1.wav",
+          "duration": 2284.1,
+          "sampling_rate": 44100,
+          "segments": 572,
+          "reference_sha256": "1d2e17cd1427c68d04ba5ce33520ae375b25a1da46de56f266d0dc2e53ef215f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00010-of-00022/audio/2.wav",
+          "duration": 1825.699977324263,
+          "sampling_rate": 44100,
+          "segments": 457,
+          "reference_sha256": "6a7336d26c24600cc7fd579261e1cd230bcd563058d4ca927c1a36efbb4ed4e7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00011-of-00022/audio/0.wav",
+          "duration": 1137.750022675737,
+          "sampling_rate": 44100,
+          "segments": 285,
+          "reference_sha256": "bd0c85ca46ddf1ef3860fc82a92e908906db07132cd90b041da7fbc5dc8bbb49"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00011-of-00022/audio/1.wav",
+          "duration": 1582.199931972789,
+          "sampling_rate": 44100,
+          "segments": 396,
+          "reference_sha256": "be7b4d5f7bbf68e6a132e7a520b31e5b39e384bc9f5b265a09fd105b2b5eca6d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00011-of-00022/audio/2.wav",
+          "duration": 1725.7,
+          "sampling_rate": 44100,
+          "segments": 432,
+          "reference_sha256": "8757f0c3917e0e19bb912678dfe1c2b4c6e5abb1b40213420359d57f1d873f8d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00012-of-00022/audio/0.wav",
+          "duration": 2037.9000453514739,
+          "sampling_rate": 44100,
+          "segments": 510,
+          "reference_sha256": "e75003e2b900f5e34da168b597563b38a143664257ee2af760d0f0966ab12148"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00012-of-00022/audio/1.wav",
+          "duration": 1274.100022675737,
+          "sampling_rate": 44100,
+          "segments": 319,
+          "reference_sha256": "c25156679cb338cda489c2cfed8d0b7af2defc454c7ba9f29c200d4cc7a2b413"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00012-of-00022/audio/2.wav",
+          "duration": 2173.4,
+          "sampling_rate": 44100,
+          "segments": 544,
+          "reference_sha256": "56943e7047f3711017bb1771fbd151534fac6f45b6af4c05973490348a6ee54b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00013-of-00022/audio/0.wav",
+          "duration": 573.8,
+          "sampling_rate": 44100,
+          "segments": 144,
+          "reference_sha256": "1dabdd121bf66885a8aa3c9568e30a99799f9cd39b7d9e439368b4c74e80eb27"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00013-of-00022/audio/1.wav",
+          "duration": 1923.4,
+          "sampling_rate": 44100,
+          "segments": 481,
+          "reference_sha256": "e8459f0528678e244df439544df05459d365fd3742815719b1abfc265c7041d5"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00013-of-00022/audio/2.wav",
+          "duration": 1442.5999092970521,
+          "sampling_rate": 44100,
+          "segments": 361,
+          "reference_sha256": "9daf130451cd53e3f8696f4dc109e2efdc0941cb7f8c794e89b2ed6ab37814ed"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00014-of-00022/audio/0.wav",
+          "duration": 1778.3,
+          "sampling_rate": 44100,
+          "segments": 445,
+          "reference_sha256": "8bc2a3649bb6514846e8c7799af8a59188bd2599fc58d42a063c2d42376e314e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00014-of-00022/audio/1.wav",
+          "duration": 1992.7000680272108,
+          "sampling_rate": 44100,
+          "segments": 499,
+          "reference_sha256": "ca6a6cca3476c28f3174979447d8ca92a5be915ef10bf13a4c6af5f581494c52"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00014-of-00022/audio/2.wav",
+          "duration": 2454.5,
+          "sampling_rate": 44100,
+          "segments": 614,
+          "reference_sha256": "6b8f5b815d986fa753281f11edb382446c9678f99d801b946ead69433a77e0cc"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00015-of-00022/audio/0.wav",
+          "duration": 805.6,
+          "sampling_rate": 44100,
+          "segments": 202,
+          "reference_sha256": "c40631ff811e8e79a7c2c89a3f8d2dc3349ca3839b7b73d59e0b8f5e88d6ba04"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00015-of-00022/audio/1.wav",
+          "duration": 2618.700045351474,
+          "sampling_rate": 44100,
+          "segments": 655,
+          "reference_sha256": "f104147d2468055e8db4c9f3628a107c65235dd8fcbe9971885f628029d5952e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00015-of-00022/audio/2.wav",
+          "duration": 629.9949886621315,
+          "sampling_rate": 44100,
+          "segments": 158,
+          "reference_sha256": "374c4dba7d9c2d71a9b79a6989f02bb41f99e282334aeee8fcaa713bac6c5991"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00016-of-00022/audio/0.wav",
+          "duration": 1580.499977324263,
+          "sampling_rate": 44100,
+          "segments": 396,
+          "reference_sha256": "690e66b526a5254fa2f6fcb0df17cde0bd820ca376e6263c1dd26e34c97bc118"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00016-of-00022/audio/1.wav",
+          "duration": 2853.6999092970523,
+          "sampling_rate": 44100,
+          "segments": 714,
+          "reference_sha256": "33f01dfe666ae0ba61dd8ca5028953d58fbb49c10a12c6bbd82f79df1bb49e27"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00016-of-00022/audio/2.wav",
+          "duration": 580.4,
+          "sampling_rate": 44100,
+          "segments": 146,
+          "reference_sha256": "4df402b2c963d86799371ed68443e2ff9382270272b16c98879bd0ae9b3648b5"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00017-of-00022/audio/0.wav",
+          "duration": 1480.9950113378684,
+          "sampling_rate": 44100,
+          "segments": 371,
+          "reference_sha256": "c967dc65fd81bb57ca4c7c997c699c3f196ebe6777bde3b5e9b97943ba304ba1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00017-of-00022/audio/1.wav",
+          "duration": 1946.0,
+          "sampling_rate": 44100,
+          "segments": 487,
+          "reference_sha256": "8300eb51ff9393fd6431bfd95a659a5dccac9b19ab1356c59ebc54add6cdefd0"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00017-of-00022/audio/2.wav",
+          "duration": 1972.7949659863946,
+          "sampling_rate": 44100,
+          "segments": 494,
+          "reference_sha256": "ee121f2b9bf2fe7b13097cf587ad00a26ff37e13255621b22ec8faf3d284999b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00018-of-00022/audio/0.wav",
+          "duration": 2062.19,
+          "sampling_rate": 44100,
+          "segments": 516,
+          "reference_sha256": "b39f3bdafc6fccfb3ce189deb3b430d092c5c6550471b6feca2c641e5a6788e2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00018-of-00022/audio/1.wav",
+          "duration": 1909.7001133786848,
+          "sampling_rate": 44100,
+          "segments": 478,
+          "reference_sha256": "9915375a21698cc25a6a6aa4f6037cda3a7d854db4a8f19728b86383c33c4802"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00018-of-00022/audio/2.wav",
+          "duration": 2149.699977324263,
+          "sampling_rate": 44100,
+          "segments": 538,
+          "reference_sha256": "5a902b27e573e39b2d1145b98a8d03d0f51cda44855dabc6200b34ee6b9e502c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00019-of-00022/audio/0.wav",
+          "duration": 2845.2,
+          "sampling_rate": 44100,
+          "segments": 712,
+          "reference_sha256": "7a681e8d3f8faf2b92838633bba2e5e413f2fe6d69f8095a1f7e00c700dbdaca"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00019-of-00022/audio/1.wav",
+          "duration": 2117.499954648526,
+          "sampling_rate": 44100,
+          "segments": 530,
+          "reference_sha256": "efa71a36bfe3d26572dfc6e61c7fab65c280cc7bd502b8174ac23cebfe900d9d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00019-of-00022/audio/2.wav",
+          "duration": 1926.799977324263,
+          "sampling_rate": 44100,
+          "segments": 482,
+          "reference_sha256": "18630efda5cef04d5144c5a65cb6c7d6e91d2aa4c6a4036b3312e66b7227295a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00020-of-00022/audio/0.wav",
+          "duration": 1483.0999546485261,
+          "sampling_rate": 44100,
+          "segments": 371,
+          "reference_sha256": "1d8408a761a3942261367fd6295a910735fe32234edebeb27082d3b888e3d6fe"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00020-of-00022/audio/1.wav",
+          "duration": 227.10002267573697,
+          "sampling_rate": 44100,
+          "segments": 57,
+          "reference_sha256": "9f8ba340f04e8e8593821c03e08457fe05e41b720aa96ff1defb28deb3ebdc05"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00020-of-00022/audio/2.wav",
+          "duration": 1580.6989115646259,
+          "sampling_rate": 44100,
+          "segments": 396,
+          "reference_sha256": "e84a8951e92540190b70c2c733fc3119a4c5107a1208a59020fffc0f47d854ce"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00021-of-00022/audio/0.wav",
+          "duration": 1556.200022675737,
+          "sampling_rate": 44100,
+          "segments": 390,
+          "reference_sha256": "f89354a0b542f85275342b5fba60cf9486037a964e565c5c6858a84f1dc8b797"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00021-of-00022/audio/1.wav",
+          "duration": 919.4,
+          "sampling_rate": 44100,
+          "segments": 230,
+          "reference_sha256": "29ce11e5873ebbabbbcbf5d2d36066e03c73fa64cdf1b5cede4ac47fc97e9fc2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCA/test-00021-of-00022/audio/2.wav",
+          "duration": 1824.6,
+          "sampling_rate": 44100,
+          "segments": 457,
+          "reference_sha256": "57d93368761467a5ee8e24a2b870dc99bb6dbb631922d2680c31812fb7168b71"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00000-of-00030/audio/0.wav",
+          "duration": 3362.000045351474,
+          "sampling_rate": 44100,
+          "segments": 841,
+          "reference_sha256": "324abe69ca1ce23a08f35f704cf4dfbc9b6c38cc9c0e116bc12182c867b309c3"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00000-of-00030/audio/1.wav",
+          "duration": 3356.6999092970523,
+          "sampling_rate": 44100,
+          "segments": 840,
+          "reference_sha256": "d80caa3e3c787d50b4e89e6bff5bc3238e720e1b90079383b4daca3d44301c75"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00000-of-00030/audio/2.wav",
+          "duration": 810.0,
+          "sampling_rate": 44100,
+          "segments": 203,
+          "reference_sha256": "f054dd6bb513b2411f5171b2c1fedaf6a91135bc98110ea248abf1fa873595fa"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00001-of-00030/audio/0.wav",
+          "duration": 3810.599954648526,
+          "sampling_rate": 44100,
+          "segments": 953,
+          "reference_sha256": "e7ab4ac978c9ea5623c10c322cdf9b27e65bc35273c6f8d5c29242bee5329e3d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00001-of-00030/audio/1.wav",
+          "duration": 393.50002267573694,
+          "sampling_rate": 44100,
+          "segments": 99,
+          "reference_sha256": "5ccbedba253054e6e2c4932cb7ec2679be76ec38ef472a8fd227ba01df902277"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00001-of-00030/audio/2.wav",
+          "duration": 1431.499977324263,
+          "sampling_rate": 44100,
+          "segments": 358,
+          "reference_sha256": "76b4a52766c82b16e46c3d23feda1a4d533256abdbea460c15b2f04228957dba"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00002-of-00030/audio/0.wav",
+          "duration": 3452.8,
+          "sampling_rate": 44100,
+          "segments": 864,
+          "reference_sha256": "4e472b040ac31522ca94abbabf10eaa6cb6d7c346ade6c192d32dba20b01dd83"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00002-of-00030/audio/1.wav",
+          "duration": 814.9,
+          "sampling_rate": 44100,
+          "segments": 204,
+          "reference_sha256": "08db12b01c18f26e5b6349552af3214bd61795404e58558ddf7574cca0184c84"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00002-of-00030/audio/2.wav",
+          "duration": 3842.400068027211,
+          "sampling_rate": 44100,
+          "segments": 961,
+          "reference_sha256": "33e683deb2614aa12bf41356696b4608ad7db28fb44fd878619474b297fc8d86"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00003-of-00030/audio/0.wav",
+          "duration": 2774.299977324263,
+          "sampling_rate": 44100,
+          "segments": 694,
+          "reference_sha256": "6204433e9a3e242346809482c28ae3c436aefe9a514061448b0e730edd06652c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00003-of-00030/audio/1.wav",
+          "duration": 3609.100090702948,
+          "sampling_rate": 44100,
+          "segments": 903,
+          "reference_sha256": "e9613d4e3639737ff55cf6d1a086149d41760aac21a9a2679092aeb3d834f34f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00004-of-00030/audio/0.wav",
+          "duration": 1191.399977324263,
+          "sampling_rate": 44100,
+          "segments": 298,
+          "reference_sha256": "8a0be184d0dce4113ffb8148116a67fe3db1bd2f5d70023f3018abfb65f7db70"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00004-of-00030/audio/1.wav",
+          "duration": 4421.399931972789,
+          "sampling_rate": 44100,
+          "segments": 1106,
+          "reference_sha256": "1754eba2e6dcef8b015e783a26618cd9447a593c7b36715314ffee99d9085b5b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00005-of-00030/audio/0.wav",
+          "duration": 2106.0998866213154,
+          "sampling_rate": 44100,
+          "segments": 527,
+          "reference_sha256": "4ecd4e72234e04984d552498821bd1bbb5aab8424f2b4d056a42bb42fd518453"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00005-of-00030/audio/1.wav",
+          "duration": 344.3,
+          "sampling_rate": 44100,
+          "segments": 87,
+          "reference_sha256": "7a75d627fadcc9f7a4497be6e61f3102ab76c2e66e724cbf69c87a7704286caf"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00006-of-00030/audio/0.wav",
+          "duration": 580.0000453514739,
+          "sampling_rate": 44100,
+          "segments": 146,
+          "reference_sha256": "593e7df6dd01ff3cb82249a363816373bf3e49e558abd9b2c0aaebe78b9ada27"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00006-of-00030/audio/1.wav",
+          "duration": 737.5,
+          "sampling_rate": 44100,
+          "segments": 185,
+          "reference_sha256": "d79fb035c32fcc815922fe2d19b60f5b473d9944f207e0f7463fd56c7740b444"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00007-of-00030/audio/0.wav",
+          "duration": 2552.399909297052,
+          "sampling_rate": 44100,
+          "segments": 639,
+          "reference_sha256": "793e9a60b9f11e634df9d33db7ce1308fe94f2e1a70fad8ab707d27009483616"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00007-of-00030/audio/1.wav",
+          "duration": 4197.999931972789,
+          "sampling_rate": 44100,
+          "segments": 1050,
+          "reference_sha256": "ad2a3c8e6e193d74f5811fa46abb49f4f6a45413a2d0795b16b24a94217c1ef6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00008-of-00030/audio/0.wav",
+          "duration": 2531.799886621315,
+          "sampling_rate": 44100,
+          "segments": 633,
+          "reference_sha256": "5dd199f519ad617a484e28a0977bedfbd36bdf8503f33090cec052ed732e8b25"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00008-of-00030/audio/1.wav",
+          "duration": 3053.999977324263,
+          "sampling_rate": 44100,
+          "segments": 764,
+          "reference_sha256": "35c2d7650b31e7ed999b447278e8af687262e54b03f16459971ce116ea7cfbfd"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00009-of-00030/audio/0.wav",
+          "duration": 391.3,
+          "sampling_rate": 44100,
+          "segments": 98,
+          "reference_sha256": "3c495543b6212692e002a1188f909cac111209b1b238de979ae880aa9e748f85"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00009-of-00030/audio/1.wav",
+          "duration": 4858.199909297052,
+          "sampling_rate": 44100,
+          "segments": 1215,
+          "reference_sha256": "d0e12ad5eeb371722bf3f37c296d8d72d48bbac70348ae2808e15c95d379ff06"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00010-of-00030/audio/0.wav",
+          "duration": 782.3999773242631,
+          "sampling_rate": 44100,
+          "segments": 196,
+          "reference_sha256": "26678e618c114984a6c6f71ccd720c02965e5677717898d20537f899fef8e09e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00010-of-00030/audio/1.wav",
+          "duration": 4911.799977324263,
+          "sampling_rate": 44100,
+          "segments": 1228,
+          "reference_sha256": "79c3bc76470b92fc42a296d1ede8fcdb5b9cdc92484db3a4fc3e16159e3d4ed4"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00011-of-00030/audio/0.wav",
+          "duration": 1596.5,
+          "sampling_rate": 44100,
+          "segments": 400,
+          "reference_sha256": "acbe3a8142bc1883bf44f698cec8e9e4e5311c3a15c7a4152e89519219439ac3"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00011-of-00030/audio/1.wav",
+          "duration": 2743.9,
+          "sampling_rate": 44100,
+          "segments": 686,
+          "reference_sha256": "7b267a72f17a28775b5ebc26c6b128fd5684f83f10c9dc907b2f72e1d637c75f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00012-of-00030/audio/0.wav",
+          "duration": 2926.100090702948,
+          "sampling_rate": 44100,
+          "segments": 732,
+          "reference_sha256": "b0b8a6360b90eee42879d04fc032f3d034329bad9ebf5342d8a0237a982d9a11"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00012-of-00030/audio/1.wav",
+          "duration": 272.6,
+          "sampling_rate": 44100,
+          "segments": 69,
+          "reference_sha256": "c5d56a3e8a988d3adc6dced676617ab5166971700a90cc6d5ed9388ee19a8041"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00013-of-00030/audio/0.wav",
+          "duration": 867.0999092970521,
+          "sampling_rate": 44100,
+          "segments": 217,
+          "reference_sha256": "0409954c8dd624f77cfa11f010d36b1bb0821646840b69060c1a19551c36529d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00013-of-00030/audio/1.wav",
+          "duration": 313.2,
+          "sampling_rate": 44100,
+          "segments": 79,
+          "reference_sha256": "4dc8890c534caf1996b2ead58ff4cf18d2f296e93f2c15d9a89ce2200cb9cd32"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00014-of-00030/audio/0.wav",
+          "duration": 3911.599931972789,
+          "sampling_rate": 44100,
+          "segments": 978,
+          "reference_sha256": "2bdf81cd497ac63fc6043820480561d964ae9e7407c25cdf3174befe227afb51"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00014-of-00030/audio/1.wav",
+          "duration": 2687.200045351474,
+          "sampling_rate": 44100,
+          "segments": 672,
+          "reference_sha256": "433968a114c2a66818dd0f138916bdaff7c72f70f449b2dc9685e7643a097a7c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00015-of-00030/audio/0.wav",
+          "duration": 3758.0998185941044,
+          "sampling_rate": 44100,
+          "segments": 940,
+          "reference_sha256": "47e458412339682b218c698be5abb7e9ebbe13596a897ca5e013f16a973362a1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00015-of-00030/audio/1.wav",
+          "duration": 674.2,
+          "sampling_rate": 44100,
+          "segments": 169,
+          "reference_sha256": "a66b8a87ccf5327a97f9de4507dcfdb255424c3ece6b28e27fea0dd3560ad370"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00016-of-00030/audio/0.wav",
+          "duration": 3837.490045351474,
+          "sampling_rate": 44100,
+          "segments": 960,
+          "reference_sha256": "fa44e5acec638dbb99965b0af73d8c7559a757245451257412e90b8c265b40e1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00016-of-00030/audio/1.wav",
+          "duration": 518.2,
+          "sampling_rate": 44100,
+          "segments": 130,
+          "reference_sha256": "7981a9f537a297c979005b519d5013a3390b24a796b7530340e2b6b962e89284"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00017-of-00030/audio/0.wav",
+          "duration": 4444.900045351474,
+          "sampling_rate": 44100,
+          "segments": 1112,
+          "reference_sha256": "760d0b9fe935e5c44ca7e8b6cf3fa9b613e78d804e38002f57baff1dc2c996bd"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00017-of-00030/audio/1.wav",
+          "duration": 4287.900113378685,
+          "sampling_rate": 44100,
+          "segments": 1072,
+          "reference_sha256": "45c93dd025aafc1308b352305832d1bc0509086497c197d3c9a881b04bbba354"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00018-of-00030/audio/0.wav",
+          "duration": 4430.8,
+          "sampling_rate": 44100,
+          "segments": 1108,
+          "reference_sha256": "6eff4ca186a0c857ad567a0edfcb2d4e66b05470471e8a4d5d4423fcdb26951f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00018-of-00030/audio/1.wav",
+          "duration": 3337.6999546485263,
+          "sampling_rate": 44100,
+          "segments": 835,
+          "reference_sha256": "7a48848ec90846bb2be656ced1c34e7acbf303396ea1d7fdd2d83d6d6dc2e160"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00019-of-00030/audio/0.wav",
+          "duration": 3814.6999546485263,
+          "sampling_rate": 44100,
+          "segments": 954,
+          "reference_sha256": "5927c05f00a9204c8888b48704e9aa33de060643a980b4a3a964483d93bb37d7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00019-of-00030/audio/1.wav",
+          "duration": 1002.6,
+          "sampling_rate": 44100,
+          "segments": 251,
+          "reference_sha256": "432e5e409dce93284d485836adea45f3b3d7f3f570a1232ce2fcd55bb7e09229"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00020-of-00030/audio/0.wav",
+          "duration": 2221.600022675737,
+          "sampling_rate": 44100,
+          "segments": 556,
+          "reference_sha256": "b831d873317cb6ce6b9b19cdb35f2c37b9771d72099373fd8dc6b6528adbc44f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00020-of-00030/audio/1.wav",
+          "duration": 3523.1500907029476,
+          "sampling_rate": 44100,
+          "segments": 881,
+          "reference_sha256": "9fad825bf85a08286fa54bbee19accaee38149cd29535969de4cb09689fe1f3e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00021-of-00030/audio/0.wav",
+          "duration": 3690.500022675737,
+          "sampling_rate": 44100,
+          "segments": 923,
+          "reference_sha256": "e27282559c09df3485df3b768fcb46bcbddb9eab8571fa2e1d9e3e83680273b4"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00021-of-00030/audio/1.wav",
+          "duration": 3318.6,
+          "sampling_rate": 44100,
+          "segments": 830,
+          "reference_sha256": "48812e6b100841018f9ff239510eeb97d172baa7d5ad36b067ea367563cb2725"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00022-of-00030/audio/0.wav",
+          "duration": 3623.799954648526,
+          "sampling_rate": 44100,
+          "segments": 906,
+          "reference_sha256": "392deec5e4eaf133a65bcadcd0d5dcb9230bdd55ec3013e33453ab7a22b48e21"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00022-of-00030/audio/1.wav",
+          "duration": 4828.699841269841,
+          "sampling_rate": 44100,
+          "segments": 1208,
+          "reference_sha256": "96a1ecae8d4750d2358a8003b0f1033b0bc51b314b0ac0608fb007a73d5b6b53"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00023-of-00030/audio/0.wav",
+          "duration": 3129.799977324263,
+          "sampling_rate": 44100,
+          "segments": 783,
+          "reference_sha256": "e3557385bbfd8ba9b966fea6a8383d9d60b77705e2381b53c9bad91b456c98a7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00023-of-00030/audio/1.wav",
+          "duration": 3952.999931972789,
+          "sampling_rate": 44100,
+          "segments": 989,
+          "reference_sha256": "b51251b1c90993bb1e5b327ae8cd6ef99f88bb380cfd1854aa49d2c11380ae41"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00024-of-00030/audio/0.wav",
+          "duration": 2379.2,
+          "sampling_rate": 44100,
+          "segments": 595,
+          "reference_sha256": "8459bea80908feedcfafe769c133cafa51e49ddff78ddb48ed1db10d44de9fe3"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00024-of-00030/audio/1.wav",
+          "duration": 3119.000045351474,
+          "sampling_rate": 44100,
+          "segments": 780,
+          "reference_sha256": "383132da791f3373297d55d55ed54fdd1ffb86d6c701f84631718ccc4b2f8e41"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00025-of-00030/audio/0.wav",
+          "duration": 4301.199977324263,
+          "sampling_rate": 44100,
+          "segments": 1076,
+          "reference_sha256": "3ee602fb058aff31f503261e37aeb689115a8849b1cee4a13e8fa6bc9ce09750"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00025-of-00030/audio/1.wav",
+          "duration": 1890.299977324263,
+          "sampling_rate": 44100,
+          "segments": 473,
+          "reference_sha256": "359c33fa59a3da78ffb8e14e95af25239a938ed84182bd49af94e17607655f7a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00026-of-00030/audio/0.wav",
+          "duration": 2560.5,
+          "sampling_rate": 44100,
+          "segments": 641,
+          "reference_sha256": "dd0eefbb8bcdb484fa6e2301f71f30bfa2f21406f161aafdc03159f971dca2af"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00026-of-00030/audio/1.wav",
+          "duration": 4217.1,
+          "sampling_rate": 44100,
+          "segments": 1055,
+          "reference_sha256": "8e49a76cc40a82c7fff3eef115c78e5d740e40440b4a165395d3f31252ab066e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00027-of-00030/audio/0.wav",
+          "duration": 503.5,
+          "sampling_rate": 44100,
+          "segments": 126,
+          "reference_sha256": "7780d8b8192a99ea5d8456323049d0f56a1cba50dd288eb05180f311a6e76b69"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00027-of-00030/audio/1.wav",
+          "duration": 445.8,
+          "sampling_rate": 44100,
+          "segments": 112,
+          "reference_sha256": "b10a81fb00473d16beba1a5a802d570fd33fa97cbd6bbb9b571fac344251def2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00028-of-00030/audio/0.wav",
+          "duration": 2359.3001360544217,
+          "sampling_rate": 44100,
+          "segments": 590,
+          "reference_sha256": "8d1a91e0bc330d99b98dd86c214c8b927ef6c99321eb2ed463699ebae790cc5c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00028-of-00030/audio/1.wav",
+          "duration": 3362.399954648526,
+          "sampling_rate": 44100,
+          "segments": 841,
+          "reference_sha256": "b3e97c9c0eda12351d6fb07dae4902b7b4bc536bf0a109cab25dba7832b7153c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00029-of-00030/audio/0.wav",
+          "duration": 2316.799954648526,
+          "sampling_rate": 44100,
+          "segments": 580,
+          "reference_sha256": "cc3dc19dd15797d50034f275936d374802c9724994cfd72337f7bcd2b502c8f0"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DCB/test-00029-of-00030/audio/1.wav",
+          "duration": 4325.400181405896,
+          "sampling_rate": 44100,
+          "segments": 1082,
+          "reference_sha256": "8581e075fa5e3d4f3f77ca111e9b35f504674014acedc0ed6fb6fbaba22549bc"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00000-of-00016/audio/0.wav",
+          "duration": 2695.999954648526,
+          "sampling_rate": 44100,
+          "segments": 674,
+          "reference_sha256": "763ddff0edb74b7398f2e39f7f24c7e7a2c88e22d4c56934ac0116224c453692"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00000-of-00016/audio/1.wav",
+          "duration": 1693.000022675737,
+          "sampling_rate": 44100,
+          "segments": 424,
+          "reference_sha256": "c92064a56be63f80a25bed139da13ef637d96c60480ce4e0d7565686bd59a41e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00000-of-00016/audio/2.wav",
+          "duration": 2769.499954648526,
+          "sampling_rate": 44100,
+          "segments": 693,
+          "reference_sha256": "b05adeba15428b434ea91a301847a552571e9dfdaeccf0ecfd8a982cc31e2e68"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00001-of-00016/audio/0.wav",
+          "duration": 1500.4000226757369,
+          "sampling_rate": 44100,
+          "segments": 376,
+          "reference_sha256": "b4869d795e214885321df26658604cbba787ae1438186b48a8d70afb0c7ce775"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00001-of-00016/audio/1.wav",
+          "duration": 1614.999977324263,
+          "sampling_rate": 44100,
+          "segments": 404,
+          "reference_sha256": "fb9a8ff56d14521bba6952910bdbdf1a9276fe581b7f20a4f21396897da64f9f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00001-of-00016/audio/2.wav",
+          "duration": 2427.15,
+          "sampling_rate": 44100,
+          "segments": 607,
+          "reference_sha256": "9947558c95ca507e02986feaa909b7554f159c81efb373039d74cdcd06d1fbe8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00002-of-00016/audio/0.wav",
+          "duration": 2561.7,
+          "sampling_rate": 44100,
+          "segments": 641,
+          "reference_sha256": "660c004e3791c0dc74b2f992f5ef0e00c6177824345a04714e4306603deeb827"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00002-of-00016/audio/1.wav",
+          "duration": 2875.749977324263,
+          "sampling_rate": 44100,
+          "segments": 719,
+          "reference_sha256": "5b5a7877a968dedc1f68818053ba4f421078d80a5a21ea42e8376b2e4aaff566"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00002-of-00016/audio/2.wav",
+          "duration": 2441.999977324263,
+          "sampling_rate": 44100,
+          "segments": 611,
+          "reference_sha256": "3b67a8adbd2966827ed3e59e19bbecc416b1266c4a043bfe2be55f52f7738d94"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00003-of-00016/audio/0.wav",
+          "duration": 1697.5,
+          "sampling_rate": 44100,
+          "segments": 425,
+          "reference_sha256": "4136c96689aad54005f34ee482dbf94549d90d7f35fe0252b1d34e646077d0b7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00003-of-00016/audio/1.wav",
+          "duration": 2364.799977324263,
+          "sampling_rate": 44100,
+          "segments": 592,
+          "reference_sha256": "3d54d03974c3cb21d851604d9d1fb30f3a1a754318877ed2863a2e473e89546e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00003-of-00016/audio/2.wav",
+          "duration": 1691.9000226757369,
+          "sampling_rate": 44100,
+          "segments": 423,
+          "reference_sha256": "03e39442c721a22e0368776652b8062dd6a2e5a1c1dffa7b3b85c921524b6870"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00004-of-00016/audio/0.wav",
+          "duration": 2274.000045351474,
+          "sampling_rate": 44100,
+          "segments": 569,
+          "reference_sha256": "b77adfd68b99213800cfb6374f1342632710b4acc6e5d0246475545365e23d88"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00004-of-00016/audio/1.wav",
+          "duration": 2608.6999546485263,
+          "sampling_rate": 44100,
+          "segments": 653,
+          "reference_sha256": "90d7f71a0ff48e879f822b639b3ded56c824aec28fccbaf796166b66df5f54d8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00004-of-00016/audio/2.wav",
+          "duration": 2765.45,
+          "sampling_rate": 44100,
+          "segments": 692,
+          "reference_sha256": "ca3445c2314d1df3597eea4a9b2ade2c356b48db207822a40ab2821d5e653846"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00005-of-00016/audio/0.wav",
+          "duration": 2894.099977324263,
+          "sampling_rate": 44100,
+          "segments": 724,
+          "reference_sha256": "5def6db6aa2ee2839cb4774fcd07adfb25aa2cddccbe909f6ff8525fc68d9a13"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00005-of-00016/audio/1.wav",
+          "duration": 2360.499931972789,
+          "sampling_rate": 44100,
+          "segments": 591,
+          "reference_sha256": "02d6b5cbf100de87399bfe874ec25186c685df48c6861c61992fa5443784f94c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00005-of-00016/audio/2.wav",
+          "duration": 1681.000022675737,
+          "sampling_rate": 44100,
+          "segments": 421,
+          "reference_sha256": "aed3507d66aceefa7f2b4e44300519f5a776cbeb41377519da4bef623318fda5"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00006-of-00016/audio/0.wav",
+          "duration": 1610.499977324263,
+          "sampling_rate": 44100,
+          "segments": 403,
+          "reference_sha256": "2859b3a6c23f983241ce13bd6be21902fa62de6072421b513e770782719a0d69"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00006-of-00016/audio/1.wav",
+          "duration": 2847.500022675737,
+          "sampling_rate": 44100,
+          "segments": 712,
+          "reference_sha256": "312a01bc024c0bb33cb276a87f689478f82152310bc79ed3f69ac2397e5dc1a9"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00006-of-00016/audio/2.wav",
+          "duration": 2325.700113378685,
+          "sampling_rate": 44100,
+          "segments": 582,
+          "reference_sha256": "4cb90f2e1c7e4dd842a488ff6e8deaac96b3726d06bd565233704e41d01f84a6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00007-of-00016/audio/0.wav",
+          "duration": 2393.499977324263,
+          "sampling_rate": 44100,
+          "segments": 599,
+          "reference_sha256": "fb3ab7183180065ec8ca65693005361121bdd4074b5d93d045b2316b680a9186"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00007-of-00016/audio/1.wav",
+          "duration": 2598.3,
+          "sampling_rate": 44100,
+          "segments": 650,
+          "reference_sha256": "62bf16942183a39648c9175ed4d645ab6554d327c14a99bd0ca13fb47c02ec20"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00007-of-00016/audio/2.wav",
+          "duration": 1793.799977324263,
+          "sampling_rate": 44100,
+          "segments": 449,
+          "reference_sha256": "c54ef8af0dbe175bd523c54d9eaa8b6f948ab1acf9856b8e6f2360c9f01349fd"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00008-of-00016/audio/0.wav",
+          "duration": 2436.499977324263,
+          "sampling_rate": 44100,
+          "segments": 610,
+          "reference_sha256": "ad38e0c6fecceacd21ead1ea205ee5bf3aed9532ca0459322d1c96d6614ba134"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00008-of-00016/audio/1.wav",
+          "duration": 2026.8,
+          "sampling_rate": 44100,
+          "segments": 507,
+          "reference_sha256": "7c077c0015f4135ff61425c85ee9027488f5fa496a5d8649f1c64a184f7ddc8a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00009-of-00016/audio/0.wav",
+          "duration": 1338.300022675737,
+          "sampling_rate": 44100,
+          "segments": 335,
+          "reference_sha256": "fc995ae3c136c7a5ac6a47defa844fe916edca0679414fc0b7af8d9e1c2a0c52"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00009-of-00016/audio/1.wav",
+          "duration": 2112.199977324263,
+          "sampling_rate": 44100,
+          "segments": 529,
+          "reference_sha256": "9364df5fee1e58426032cd60b6455b237edd24255b0adfabc0bb7f43fcfc0658"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00010-of-00016/audio/0.wav",
+          "duration": 2886.500090702948,
+          "sampling_rate": 44100,
+          "segments": 722,
+          "reference_sha256": "5befdf9ea5c1e7ec4a9a69f4b886ebd5950d74515f801e665813c4c5b744904f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00010-of-00016/audio/1.wav",
+          "duration": 1982.249977324263,
+          "sampling_rate": 44100,
+          "segments": 496,
+          "reference_sha256": "6baa93022b29028c73cd5a57423f088b5c5aa8b465f26760aae7fb350ce89d23"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00011-of-00016/audio/0.wav",
+          "duration": 2441.0,
+          "sampling_rate": 44100,
+          "segments": 611,
+          "reference_sha256": "8bb6468f0db1a59b6e3a932baf3cdc3fa9f89e296ceb7ad6026fe2da079f5ad6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00011-of-00016/audio/1.wav",
+          "duration": 2841.7,
+          "sampling_rate": 44100,
+          "segments": 711,
+          "reference_sha256": "654b4be4ee0812d857ffc57bbbb8953c995abc822a097a663512301b1aa24ce6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00012-of-00016/audio/0.wav",
+          "duration": 2221.749977324263,
+          "sampling_rate": 44100,
+          "segments": 556,
+          "reference_sha256": "54c84392b2dd53ede0ced557a8f31dd2ccf7f3a347df439cb1b1092c5f3af6a2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00012-of-00016/audio/1.wav",
+          "duration": 1984.9000453514739,
+          "sampling_rate": 44100,
+          "segments": 497,
+          "reference_sha256": "e0c6f4cb834a5b3dae676c9fb39a8ab5a7d9a43933b8a481f67861d88e3df1fa"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00013-of-00016/audio/0.wav",
+          "duration": 2887.3,
+          "sampling_rate": 44100,
+          "segments": 722,
+          "reference_sha256": "58a5accc6f3f8df729d4ecf235c307e21b98e10f045e6a61b9ad0de64a4c2c5e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00013-of-00016/audio/1.wav",
+          "duration": 2165.999977324263,
+          "sampling_rate": 44100,
+          "segments": 542,
+          "reference_sha256": "4230f8633c9ee9c5d4c08b8cb21164afad63138673ac0859dfa724fdcc165351"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00014-of-00016/audio/0.wav",
+          "duration": 1590.6,
+          "sampling_rate": 44100,
+          "segments": 398,
+          "reference_sha256": "f027763ffc2cb687f4089148c3165a66711e791743132c596b30d3e7300516f4"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00014-of-00016/audio/1.wav",
+          "duration": 2352.300022675737,
+          "sampling_rate": 44100,
+          "segments": 589,
+          "reference_sha256": "84550885ee6dad42239d79fd7f33114de7c9b69764526f2dc9e94027f66bd678"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00015-of-00016/audio/0.wav",
+          "duration": 2471.000090702948,
+          "sampling_rate": 44100,
+          "segments": 618,
+          "reference_sha256": "6f0f936623d7432a811323f78648613ad21abfafa47e0a385ae273fe2d704123"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/DTA/test-00015-of-00016/audio/1.wav",
+          "duration": 2292.000068027211,
+          "sampling_rate": 44100,
+          "segments": 574,
+          "reference_sha256": "74f7951479e1e38c576dce5c3771731215f32de340659b64a0aeb5ec517e6ad7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00000-of-00006/audio/0.wav",
+          "duration": 3031.0,
+          "sampling_rate": 44100,
+          "segments": 758,
+          "reference_sha256": "d5d55c4cd17d838d8fff9fc87fd4721546d4e4f4290d4c2ebccb39d0ea7affd3"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00000-of-00006/audio/1.wav",
+          "duration": 960.000022675737,
+          "sampling_rate": 44100,
+          "segments": 241,
+          "reference_sha256": "714f86ec321ef53d41dd223ca10d1cb6372903fbae5f29e53824c4bc2af44381"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00000-of-00006/audio/2.wav",
+          "duration": 2461.500090702948,
+          "sampling_rate": 44100,
+          "segments": 616,
+          "reference_sha256": "eb97d39d02118569047084ff28453688d49eaa09bf9c1d6f34409237cb769bbc"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00001-of-00006/audio/0.wav",
+          "duration": 2894.5,
+          "sampling_rate": 44100,
+          "segments": 724,
+          "reference_sha256": "9e26ee3e322dfe16f164daf213e060be27dc8f844cdd645a79f807d02162f40a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00001-of-00006/audio/1.wav",
+          "duration": 1269.500022675737,
+          "sampling_rate": 44100,
+          "segments": 318,
+          "reference_sha256": "e3068b4e82a59162b36fea7059cf0ecf5b7b91684a806de64be9812d3bfb3bbb"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00001-of-00006/audio/2.wav",
+          "duration": 1668.7998866213152,
+          "sampling_rate": 44100,
+          "segments": 418,
+          "reference_sha256": "e6013a6133c5563dd219afce1fbad931f14d0c99b178efd02416e89e1fbb09e9"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00002-of-00006/audio/0.wav",
+          "duration": 3158.3000680272107,
+          "sampling_rate": 44100,
+          "segments": 790,
+          "reference_sha256": "5355758a2639be6c4fc6b5cdb5a31b60ca2394bb6b672034d59b78d344c12b8f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00002-of-00006/audio/1.wav",
+          "duration": 2608.0,
+          "sampling_rate": 44100,
+          "segments": 652,
+          "reference_sha256": "31b036187d9bfac10264141c029380531bb535e49d7b90148bb9b53eb7e48804"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00002-of-00006/audio/2.wav",
+          "duration": 3073.500090702948,
+          "sampling_rate": 44100,
+          "segments": 769,
+          "reference_sha256": "a75358acbfcd6fbc1b1cfbae90fdbae637bcc54c0a39960ff44e2cddff3ba014"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00003-of-00006/audio/0.wav",
+          "duration": 802.0000453514739,
+          "sampling_rate": 44100,
+          "segments": 201,
+          "reference_sha256": "1fd88aa3e230fd01e67a707c44e2a937f236eb59da387645746f7889272a2050"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00003-of-00006/audio/1.wav",
+          "duration": 1589.0000680272108,
+          "sampling_rate": 44100,
+          "segments": 398,
+          "reference_sha256": "44b4c88684d6482ae6fbe16e6873dbafc5e36bf1e4445ac9e00c753100bf9f15"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00004-of-00006/audio/0.wav",
+          "duration": 2946.300022675737,
+          "sampling_rate": 44100,
+          "segments": 737,
+          "reference_sha256": "1a3e913736041af1e52b0513c4b6d9c013b03ddbf0737adc87cfe25c0172b105"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00004-of-00006/audio/1.wav",
+          "duration": 1646.899954648526,
+          "sampling_rate": 44100,
+          "segments": 412,
+          "reference_sha256": "73a86d9a9c5d75ac7a45847a133014a3e31aa605019811850a9b2e0f799318b2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00005-of-00006/audio/0.wav",
+          "duration": 2229.549909297052,
+          "sampling_rate": 44100,
+          "segments": 558,
+          "reference_sha256": "c15db8a957ed0a5d0d2ed68ceb1c4a247b8edc712821f8e6f8ac6db8da193801"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/LES/test-00005-of-00006/audio/1.wav",
+          "duration": 58.75,
+          "sampling_rate": 44100,
+          "segments": 15,
+          "reference_sha256": "d684c3ee6b23deb6ea338cb9835e078fa77b927ee5f028042b7ed96bdf76f844"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00000-of-00009/audio/0.wav",
+          "duration": 2759.9001133786846,
+          "sampling_rate": 44100,
+          "segments": 690,
+          "reference_sha256": "e30be0150594ee08eb836e0c3114e652c8a0c65b3be9a735de0e0da84edca0d3"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00000-of-00009/audio/1.wav",
+          "duration": 898.500022675737,
+          "sampling_rate": 44100,
+          "segments": 225,
+          "reference_sha256": "17d37906fe4afe9ea09062a83e180e77babd7cf1fb91336c1d2a5bd69f6a2f45"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00000-of-00009/audio/2.wav",
+          "duration": 1268.600045351474,
+          "sampling_rate": 44100,
+          "segments": 318,
+          "reference_sha256": "dac88cca44786a8a9c91674e996e1e39382cd6ae500956a57643d1ceaf6194da"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00000-of-00009/audio/3.wav",
+          "duration": 2742.900068027211,
+          "sampling_rate": 44100,
+          "segments": 686,
+          "reference_sha256": "4fc391ab0a33d4a4cb7e667e3409b14b23ff6d62e3ce5492df822ccb3337a875"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00001-of-00009/audio/0.wav",
+          "duration": 1963.2998866213152,
+          "sampling_rate": 44100,
+          "segments": 491,
+          "reference_sha256": "24e4661fceb2727d565753a7f344129298aa08bc80633130f0f9f8c2b76c1b3b"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00001-of-00009/audio/1.wav",
+          "duration": 577.0,
+          "sampling_rate": 44100,
+          "segments": 145,
+          "reference_sha256": "e2998a4440365213129619576f7225d1ebb831533277c3913ffa5875219b3aad"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00001-of-00009/audio/2.wav",
+          "duration": 206.8,
+          "sampling_rate": 44100,
+          "segments": 52,
+          "reference_sha256": "ed83766c5f7c0e0b0bbd263fc76e3d0f5bfe669ef16c2550cb55e8a6fb58b379"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00001-of-00009/audio/3.wav",
+          "duration": 501.49997732426306,
+          "sampling_rate": 44100,
+          "segments": 126,
+          "reference_sha256": "b289bf8c2e2499cf18d9dc260f3ff533ed6cb11cd84b318c3a2d0c5f1b13f2b2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00002-of-00009/audio/0.wav",
+          "duration": 2752.299863945578,
+          "sampling_rate": 44100,
+          "segments": 689,
+          "reference_sha256": "032c109ccdc07559cfe66c1a5ba8c6fd2e07fa17b24df250ee2a6ca2815884d2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00002-of-00009/audio/1.wav",
+          "duration": 410.8,
+          "sampling_rate": 44100,
+          "segments": 103,
+          "reference_sha256": "f118ffb464b6623517bbdc9730e872e0c1b14c38f0d8fcc56d50689f3f2a5415"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00002-of-00009/audio/2.wav",
+          "duration": 2716.499977324263,
+          "sampling_rate": 44100,
+          "segments": 680,
+          "reference_sha256": "907457359ba9ab6b37d94506c5a2be86126142c09e910555ba6f631e3ee8becc"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00002-of-00009/audio/3.wav",
+          "duration": 161.99997732426303,
+          "sampling_rate": 44100,
+          "segments": 41,
+          "reference_sha256": "252efb40735e404b21736728f809f08a529b11371092d694aa6656cf85366218"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00003-of-00009/audio/0.wav",
+          "duration": 1620.2999546485262,
+          "sampling_rate": 44100,
+          "segments": 406,
+          "reference_sha256": "6cc4977b933587a8c14779da446abbf0f95c8b4f90c97a38e6c8be8557106d42"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00003-of-00009/audio/1.wav",
+          "duration": 1360.500045351474,
+          "sampling_rate": 44100,
+          "segments": 341,
+          "reference_sha256": "f26f8b28c0152de2ff0b2273363346b483cad4563da21307830909392e3402d2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00003-of-00009/audio/2.wav",
+          "duration": 123.4,
+          "sampling_rate": 44100,
+          "segments": 31,
+          "reference_sha256": "1ca045e27c639f1b98e4614fca31d8005f86cbf949999c0b614b56b013db426f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00003-of-00009/audio/3.wav",
+          "duration": 2208.999977324263,
+          "sampling_rate": 44100,
+          "segments": 553,
+          "reference_sha256": "1188c8e211ebfbf457519cf06c9a888f039849e739185d71315a09732e2f2e7d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00004-of-00009/audio/0.wav",
+          "duration": 2739.4998639455785,
+          "sampling_rate": 44100,
+          "segments": 685,
+          "reference_sha256": "929d769612dd587691cd730811bc44a73247a000aba3b26e8194b139efd0244f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00004-of-00009/audio/1.wav",
+          "duration": 124.5,
+          "sampling_rate": 44100,
+          "segments": 32,
+          "reference_sha256": "17c5465dde4ef86daa8060475f4f433ebfbbd1ed81581930f8899694ffba70f7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00004-of-00009/audio/2.wav",
+          "duration": 1180.600068027211,
+          "sampling_rate": 44100,
+          "segments": 296,
+          "reference_sha256": "b0ff8a634d6eaa0c770f3f61cfd038f3037d6dab73da3a3789c2cd0ad82b2f10"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00004-of-00009/audio/3.wav",
+          "duration": 2743.300022675737,
+          "sampling_rate": 44100,
+          "segments": 686,
+          "reference_sha256": "a50b37d918c1fb6b3958f5b2f404fccea49c99872f753fdaf230fdcb7c536c27"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00005-of-00009/audio/0.wav",
+          "duration": 522.0000453514739,
+          "sampling_rate": 44100,
+          "segments": 131,
+          "reference_sha256": "af53cc9abb0cb1c3bcd70d688256ee64a95c6a2d188bd14363cfe55eb2c2a975"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00005-of-00009/audio/1.wav",
+          "duration": 1989.500022675737,
+          "sampling_rate": 44100,
+          "segments": 498,
+          "reference_sha256": "cb1a7e4ee68ed2eab8fc9ed9b80a529a3470c475be313af2568bdcba40d8c457"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00005-of-00009/audio/2.wav",
+          "duration": 324.3,
+          "sampling_rate": 44100,
+          "segments": 82,
+          "reference_sha256": "a6801ceb52eaccae462a350cda59d7fa3c63f68424e2df9634e363710c51c364"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00006-of-00009/audio/0.wav",
+          "duration": 2206.999954648526,
+          "sampling_rate": 44100,
+          "segments": 552,
+          "reference_sha256": "598f076e623114746882e98fd24ef9faa45a7a69afcb3da4a266ca77c3351bc9"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00006-of-00009/audio/1.wav",
+          "duration": 1257.100045351474,
+          "sampling_rate": 44100,
+          "segments": 315,
+          "reference_sha256": "88320b06221096c9369f2596997f61ef926ebf8735ea64450af2e49bfe98e0c0"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00006-of-00009/audio/2.wav",
+          "duration": 2750.5001360544215,
+          "sampling_rate": 44100,
+          "segments": 688,
+          "reference_sha256": "0976a2cb583c63c56f1ca0110f5ac44628d31d1571e54a989f09767ae6fea292"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00007-of-00009/audio/0.wav",
+          "duration": 2534.099931972789,
+          "sampling_rate": 44100,
+          "segments": 634,
+          "reference_sha256": "7ab3392817420b584cc8d4240aa0e8349f641a6a78e6384fcf54c6df0c5696c2"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00007-of-00009/audio/1.wav",
+          "duration": 2698.3,
+          "sampling_rate": 44100,
+          "segments": 675,
+          "reference_sha256": "475e7ba42ffe29279137aaf0f23d9c76c63175b7f7a3c12518d250244d53ba1d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00007-of-00009/audio/2.wav",
+          "duration": 2757.200022675737,
+          "sampling_rate": 44100,
+          "segments": 690,
+          "reference_sha256": "a6233ae5ebafa1e35ac20d3a9ce94e605aefa09c6191f1f4f80372a17275c6ea"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00008-of-00009/audio/0.wav",
+          "duration": 2736.500090702948,
+          "sampling_rate": 44100,
+          "segments": 685,
+          "reference_sha256": "fae10fca4d99efd5dcb779b0f8438f7e4dda2188935346c0fc92dd10bd29ad9c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00008-of-00009/audio/1.wav",
+          "duration": 849.4999546485261,
+          "sampling_rate": 44100,
+          "segments": 213,
+          "reference_sha256": "ad5743da8e574d97a019b8da241656bb7f15f2be6b5df2d871aa8e7390dba159"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/PRV/test-00008-of-00009/audio/2.wav",
+          "duration": 571.4,
+          "sampling_rate": 44100,
+          "segments": 143,
+          "reference_sha256": "8297f25066833da47b68b6acb0f8f3dd8e7855b4ee2958debea5632c572b258c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00000-of-00009/audio/0.wav",
+          "duration": 3225.499977324263,
+          "sampling_rate": 44100,
+          "segments": 807,
+          "reference_sha256": "a043d88173969a4cddfe45d3e5dff987037d1097a4133a8dcc30dca8230c13aa"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00000-of-00009/audio/1.wav",
+          "duration": 2537.0,
+          "sampling_rate": 44100,
+          "segments": 635,
+          "reference_sha256": "a170e246a3b9cb064a021d114673d0ae6dd5012610d1c7aa7088d76a5c2467fa"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00000-of-00009/audio/2.wav",
+          "duration": 1254.0,
+          "sampling_rate": 44100,
+          "segments": 314,
+          "reference_sha256": "0e984eb1a9d61b03e438872fe4fa970f4737b6213e5f8ca732ebdb271ffa4811"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00001-of-00009/audio/0.wav",
+          "duration": 4677.499886621315,
+          "sampling_rate": 44100,
+          "segments": 1170,
+          "reference_sha256": "7d3537f14c697fde8a88203d95e2e9bb422f52e49532aa9b248ae25512e56e9f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00001-of-00009/audio/1.wav",
+          "duration": 98.5,
+          "sampling_rate": 44100,
+          "segments": 25,
+          "reference_sha256": "424e6787a5d648ac8c4e10945fc8dea158e53aa016c80a3b2aa56bb623eec150"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00002-of-00009/audio/0.wav",
+          "duration": 3088.600113378685,
+          "sampling_rate": 44100,
+          "segments": 773,
+          "reference_sha256": "6e094ebb5c36bd450b03bf0ab16058a8ab5b45a86d1572407f41663910be36c6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00002-of-00009/audio/1.wav",
+          "duration": 756.0,
+          "sampling_rate": 44100,
+          "segments": 189,
+          "reference_sha256": "65247a551c10793bdc1f3b3547dedf44b045d997ecd902a600ed434f7a855a41"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00003-of-00009/audio/0.wav",
+          "duration": 583.25,
+          "sampling_rate": 44100,
+          "segments": 146,
+          "reference_sha256": "426ed57429a823138300c255e5b31a0d83871089dfd3f839c1079d55ead283e8"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00003-of-00009/audio/1.wav",
+          "duration": 3181.500090702948,
+          "sampling_rate": 44100,
+          "segments": 796,
+          "reference_sha256": "bb20e11367d091b329a4a81161077662be461f8d41e88f3cd57eeedcc4239b78"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00004-of-00009/audio/0.wav",
+          "duration": 3618.2,
+          "sampling_rate": 44100,
+          "segments": 905,
+          "reference_sha256": "86c20e24063ab566891eb4b2c1a579452ffc07a3b2dff3e32628fc849e7993e1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00004-of-00009/audio/1.wav",
+          "duration": 3019.499886621315,
+          "sampling_rate": 44100,
+          "segments": 755,
+          "reference_sha256": "cc0aa4d959023c314a276e1a5f43dc7021bbd4b20e71ad29ff3e834ee035f77d"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00005-of-00009/audio/0.wav",
+          "duration": 4203.999977324263,
+          "sampling_rate": 44100,
+          "segments": 1051,
+          "reference_sha256": "641f09d00a7cbc8bc82d9988679361c86b2ea19246ee09ee90cc31e1f9dc0464"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00005-of-00009/audio/1.wav",
+          "duration": 253.24997732426303,
+          "sampling_rate": 44100,
+          "segments": 64,
+          "reference_sha256": "0e07200a904b647f248de2e800dd0d36e64c443e86cf0abb269888359195fa30"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00006-of-00009/audio/0.wav",
+          "duration": 3500.200045351474,
+          "sampling_rate": 44100,
+          "segments": 876,
+          "reference_sha256": "e9ec4509774fb1caa621ef69e2356397bddb290b1ff6f1a8209ddee880ee43b4"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00006-of-00009/audio/1.wav",
+          "duration": 2039.4998639455782,
+          "sampling_rate": 44100,
+          "segments": 510,
+          "reference_sha256": "959e0657c840d109e7068d35a0203e59d8b31c362c2511fea71044315bb830f6"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00007-of-00009/audio/0.wav",
+          "duration": 2361.000090702948,
+          "sampling_rate": 44100,
+          "segments": 591,
+          "reference_sha256": "7366ce0d27bcd7c778fe16aafd3f9634cf6e1ba3856a081cd74b2c2518b15ff7"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00007-of-00009/audio/1.wav",
+          "duration": 3190.299931972789,
+          "sampling_rate": 44100,
+          "segments": 798,
+          "reference_sha256": "a12ff4c68858877ec7093127143cfb4c4fb63ec72b7e36984413cc03f28e0968"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00008-of-00009/audio/0.wav",
+          "duration": 2687.599931972789,
+          "sampling_rate": 44100,
+          "segments": 672,
+          "reference_sha256": "e05a0ac3135e2ec89c11d125b96be9fc210662d2c1917dff82a72eb1d4acc4f1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/ROC/test-00008-of-00009/audio/1.wav",
+          "duration": 3194.1999319727893,
+          "sampling_rate": 44100,
+          "segments": 799,
+          "reference_sha256": "15fe1c947bd73df46febaa4607fbbd7cb8296f189084c9c63f7fba5e68acc378"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00000-of-00008/audio/0.wav",
+          "duration": 2892.500068027211,
+          "sampling_rate": 44100,
+          "segments": 724,
+          "reference_sha256": "cca4a12a3ffcd975d2715a3ed9131c3552ceb6a3694c37533e48b92570da8bf1"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00000-of-00008/audio/1.wav",
+          "duration": 2995.9998639455785,
+          "sampling_rate": 44100,
+          "segments": 749,
+          "reference_sha256": "db01bb4d4b27a2bd0187d0571ce310c8e4016ced534e1c99312cb9737511a952"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00001-of-00008/audio/0.wav",
+          "duration": 297.98,
+          "sampling_rate": 44100,
+          "segments": 75,
+          "reference_sha256": "da329d6bccb5d9fc66ecc7f204d5bf9b13b92553643816cd9e1c1fe914c1861e"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00001-of-00008/audio/1.wav",
+          "duration": 1213.000045351474,
+          "sampling_rate": 44100,
+          "segments": 304,
+          "reference_sha256": "2d1b22cfa0320717eddbcc6dfb1f41c0f36c83f3f9d2416fded548301872475c"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00002-of-00008/audio/0.wav",
+          "duration": 2767.9998185941045,
+          "sampling_rate": 44100,
+          "segments": 692,
+          "reference_sha256": "593c915ea0c05c9e066b52573297a5eb7b91b092cdb40876c9f0a3c1a3fede2f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00002-of-00008/audio/1.wav",
+          "duration": 3041.999954648526,
+          "sampling_rate": 44100,
+          "segments": 761,
+          "reference_sha256": "b386941f529ba501103086da60f5e23eff8ce787452262295a585170b68b5a48"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00003-of-00008/audio/0.wav",
+          "duration": 3324.399977324263,
+          "sampling_rate": 44100,
+          "segments": 832,
+          "reference_sha256": "d0ec7ec65666c5b9c53d298e9439faa7d38f15579cc4fab65c0351fc39da3285"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00003-of-00008/audio/1.wav",
+          "duration": 3677.1999092970523,
+          "sampling_rate": 44100,
+          "segments": 920,
+          "reference_sha256": "9bd31525c9158339136530c46f3e7c5544392024c91f2e356e2054ca6c4c0874"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00004-of-00008/audio/0.wav",
+          "duration": 3535.899977324263,
+          "sampling_rate": 44100,
+          "segments": 884,
+          "reference_sha256": "61e772520f25e857495f899b5a1026ba0cf9b5261c300e9ee5c229192239ce1a"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00004-of-00008/audio/1.wav",
+          "duration": 2913.000068027211,
+          "sampling_rate": 44100,
+          "segments": 729,
+          "reference_sha256": "0a19df1dc6d200fb7e9f8923bf42df3704ab985e55cb0af88b02980e187a6485"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00005-of-00008/audio/0.wav",
+          "duration": 4002.899954648526,
+          "sampling_rate": 44100,
+          "segments": 1001,
+          "reference_sha256": "616b9657be500c23d77abc23c998e60ddf9f07220cb37e2e9419b6afd978a6ec"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00005-of-00008/audio/1.wav",
+          "duration": 3279.6999319727893,
+          "sampling_rate": 44100,
+          "segments": 820,
+          "reference_sha256": "973a774fb6a09cc2f3e34ce9c93ff0b9b95dfd0d774f4d5d87481e9996ee8dba"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00006-of-00008/audio/0.wav",
+          "duration": 3886.1999546485263,
+          "sampling_rate": 44100,
+          "segments": 972,
+          "reference_sha256": "a26d50e239d9dad4901aac44237d28820b91835213c4416f72fa0de2592bfe6f"
+        },
+        {
+          "parent_audio_path": "az://orngwus2cresco/data/boren/data/openasr_long_jsonl/coraal/VLD/test-00007-of-00008/audio/0.wav",
+          "duration": 3509.399977324263,
+          "sampling_rate": 44100,
+          "segments": 878,
+          "reference_sha256": "d968a3b52f98f06eaad244306ecc96935e2f1fb1ed2ccc683d4b8b080aba037c"
+        }
+      ]
+    }
+  }
+}

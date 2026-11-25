@@ -1,0 +1,53 @@
+# @package data.val_data
+# Complete OpenLong recordings with hard, non-overlapping 8-second cuts.
+# Retain the shorter final chunk; score joined hypotheses against full-parent text.
+# Each row lists a parent's ZIP audio time selectors; ASRDataset expands the list.
+# Reproduce with recipe.phimm.tools.openlong_hard_chunk; see data_manifests audit.
+
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_hard_chunk_8s_v1/earnings21.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings21
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [id, language, audio_path, parent_audio_path, n_segments, seg_start, seg_end, reference_scope, chunking_method, chunk_length_seconds]
+
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_hard_chunk_8s_v1/earnings22.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings22
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [id, language, audio_path, parent_audio_path, n_segments, seg_start, seg_end, reference_scope, chunking_method, chunk_length_seconds]
+
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenLong_hard_chunk_8s_v1/coraal.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal
+    verl_format:
+      prompt_key: prompt
+      extra_keys: [id, language, audio_path, parent_audio_path, n_segments, seg_start, seg_end, reference_scope, chunking_method, chunk_length_seconds]

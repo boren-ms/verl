@@ -326,6 +326,8 @@ class ASRDataset(Dataset):
         indices = [index] if self.groups is None else self.groups[index]
         rows = [self.ds[i] for i in indices]
         row = dict(rows[0])
+        if isinstance(row.get("audio_path"), list):
+            row.pop("audio", None)
         segments = []
         for item in rows:
             paths = item.get("audio_path")
@@ -338,18 +340,36 @@ class ASRDataset(Dataset):
                 or any(not isinstance(text, str) for text in references)
             ):
                 raise ValueError("segment_reference_texts must contain one string per audio path")
+            source = dict(item)
+            if isinstance(paths, list):
+                source.pop("audio", None)
+            fields = {
+                key: value
+                for key, value in source.items()
+                if key != "extra_info"
+                and (key == "audio" or key not in row or not (value is row[key] or value == row[key]))
+            }
+            shared_info = row.get("extra_info") or {}
+            overrides = {
+                key: value
+                for key, value in info.items()
+                if key not in shared_info or not (value is shared_info[key] or value == shared_info[key])
+            }
+            if overrides:
+                fields["extra_info"] = overrides
             if isinstance(paths, list):
                 if not paths or any(not isinstance(path, str) or not path for path in paths):
                     raise ValueError("ASR audio_path lists must contain at least one non-empty path")
                 for i, path in enumerate(paths):
-                    segment = {**item, "audio_path": path, "asr_full_reference": True}
+                    segment = {**fields, "audio_path": path}
                     if references is not None:
                         segment["asr_reference_text"] = references[i]
-                    # Path selectors must take precedence over inline audio.
-                    segment.pop("audio", None)
                     segments.append(segment)
             else:
-                segments.append(item)
+                segment = fields
+                if paths is not None:
+                    segment["audio_path"] = paths
+                segments.append(segment)
         row["raw_prompt"] = row[self.prompt_key]
         row["index"] = index
         row["asr_segments"] = segments

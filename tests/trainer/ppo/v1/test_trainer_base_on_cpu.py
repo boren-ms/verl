@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+import pytest
 from omegaconf import OmegaConf
 
 from verl.trainer.ppo.v1.replay_buffer import ReplayBuffer, ReplayBufferAsync
@@ -163,3 +164,45 @@ def test_builtin_filter_groups_warns_when_total_generation_limit_is_configured()
         "use max_inflight_gen_batches to bound concurrent Sync DAPO generation.",
         10,
     )
+
+
+@pytest.mark.parametrize("val_before_train", [False, True])
+def test_val_only_never_enters_training_when_pretraining_validation_is_disabled(val_before_train):
+    trainer = _StubTrainer.__new__(_StubTrainer)
+    trainer.config = OmegaConf.create(
+        {
+            "trainer": {
+                "val_only": True,
+                "val_before_train": val_before_train,
+                "project_name": "eval",
+                "experiment_name": "val_only",
+                "logger": [],
+            },
+        }
+    )
+    trainer.global_steps = 0
+    trainer.on_validate_begin = Mock()
+    trainer.on_validate_end = Mock()
+    trainer._validate = Mock(return_value={"val-core/test/wer": 0.1})
+    trainer._shutdown_dump_executor = Mock()
+    trainer.on_train_begin = Mock(side_effect=AssertionError("Evaluation must not enter training"))
+    trainer.step = Mock(side_effect=AssertionError("Evaluation must not run an optimizer step"))
+    manager = object()
+
+    with (
+        patch("verl.trainer.ppo.v1.trainer_base.SkipManager.init"),
+        patch("verl.trainer.ppo.v1.trainer_base.Tracking"),
+        patch("verl.trainer.ppo.v1.trainer_base.ValidationGenerationsLogger"),
+        patch("verl.trainer.ppo.v1.trainer_base.DapoFilteredRewardTableLogger"),
+    ):
+        trainer.fit(manager)
+
+    assert trainer.agent_loop_manager is manager
+    trainer.on_validate_begin.assert_called_once_with()
+    trainer._validate.assert_called_once_with()
+    trainer.on_validate_end.assert_called_once_with()
+    trainer.logger.log.assert_called_once_with(data={"val-core/test/wer": 0.1}, step=0)
+    trainer._shutdown_dump_executor.assert_called_once_with()
+    trainer.on_train_begin.assert_not_called()
+    trainer.step.assert_not_called()
+    assert trainer.global_steps == 0

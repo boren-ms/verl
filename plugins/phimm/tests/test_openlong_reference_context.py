@@ -61,8 +61,7 @@ def test_reference_context_roundtrips_through_real_validation_loader(tmp_path):
     assert [row["audio_path"] for row in segments] == parents[0]["audio_path"]
     assert [row["asr_reference_text"] for row in segments] == parents[0]["segment_reference_texts"]
     assert all("asr_reference_context" not in row for row in segments)
-    assert all(row["asr_full_reference"] for row in segments)
-    assert all(row["reward_model"] == sample["reward_model"] for row in segments)
+    assert all(set(row) == {"audio_path", "asr_reference_text"} for row in segments)
     prompts = []
     context = ContextPrompt("text", max_history=1)
     for row in segments:

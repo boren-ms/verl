@@ -6,7 +6,7 @@ defaults:
   - eval_base
   - /data/val_data/openasr/openasr_verb_langhint_zip@_openen
   - /data/val_data/openasr/openasr_ml_verb_langhint_zip@_openml
-  - /data/val_data/openasr/openasr_fr_long_verb_langhint_zip@_openfr
+  # - /data/val_data/openasr/openasr_fr_long_verb_langhint_zip@_openfr
   - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong
   - _self_
 
@@ -20,7 +20,7 @@ data:
   val_data:
     - ${_openen}
     - ${_openml}
-    - ${_openfr}
+    # - ${_openfr}
     - ${_openlong}
 
 trainer:

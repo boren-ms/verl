@@ -1,0 +1,80 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix4_reference_context_20261124/data/short_orignal/earnings_batch1.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+      - source_row_index
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix4_reference_context_20261124/data/short_orignal/earnings_batch2.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+      - source_row_index
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix4_reference_context_20261124/data/short_orignal/quartr_first23.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+      - source_row_index
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix4_reference_context_20261124/data/short_orignal/quartr_second48.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+      - source_row_index
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/verl/mix4_reference_context_20261124/data/short_orignal/quartr_final38.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: short_orignal
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts
+      - original_data_source
+      - source_row_index

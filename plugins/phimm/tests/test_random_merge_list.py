@@ -9,6 +9,7 @@ import pytest
 import soundfile as sf
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
+
 from recipe.phimm.agentic.dataset import ASRDataset, _prepare_data_confs
 from recipe.phimm.data.dataset import augment, process_ds
 from recipe.phimm.tools.offline_audio import materialize
@@ -160,7 +161,7 @@ def test_global_block_produces_full_reference_segments_and_leaves_validation_alo
         assert f"word{i}" in sample["reward_model"]["gt_output"]
     assert set(sample["extra_info"]["language"].split()) == {"English", "Chinese"}
     assert "The languages are" in sample["prompt"][0]["content"]
-    assert all(segment["asr_full_reference"] for segment in sample["asr_segments"])
+    assert all(set(segment) == {"audio_path"} for segment in sample["asr_segments"])
     val = ASRDataset("val", None, config)
     assert len(val) == 3
     assert all(isinstance(val[i]["audio_path"], str) for i in range(len(val)))

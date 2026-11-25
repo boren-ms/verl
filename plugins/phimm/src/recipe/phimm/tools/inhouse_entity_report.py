@@ -11,6 +11,7 @@ import math
 from pathlib import Path
 
 import blobfile as bf
+
 from recipe.phimm.data.inhouse_dtest_enus import DATA_SOURCES, OUTPUT_ROOTS, SUITES, WORKBOOK_S2
 from recipe.phimm.data.inhouse_entity import OUTPUT_ROOT
 
@@ -31,7 +32,7 @@ def audit_rows(rows, expected, *, context_mode="independent", include_eer=True, 
     counts = dict.fromkeys(("parents", "segments", *count_keys), 0)
     for row in rows:
         detail = json.loads(row["asr_detail"])
-        info = detail["parent_info"]
+        info = detail.get("extra_info", detail.get("parent_info", {}))
         uid = info["id"]
         if uid not in expected or uid in seen:
             raise ValueError(f"Unexpected or duplicate result parent: {uid}")
@@ -40,12 +41,13 @@ def audit_rows(rows, expected, *, context_mode="independent", include_eer=True, 
             raise ValueError(f"Changed datasource: {uid}")
         if row["gts"] != source["text"] or info["entity_transcription"] != source["entity_transcription"]:
             raise ValueError(f"Changed full-parent reference: {uid}")
-        paths = [segment["audio_path"] for segment in detail["segment_rows"]]
+        segments = detail.get("asr_segments", detail.get("segment_rows", []))
+        paths = [segment["audio_path"] for segment in segments]
         if paths != source["audio_path"] or len(detail["segment_outputs"]) != len(paths):
             raise ValueError(f"Incomplete or reordered decoded clips: {uid}")
         if expected_prompt is not None:
             messages = [{"role": "user", "content": expected_prompt}]
-            if any(segment.get("prompt") != messages for segment in detail["segment_rows"]):
+            if any(segment.get("prompt", detail.get("prompt")) != messages for segment in segments):
                 raise ValueError(f"Changed or missing base prompt/language hint: {uid}")
         contexts = [""] * len(paths)
         if context_mode == "text_h1":

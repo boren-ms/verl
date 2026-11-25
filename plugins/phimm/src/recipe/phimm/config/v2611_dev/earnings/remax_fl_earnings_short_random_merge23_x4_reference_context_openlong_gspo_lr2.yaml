@@ -1,0 +1,26 @@
+# @package _global_
+# Fixed reference-text history2 with ReMax advantages, GSPO loss, and double LR.
+defaults:
+  - remax_fl_earnings_short_random_merge23_x4_reference_context_openlong
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 1.2e-6
+    policy_loss:
+      loss_mode: gspo
+    loss_agg_mode: seq-mean-token-mean
+    clip_ratio_low: 3.0e-4
+    clip_ratio_high: 4.0e-4
+
+algorithm:
+  adv_estimator: remax
+  rollout_correction:
+    bypass_mode: false
+
+trainer:
+  experiment_name: remax_fl_earnings_short_random_merge23_x4_reference_context_openlong_gspo_lr2
+  nnodes: 4
+  n_gpus_per_node: 8
+  test_freq: 200
