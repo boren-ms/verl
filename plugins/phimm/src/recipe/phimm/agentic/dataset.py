@@ -7,9 +7,11 @@ from collections.abc import Mapping, Sequence
 
 import datasets
 import pyarrow as pa
+from torch.utils.data import Dataset
+
+from recipe.phimm.agentic.details import segment_fields
 from recipe.phimm.data.dataset import create_audio_dataset
 from recipe.phimm.utils.audio import set_chunk_load_mode
-from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -325,6 +327,9 @@ class ASRDataset(Dataset):
         indices = [index] if self.groups is None else self.groups[index]
         rows = [self.ds[i] for i in indices]
         row = dict(rows[0])
+        if isinstance(row.get("audio_path"), list):
+            row["asr_full_reference"] = True
+            row.pop("audio", None)
         segments = []
         for item in rows:
             paths = item.get("audio_path")
@@ -340,20 +345,22 @@ class ASRDataset(Dataset):
             if isinstance(paths, list):
                 if not paths or any(not isinstance(path, str) or not path for path in paths):
                     raise ValueError("ASR audio_path lists must contain at least one non-empty path")
+                source = {**item, "asr_full_reference": True}
+                source.pop("audio", None)
+                fields = segment_fields(row, source)
                 for i, path in enumerate(paths):
-                    segment = {**item, "audio_path": path, "asr_full_reference": True}
+                    segment = {**fields, "audio_path": path}
                     if references is not None:
                         segment["asr_reference_text"] = references[i]
-                    # Path selectors must take precedence over inline audio.
-                    segment.pop("audio", None)
                     segments.append(segment)
             else:
-                segments.append(item)
+                segment = segment_fields(row, item)
+                if paths is not None:
+                    segment["audio_path"] = paths
+                segments.append(segment)
         row["raw_prompt"] = row[self.prompt_key]
         row["index"] = index
-        from recipe.phimm.agentic.details import pack_segment_rows
-
-        row["asr_segments"] = pack_segment_rows(segments, validate=self.groups is not None)
+        row["asr_segments"] = segments
         row["asr_validate"] = self.groups is not None
         row["agent_name"] = "asr"
         return row

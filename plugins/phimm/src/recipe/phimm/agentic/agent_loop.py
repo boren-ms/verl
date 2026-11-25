@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import ray
 import torch
+
 from recipe.phimm.agentic.context_prompt import (
     DEFAULT_CONTEXT_MODE,
     DEFAULT_MAX_BIAS_TERMS,
@@ -14,12 +15,11 @@ from recipe.phimm.agentic.context_prompt import (
     context_options,
     context_source,
 )
-from recipe.phimm.agentic.details import restore_segment_rows, validation_detail
+from recipe.phimm.agentic.details import segment_row, validation_detail
 from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.audio import load_audio
-
 from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, DictConfigWrap, register
 from verl.trainer.ppo.v1.agent_loop_tq import AgentLoopManagerTQ, AgentLoopWorkerTQBase
 from verl.utils.profiler import simple_timer
@@ -147,7 +147,7 @@ class ASRAgentLoop(AgentLoopBase):
 
     async def greedy_baseline(self, row):
         params = dict(temperature=0.0, top_p=1.0, top_k=-1, logprobs=False)
-        rows = row.get("asr_segments") or [row]
+        rows = [segment_row(row, segment) for segment in row.get("asr_segments", [{}])]
         # validate=True selects greedy decoding limits. This is still a
         # training trajectory: it shares fixed reference inputs with sampled
         # training, or builds its own generated history under the default policy.
@@ -163,7 +163,8 @@ class ASRAgentLoop(AgentLoopBase):
 
     async def run(self, sampling_params, **kwargs):
         validate = kwargs["asr_validate"]
-        rows = restore_segment_rows(kwargs["asr_segments"])
+        segments = kwargs["asr_segments"]
+        rows = [segment_row(kwargs, segment) for segment in segments]
         outputs, texts = await self.generate_segments(
             rows, sampling_params, validate=validate, global_steps=kwargs.get("global_steps")
         )
@@ -184,11 +185,9 @@ class ASRAgentLoop(AgentLoopBase):
             "asr_data_source": rows[0]["data_source"],
             "asr_detail": json.dumps(
                 validation_detail(
-                    rows,
+                    kwargs,
                     texts,
-                    info,
                     [o.extra_fields.get("asr_previous_context", "") for o in outputs],
-                    validate=validate,
                 ),
                 ensure_ascii=False,
             ),
