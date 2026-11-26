@@ -1,0 +1,25 @@
+# CORAAL-like long-form conversational dataset: en-US_Videoindex_IS_Podcast_FY22_TRAIN-withseg
+# Source file_set: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/long_form_disfluency_v2/r12/en-US_Videoindex_IS_Podcast_FY22_TRAIN-withseg/sanity_checked_file_set/file_set.json
+# Audio chunks: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/long_form/r12/en-US_Videoindex_IS_Podcast_FY22_TRAIN-withseg
+# Disfluency override chunks: 3 / 396 chunks (150 / 19,765 rows)
+# Stats: 19,765 samples (4 empty), 127.67 hours, avg 23.25 s/sample, 1,267,072 words
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/coraal_like_long_disfluency_v1/videoindex_podcast_fy22_en_us_long.jsonl.gz
+  pre_process:
+    rename_fields:
+      mappings:
+        text: transcription
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: videoindex_podcast_fy22_en_us_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - chunk_name
+      - chunk_index

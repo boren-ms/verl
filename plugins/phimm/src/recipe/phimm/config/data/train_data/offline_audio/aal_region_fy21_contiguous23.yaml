@@ -1,0 +1,31 @@
+# Offline consecutive 2/3-segment windows over AAL_region_FY21_en-US_16k_long_en-US_TRAIN.
+# 61,620 input clips across 1,218 recordings -> 61,530 multi-segment windows across 1,164 recordings (>=3 clips each).
+# Window stats: 31,640 2-seg + 29,890 3-seg; avg 44.56s (P50 46.92s, P95 80.66s), avg 114.73 words.
+# Provenance: az://orngwus2cresco/data/boren/data/Training/aal_region_fy21_contiguous23_20261126_v1/preparation.json
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/Training/aal_region_fy21_contiguous23_20261126_v1/part-0000.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/aal_region_fy21_contiguous23_20261126_v1/part-0001.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/aal_region_fy21_contiguous23_20261126_v1/part-0002.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/aal_region_fy21_contiguous23_20261126_v1/part-0003.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/aal_region_fy21_contiguous23_20261126_v1/part-0004.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: aal_region_fy21_contiguous23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - recording_id
+      - merge_parent_audio_path
+      - segment_reference_texts
+      - merge_count
+      - n_segments
+      - source_ids
+      - source_audio_lengths
+      - source_start_seconds
+      - source_end_seconds

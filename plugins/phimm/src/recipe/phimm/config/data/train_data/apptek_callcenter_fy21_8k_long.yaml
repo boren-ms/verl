@@ -1,0 +1,25 @@
+# CORAAL-like long-form conversational dataset: AppTek_ConversationalCallCenter_FY21_8k_TRAIN (16k resampled)
+# Source file_set: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/long_form_disfluency_v2/r10/AppTek_ConversationalCallCenter_FY21_8k_TRAIN/sanity_checked_file_set_16k/file_set.json
+# Audio chunks: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/long_form_16k/r10/AppTek_ConversationalCallCenter_FY21_8k_TRAIN/ChunkFiles
+# Disfluency override chunks: 111 / 12,607 chunks (5,550 / 630,317 rows)
+# Stats: 630,317 samples (29,779 empty), 1,576.79 hours, avg 9.01 s/sample, 11,836,319 words
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/coraal_like_long_disfluency_v1/apptek_callcenter_fy21_8k_long.jsonl.gz
+  pre_process:
+    rename_fields:
+      mappings:
+        text: transcription
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: apptek_callcenter_fy21_8k_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - chunk_name
+      - chunk_index

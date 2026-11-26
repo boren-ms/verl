@@ -1,0 +1,25 @@
+# CORAAL-like long-form conversational dataset: AAL_region_FY21_en-US_16k_long_en-US_TRAIN
+# Source file_set: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/long_form_disfluency_v2/r10/AAL_region_FY21_en-US_16k_long_en-US_TRAIN/sanity_checked_file_set/file_set.json
+# Audio chunks: az://orngwus2cresco/data/speech/am_data/en/display_data_prep_v3/long_form/r10/AAL_region_FY21_en-US_16k_long_en-US_TRAIN
+# Disfluency override chunks: 11 / 1,233 chunks (550 / 61,620 rows)
+# Stats: 61,620 samples (74 empty), 306.41 hours, avg 17.90 s/sample, 2,834,850 words
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/coraal_like_long_disfluency_v1/aal_region_fy21_en_us_16k_long.jsonl.gz
+  pre_process:
+    rename_fields:
+      mappings:
+        text: transcription
+    clean_tagged_text: {}
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: aal_region_fy21_en_us_16k_long
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - chunk_name
+      - chunk_index
