@@ -1,0 +1,56 @@
+# @package _global_
+# Base3a model/optimizer/rollout/rewards with URGENT-only E4 training and GSPO.
+# Cached LibriSpeech: speed [1,2] -> BUT ReverbDB RIR -> noise at SNR [10,12] dB.
+
+defaults:
+  - /v2611_dev/base@_global_
+  - /data/train_data/noisy/ls_rir_verb_langhint@_noisy_ls_train
+  - /data/val_data/urgent2024_delta@_urgent_delta
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+  actor:
+    optim:
+      lr: 2.4e-6
+    policy_loss:
+      loss_mode: gspo
+    loss_agg_mode: seq-mean-token-mean
+    clip_ratio_low: 3.0e-4
+    clip_ratio_high: 4.0e-4
+  rollout:
+    seed: 0
+
+algorithm:
+  adv_estimator: remax
+  rollout_correction:
+    bypass_mode: false
+
+data:
+  train_data:
+    - ${_noisy_ls_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: noisy_ls, sample: null, shuffle: true}
+  val_data:
+    - ${_urgent_delta}
+
+reward_map:
+  noisy_ls: train_librispeech
+
+asr:
+  expected_training_rows: 20424
+  expected_training_steps: 636
+
+trainer:
+  experiment_name: remax_urgent_gspo_e4
+  total_epochs: 4
+  total_training_steps: null
+  save_freq: 40
+  test_freq: 80
+  val_before_train: true
+  val_only: false
+  resume_mode: disable
+  resume_from_path: null
