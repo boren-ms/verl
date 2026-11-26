@@ -1,0 +1,38 @@
+# FY24Q3-1 refiltered version: 21,661 rows; 2,347,714 human words.
+# Normal word duration is strictly 0 < seconds < 5; allow at most one outlier per parent.
+# Exclude the entire parent at two or more outliers, or any retained alignment failure.
+# Existing Qwen predictions, complete human references and <=30s segments are unchanged.
+# All eight manifests passed SHA256 Orange readback and actual complete ASRDataset QA.
+# Raw lineage and decisions: hc_fy24q3_1.aligned_v2_word_0_5_max1.index.json.
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0000/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0001/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0002/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0003/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0004/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0005/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0006/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0007/pairs.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_fy24q3_1_2segments_reference_context_word_0_5_max1
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - audio_length
+      - transcription_source
+      - word_duration_filter
+      - segment_reference_texts
+      - segments
+      - segment_metadata
+      - alignment_flags
+      - parent_id
+      - parent_audio_path
+      - segment_indices
+      - pairing_policy

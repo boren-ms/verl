@@ -22,7 +22,114 @@ source chunks. All four complete published versions also pass real Hydra/ASRData
 reference-context and native Orange timed-selector verification.
 No training has been launched.
 
-## Preserved versions
+<!-- FY24Q3-1 relaxed word-duration statistics, verified 2026-11-26:
+Normal word duration: strictly 0 < seconds < 5. Reject a whole parent at >=2
+outlier words (duration <=0 or >=5); allow and record at most one outlier.
+757,156 parents = 179,004 alignment failures + 561,665 duration-count rejects
++ 16,487 accepted originals. All 5,913 old accepted originals remain;
+10,574 additional originals are restored. Accepted outliers: 6,030 zero / 10,457 one.
+Originals: 16,487 samples / 262.2265869965 hours / 1,963,896 human words.
+Segments: 16,487 parents / 38,148 units / 244.3730888889 hours / 1,963,896 words.
+Pairs: 21,661 samples / 300.1109069444 hours / 2,347,714 word occurrences.
+11,852 pair-eligible parents; 4,635 accepted parents with fewer than two segments.
+745,304 pair-excluded parents. Pair hours/words include sliding-window duplication.
+Raw predictions, timestamps and exact human labels unchanged; no audio files or training.
+Source: hc_fy24q3_1.aligned_v2_word_0_5_max1.index.json and its verification receipts.
+-->
+
+## Refiltered version: strict (0, 5) seconds
+
+The new filter allows **at most one abnormal word per original sample**. A word
+is abnormal if its predicted duration is **<=0 or >=5 seconds**. Two or more
+abnormal words reject the entire original. Alignment failures and incomplete
+word coverage remain excluded. Allowed outliers retain their original word,
+timestamps and explicit flags; no duration is clamped, no human word is dropped,
+and no Qwen alignment is rerun.
+
+| Version | Original strict filter | New filter | New hours | New human words |
+| --- | ---: | ---: | ---: | ---: |
+| Filtered full originals | 5,913 samples | 16,487 samples | 262.226587 | 1,963,896 |
+| Word-timed segments | 5,913 parents / 12,591 units | 16,487 parents / 38,148 units | 244.373089 | 1,963,896 |
+| Sliding adjacent pairs | 6,678 pairs | 21,661 pairs | 300.110907 | 2,347,714 |
+
+Full-original audio grows from **83.805113 to 262.226587 hours**, adding
+**178.421474 hours and 10,574 samples**. Retained human words grow from 606,599
+to 1,963,896. The new set includes every previously accepted original. Of the
+16,487 accepted originals, 6,030 have zero outlier words and 10,457 have one.
+There are 179,004 alignment failures and 561,665 duration-count rejects, accounting
+for all 757,156 parents. The 11,852 eligible parents produce 21,661 pairs;
+4,635 accepted parents have fewer than two segments and remain in both preceding
+versions. All 745,304 pair exclusions retain exact reasons and outlier timestamps.
+
+Word counts are whitespace-delimited normalized human reference words, not
+model tokens. Original hours use the previously decoded parent waveform duration;
+segment hours sum native selector spans. Pair hours and word occurrences count
+repeated segments from sliding pairing. No cropped audio is saved.
+
+[The new shard index](hc_fy24q3_1.aligned_v2_word_0_5_max1.index.json) records all
+counts, hours, words, policies, manifests and verification hashes. It links to the
+unchanged original JSON and every existing raw alignment shard in `aligned_v1`.
+The original JSON, old filters, raw predictions, model provenance and rejection
+records are preserved. New large manifests are retained locally under
+`aligned_v2_word_0_5_max1/shard-0000/` through `shard-0007/` and ignored by Git.
+
+```text
+az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-000i/
+```
+
+Each new shard contains `filtered_originals.jsonl.gz`, `segments.jsonl.gz`,
+`pairs.jsonl.gz`, `quality_decisions.jsonl.gz`, `pair_exclusions.jsonl.gz` and
+`COMPLETE.json`. Decisions cover every original and retain the previous filter
+result. Raw alignment is referenced by path and SHA256 rather than duplicated.
+All eight source/output hashes, original human references, parent IDs, disjoint
+chunk sets, complete word coverage, positive <=30s segment spans, ordered pairs
+and exclusions passed independent validation and exact Orange SHA256 readback.
+
+The actual `ASRDataset` loaded all complete published new manifests through the
+new Hydra configuration. The actual `ContextPrompt` builder verified empty first
+reference context and the preceding human label for the second segment, with
+reference training / generated validation / history one. Full `ASRAgentLoop`
+import was unavailable in this local QA environment because of existing
+`torchvision` and `transfer_queue` dependencies; its unchanged implementation
+had passed the earlier full-agent QA. Two native Orange timed selectors from a
+newly restored one-outlier parent exactly matched decoded parent slices: 423,680
+and 367,360 frames at 16 kHz. This is sampled audio QA, not a hash of all recordings.
+The QA-only Blob buffer was 16 KiB; shared packages and reader semantics were preserved.
+
+New configurations:
+
+- [Filtered originals](hc_fy24q3_1_filtered_word_0_5_max1.yaml).
+- [Word-timed segments](hc_fy24q3_1_segments_word_0_5_max1.yaml).
+- [Two-segment reference pairs](hc_fy24q3_1_2segments_reference_context_word_0_5_max1.yaml).
+- [Composed reference-context configuration](hc_fy24q3_1_reference_context_training_word_0_5_max1.yaml).
+- [Training entry](../../../v2611_dev/long/hc_fy24q3_1_reference_context_word_0_5_max1.yaml).
+
+Print the new training configuration from the repository root in an ASR environment:
+
+```bash
+python -m recipe.phimm.main_asr_remax \
+  --config-path config \
+  --config-name v2611_dev/long/hc_fy24q3_1_reference_context_word_0_5_max1 \
+  "hydra.searchpath=[file://${PWD}/verl/trainer/config]" \
+  --cfg job
+```
+
+The entry expects 21,661 training rows and leaves the ASR checkpoint unset.
+The checkpoint, matching tokenizer/audio processor/chat template, registered
+`hf_qwen35_audio` model extensions, prompt/response limits and resource settings
+must follow the constraints documented below. This change does not launch training.
+
+Reproduce one shard with the immutable alignment runner present:
+
+```bash
+python scripts/refilter_long_human_captions.py \
+  --input <aligned_v1/shard-000i/raw_segments.jsonl> \
+  --source-receipt <aligned_v1/shard-000i/ALIGNMENT_COMPLETE.json> \
+  --output-dir <fresh-new-output-directory> \
+  --minimum-word-seconds 0 --maximum-word-seconds 5 --maximum-outlier-words 1
+```
+
+## Original strict-filter version (aligned_v1)
 
 | Version / configuration | Rows | Contents |
 | --- | ---: | --- |
@@ -57,7 +164,7 @@ Each shard retains `raw_segments.jsonl`, `filtered_originals.jsonl.gz`,
 owned-cache release ledger. The original plain manifest is 6,494,121,026 bytes,
 SHA256 `84fd8a19498f19bf119778e85a29a65c7dcde05bcde3dc26c19336f22ab3ca1e`.
 
-## References and selection policy
+## References and original strict-filter selection policy
 
 References are the exact normalized `tn_transcription` from locally read `.info`,
 with `transcription_source=display_human_caption_adjusted`. Stored binary
