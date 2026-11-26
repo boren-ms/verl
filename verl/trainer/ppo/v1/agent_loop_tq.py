@@ -33,6 +33,7 @@ from verl.experimental.agent_loop import (
 )
 from verl.utils.ray_utils import auto_await
 from verl.utils.tensordict_utils import list_of_dict_to_tensordict
+from verl.utils.transferqueue_utils import async_kv_batch_put_verified
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("VERL_LOGGING_LEVEL", "INFO"))
@@ -221,7 +222,7 @@ class AgentLoopWorkerTQBase(AgentLoopWorker):
                 }
             )
 
-        await tq.async_kv_batch_put(
+        await async_kv_batch_put_verified(
             keys=keys,
             fields=list_of_dict_to_tensordict(fields),
             tags=tags,

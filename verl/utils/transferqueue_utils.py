@@ -316,8 +316,62 @@ async def async_kv_batch_meta2batch_meta(meta: KVBatchMeta) -> BatchMeta:
             fields = [fields]
         batch_meta = batch_meta.select_fields(fields)
 
+    if meta.keys and (
+        batch_meta.size != len(meta.keys)
+        or not batch_meta.field_names
+        or not all(batch_meta.production_status == 1)
+        or (fields is not None and set(fields) - set(batch_meta.field_names))
+    ):
+        raise RuntimeError(
+            f"Incomplete TransferQueue metadata in partition {meta.partition_id}: "
+            f"requested_samples={len(meta.keys)}, retrieved_samples={batch_meta.size}, "
+            f"requested_fields={fields}, retrieved_fields={batch_meta.field_names}. "
+            "Verify storage production acknowledgements before dispatching this batch."
+        )
+
     batch_meta.extra_info = meta.extra_info
     return batch_meta
+
+
+def kv_batch_put_verified(**kwargs) -> KVBatchMeta:
+    """Verify synchronous writes, including synthetic padding, before returning."""
+    return _run_async_in_temp_loop(async_kv_batch_put_verified, **kwargs)
+
+
+async def async_kv_batch_put_verified(*, keys, partition_id, fields, tags, max_attempts=3) -> KVBatchMeta:
+    """Commit trajectory data before publishing success to the replay buffer.
+
+    Some TransferQueue releases log a production ACK timeout but still return
+    from put. Rewriting the same keys and values is idempotent; read the
+    controller metadata back before allowing the prompt to become finished.
+    """
+    expected_fields = set(fields.keys())
+    if max_attempts < 1 or not keys or not expected_fields:
+        raise ValueError("Verified trajectory writes require samples, fields, and at least one attempt")
+    # A success tag can be sampled immediately. Publish it only after all data
+    # fields are confirmed ready; retries must not expose a partial trajectory.
+    for attempt in range(1, max_attempts + 1):
+        result = await tq.async_kv_batch_put(keys=keys, partition_id=partition_id, fields=fields)
+        metadata = await tq.get_client().async_kv_retrieve_meta(keys=keys, partition_id=partition_id, create=False)
+        missing_fields = expected_fields - set(metadata.field_names)
+        if metadata.size == len(keys) and not missing_fields and all(metadata.production_status == 1):
+            await tq.async_kv_batch_put(keys=keys, partition_id=partition_id, tags=tags)
+            result.tags = tags
+            return result
+        logger.warning(
+            "Unconfirmed trajectory write in partition %s: attempt=%d/%d, samples=%d/%d, missing_fields=%s",
+            partition_id,
+            attempt,
+            max_attempts,
+            metadata.size,
+            len(keys),
+            sorted(missing_fields),
+        )
+    raise RuntimeError(
+        f"TransferQueue trajectory write remained unconfirmed in partition {partition_id} "
+        f"after {max_attempts} attempts: samples={metadata.size}/{len(keys)}, "
+        f"missing_fields={sorted(missing_fields)}"
+    )
 
 
 def kv_batch_meta2batch_meta(meta: KVBatchMeta):

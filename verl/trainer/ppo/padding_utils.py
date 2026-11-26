@@ -36,6 +36,7 @@ except ImportError:
 
 from verl.utils.model import compute_position_id_with_mask
 from verl.utils.tensordict_utils import list_of_dict_to_tensordict
+from verl.utils.transferqueue_utils import kv_batch_put_verified
 
 logger = logging.getLogger(__name__)
 
@@ -176,7 +177,7 @@ def upsample_batch_to_divisible_size(
         pad_fields.append(sample)
         pad_tags.append(copy.deepcopy(template_tag))
 
-    tq.kv_batch_put(
+    kv_batch_put_verified(
         keys=pad_keys,
         partition_id=batch.partition_id,
         fields=list_of_dict_to_tensordict(pad_fields),
