@@ -1,0 +1,65 @@
+# @package _global_
+# Self-contained Contig23 GSPO config on moe_fisher_contiguous23 (no speaker tags):
+# reference-text history2 training, generated-text CORAAL-only validation (no Earnings).
+
+defaults:
+  - /v2611_dev/base@_global_
+  - /data/train_data/offline_audio/moe_fisher_contiguous23@_fisher_contiguous23_train
+  - /data/val_data/openasr/coraal_seg_verb_langhint_zip@_coraal_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+  actor:
+    optim:
+      lr: 1.2e-6
+    policy_loss:
+      loss_mode: gspo
+    loss_agg_mode: seq-mean-token-mean
+    clip_ratio_low: 3.0e-4
+    clip_ratio_high: 4.0e-4
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
+algorithm:
+  adv_estimator: remax
+  rollout_correction:
+    bypass_mode: false
+
+data:
+  train_batch_size: 128
+  max_audio_dur: null
+  max_prompt_length: 4096
+  train_data: ${_fisher_contiguous23_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: moe_fisher, sample: null, shuffle: true}
+  val_data:
+    - ${_coraal_val}
+
+reward_map:
+  moe_fisher: train_librispeech
+  coraal: val_openasr_en
+
+asr:
+  expected_training_rows: 266458
+  expected_training_steps: 1576
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 2
+    training_source: reference
+    validation_source: generated
+
+trainer:
+  experiment_name: remax_moe_fisher_contiguous23_reference_text_history2_gspo_coraal
+  save_freq: 100
+  test_freq: 100
+  total_epochs: 1
+  total_training_steps: 1576
+  val_only: false
+  resume_mode: disable
+  resume_from_path: null

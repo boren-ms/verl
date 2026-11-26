@@ -1,0 +1,19 @@
+# @package data.val_data
+# CORAAL-only slice of openlong_seg_verb_langhint_zip.yaml (excludes Earnings21/22).
+# Audio fields use Bitbank audio.zip!offset:length#start:end references.
+# val_batch_size=-1 keeps parent groups complete for grouped long-audio scoring.
+
+- dataset_name: jsonl
+  val_batch_size: -1
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Evaluation/OpenASR_long_seg_presegment_30s/coraal/*/test-*/data_zip.jsonl
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: coraal
+    verl_format:
+      prompt_key: prompt
+      extra_keys: ["id", "language", "audio_path", "parent_audio_path", "seg_index", "n_segments", "seg_start", "seg_end"]
