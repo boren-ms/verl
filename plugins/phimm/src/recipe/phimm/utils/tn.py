@@ -1,22 +1,11 @@
-# %%
-from whisper_normalizer.english import EnglishTextNormalizer
-from whisper_normalizer.basic import BasicTextNormalizer
 import jiwer.transforms as tr
-from recipe.phimm.utils.shared import is_list
-from recipe.phimm.utils.open_asr_normalizer import EnglishTextNormalizer as OpenASREnglishNormalizer
 from recipe.phimm.utils.open_asr_normalizer import BasicMultilingualTextNormalizer as OpenASRMultilingualNormalizer
+from recipe.phimm.utils.open_asr_normalizer import EnglishTextNormalizer as OpenASREnglishNormalizer
 from recipe.phimm.utils.open_asr_normalizer import PortugueseNormalizer as OpenASRPortugueseNormalizer
 from recipe.phimm.utils.open_asr_normalizer.hf_english_normalizer import _HFEnglishTextNormalizer
-
-
-class RemovePunctuationExclude(tr.RemovePunctuation):
-    """RemovePunctuation excluding certain characters."""
-
-    def __init__(self, exclude=None):
-        super().__init__()
-        self.exclude = exclude or []
-        self.tokens_to_remove = [x for x in self.tokens_to_remove if x not in self.exclude]
-        # print(f"tokens_to_remove: {self.tokens_to_remove}")
+from recipe.phimm.utils.shared import is_list
+from whisper_normalizer.basic import BasicTextNormalizer
+from whisper_normalizer.english import EnglishTextNormalizer
 
 
 def identity(text):
@@ -43,37 +32,16 @@ def voi_hi(text):
     return " ".join(standardize_hypothesis(text, "hi"))
 
 
-def simple_with_tag(text):
-    """Simple normalization function."""
-    norm = tr.Compose(
-        [
-            tr.ToLowerCase(),
-            # tr.ExpandCommonEnglishContractions(),
-            # tr.RemovePunctuation(),
-            RemovePunctuationExclude(exclude=["*"]),
-            tr.RemoveWhiteSpace(replace_by_space=True),
-            tr.RemoveMultipleSpaces(),
-            tr.Strip(),
-            tr.ReduceToSingleSentence(),
-            # tr.ReduceToListOfListOfWords(),
-        ]
-    )
-    return norm(text)
-
-
-def simple(text):
-    """Simple normalization function."""
-    norm = tr.Compose(
-        [
-            tr.ToLowerCase(),
-            tr.RemovePunctuation(),
-            tr.RemoveWhiteSpace(replace_by_space=True),
-            tr.RemoveMultipleSpaces(),
-            tr.Strip(),
-            tr.ReduceToSingleSentence(),
-        ]
-    )
-    return norm(text)
+_SIMPLE_NORM = tr.Compose(
+    [
+        tr.ToLowerCase(),
+        tr.RemovePunctuation(),
+        tr.RemoveWhiteSpace(replace_by_space=True),
+        tr.RemoveMultipleSpaces(),
+        tr.Strip(),
+        tr.ReduceToSingleSentence(),
+    ]
+)
 
 
 TN_DICT = {
@@ -81,8 +49,7 @@ TN_DICT = {
     "identity": identity,
     "lower": lower,
     "basic": BasicTextNormalizer(),
-    "simple": simple,
-    "simple_with_tag": simple_with_tag,
+    "simple": _SIMPLE_NORM,
     "openasr_en": OpenASREnglishNormalizer(),
     "hf_english": _HFEnglishTextNormalizer(),
     "openasr_ml": OpenASRMultilingualNormalizer(),

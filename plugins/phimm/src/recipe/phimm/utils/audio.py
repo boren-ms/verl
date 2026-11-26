@@ -7,8 +7,8 @@ import blobfile as bf
 import numpy as np
 import soundfile as sf
 from cachetools import FIFOCache, cached
-
 from recipe.phimm.data.chunk import load_chunk_example, load_chunk_sample
+
 from verl.audio_cache import localize_audio_source, split_audio_sources
 from verl.audio_chunk import read_chunk_audio, split_chunk_audio_source
 from verl.audio_zip import read_zip_audio, split_zip_audio_source
@@ -332,20 +332,3 @@ def load_audio(x, max_dur=None, min_dur=0.16):
             "use shorter segments or set data.max_audio_dur=null"
         )
     return limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur)
-
-
-def load_raw_audios(x):  # x is batched
-    from itertools import zip_longest
-
-    audio_paths = x.get("audio_path") or x.get("audio_file") or []
-    audio_chunks = x.get("audio_chunk", [])
-
-    for audio_path, audio_chunk in zip_longest(audio_paths, audio_chunks, fillvalue=None):
-        source = audio_path or audio_chunk
-        if not source:
-            raise ValueError("No audio data found in the input dictionary.")
-        yield _load_audio_source(source)
-
-
-def load_audios(x, max_dur=None, min_dur=0.16):  # x is batched
-    return [limit_audio(data, fs, max_dur=max_dur, min_dur=min_dur) for data, fs in load_raw_audios(x)]

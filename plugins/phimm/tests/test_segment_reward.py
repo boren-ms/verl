@@ -3,7 +3,6 @@
 import importlib
 
 import pytest
-
 from recipe.phimm.reward.asr_measure import _parse_response, check_lang, compute_score, lang_score
 from recipe.phimm.reward.asr_response import get_hyp_text, parse_task_output
 from recipe.phimm.reward.asr_vote import compute_score as vote_score
@@ -151,6 +150,23 @@ def test_measure_reward_accepts_segment_list():
         reduce="mean",
     )
     assert result == {"score": pytest.approx(2.5 / 3), "word": 1, "lang": 0.5, "fmt": 1}
+
+
+def test_requested_measures_skip_unconfigured_alignments_and_empty_keywords(monkeypatch):
+    from recipe.phimm.reward import asr_measure
+
+    def fail(*args, **kwargs):
+        raise AssertionError("Unconfigured metric helper should not execute")
+
+    monkeypatch.setattr(asr_measure, "compute_fmt_acc", fail)
+    monkeypatch.setattr(asr_measure, "compute_openml_acc", fail)
+    monkeypatch.setattr(asr_measure, "process_characters", fail)
+    options = {
+        "measures": {"word": {"vote": "delta"}, "word_kw": {"vote": "delta"}, "lang": {"vote": "abs"}},
+        "extra_info": {"language": "English", "keywords": [""]},
+    }
+    baseline = vote_score(response("hello world"), "hello world", **options)
+    assert baseline == {"score": 0.0, "word": 1.0, "word_kw": 1.0, "lang": 1.0}
 
 
 def test_openasr_validation_scores_full_text_and_cross_segment_keywords():

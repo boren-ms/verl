@@ -12,6 +12,7 @@ actor_rollout_ref:
 asr:
   context_aware:
     enable: true
+    validation_source: generated
     mode: text
     max_history: 1
     max_terms: -1

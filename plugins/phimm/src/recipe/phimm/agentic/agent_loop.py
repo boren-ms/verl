@@ -7,7 +7,6 @@ from uuid import uuid4
 
 import ray
 import torch
-
 from recipe.phimm.agentic.context_prompt import (
     DEFAULT_CONTEXT_MODE,
     DEFAULT_MAX_BIAS_TERMS,
@@ -15,11 +14,12 @@ from recipe.phimm.agentic.context_prompt import (
     context_options,
     context_source,
 )
-from recipe.phimm.agentic.details import RUNTIME_FIELDS, validation_detail
+from recipe.phimm.agentic.details import expand_segments, validation_detail
 from recipe.phimm.agentic.sampling import sampling_params_for_row
 from recipe.phimm.agentic.scoring import score_response
 from recipe.phimm.reward.asr_response import get_hyp_text
 from recipe.phimm.utils.audio import load_audio
+
 from verl.experimental.agent_loop.agent_loop import AgentLoopBase, AgentLoopOutput, DictConfigWrap, register
 from verl.trainer.ppo.v1.agent_loop_tq import AgentLoopManagerTQ, AgentLoopWorkerTQBase
 from verl.utils.profiler import simple_timer
@@ -147,11 +147,7 @@ class ASRAgentLoop(AgentLoopBase):
 
     async def greedy_baseline(self, row):
         params = dict(temperature=0.0, top_p=1.0, top_k=-1, logprobs=False)
-        shared = {key: value for key, value in row.items() if key not in RUNTIME_FIELDS}
-        rows = [
-            {**shared, **segment, "extra_info": {**(row.get("extra_info") or {}), **(segment.get("extra_info") or {})}}
-            for segment in row.get("asr_segments", [{}])
-        ]
+        rows = expand_segments(row)
         # validate=True selects greedy decoding limits. This is still a
         # training trajectory: it shares fixed reference inputs with sampled
         # training, or builds its own generated history under the default policy.
@@ -167,12 +163,7 @@ class ASRAgentLoop(AgentLoopBase):
 
     async def run(self, sampling_params, **kwargs):
         validate = kwargs["asr_validate"]
-        segments = kwargs["asr_segments"]
-        row = {key: value for key, value in kwargs.items() if key not in RUNTIME_FIELDS}
-        rows = [
-            {**row, **segment, "extra_info": {**(row.get("extra_info") or {}), **(segment.get("extra_info") or {})}}
-            for segment in segments
-        ]
+        rows = expand_segments(kwargs, kwargs["asr_segments"])
         outputs, texts = await self.generate_segments(
             rows, sampling_params, validate=validate, global_steps=kwargs.get("global_steps")
         )

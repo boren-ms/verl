@@ -54,6 +54,43 @@ def test_validation_source_supports_native_overrides(compose_recipe, source):
     assert context_source(config.asr.context_aware, training=False, global_steps=201) == expected
 
 
+@pytest.mark.parametrize(
+    "name,expected_val_source",
+    [
+        ("eval_openlong_context_zip", "generated"),
+        ("eval_enus_eer_prompt_h1", "generated"),
+        ("eval_enus_eer_prompt_off", "none"),
+        ("eval_openlong_reference_context_zip", "reference"),
+    ],
+)
+def test_context_eval_presets_select_intended_validation_source(compose_recipe, name, expected_val_source):
+    from recipe.phimm.agentic.context_prompt import context_options, context_source
+
+    config = compose_recipe(
+        kind="eval",
+        name=name,
+        overrides=["trainer.experiment_name=eval-ctx", "actor_rollout_ref.model.path=/models/merged"],
+    )
+    assert context_source(context_options(config.asr), training=False, global_steps=0) == expected_val_source
+
+
+@pytest.mark.parametrize(
+    "name,expected_enabled",
+    [
+        ("remax_earnings_short_contiguous23_mix_context", True),
+        ("remax_earnings_short_contiguous23_mix_no_context", False),
+        ("remax_earnings_short_contiguous23_sc_mix_context", True),
+        ("remax_earnings_short_contiguous23_sc_mix_no_context", False),
+        ("remax_earnings_short_contiguous23_sc_fl_mix_no_context", False),
+    ],
+)
+def test_earnings_mix_configs_keep_structured_context_options(compose_recipe, name, expected_enabled):
+    config = compose_recipe(kind="earnings", name=name)
+    OmegaConf.resolve(config)
+    assert config.asr.context_aware.enable is expected_enabled
+    assert config.asr.context_aware.mode == "text"
+
+
 @pytest.mark.parametrize("mode", ["text", "bias"])
 def test_two_response_presets_preserve_contiguous23_training(compose_recipe, mode):
     base = compose_recipe(kind="earnings", name="prompt_ctx/remax_earnings_short_contiguous23_full_bias")
@@ -312,9 +349,10 @@ def test_evaluation_composes_native_base_without_training_manifests(compose_reci
     assert config.data.val_batch_size == 768
     assert config.data.train_data == config.data.val_data
     configs = [item for group in config.data.val_data for item in (group if OmegaConf.is_list(group) else [group])]
-    assert len(configs) == 35
+    assert len(configs) == 33
     sources = {item.post_process.add_field.fields.data_source for item in configs}
-    assert {"eslo_telephony_fr", "accueil_ubs_fr"} <= sources
+    assert {"eslo_telephony_fr", "accueil_ubs_fr"}.isdisjoint(sources)
+    assert {"zh_fleurs", "zh_aishell1", "vi_fleurs", "vi_mcv"} <= sources
     for source in sources:
         scorer = config.reward_map.get(source, source)
         assert scorer.startswith("val_"), source
@@ -329,7 +367,6 @@ def test_evaluation_requires_explicit_model_and_experiment(compose_recipe):
 
 def test_raw_dataset_mixes_without_loading_audio_or_tokenizing(monkeypatch):
     import datasets
-
     from recipe.phimm.agentic import dataset
 
     sources = {
@@ -379,7 +416,9 @@ def test_raw_dataset_mixes_without_loading_audio_or_tokenizing(monkeypatch):
     assert len(train) == 5
     row = train[0]
     assert row["raw_prompt"] == row["prompt"]
-    assert row["asr_segments"] == [dict(train.ds[0])]
+    assert row["asr_segments"] == [{}]
+    for key, value in train.ds[0].items():
+        assert row[key] == value
     assert not row["asr_validate"]
     assert "input_ids" not in row and "multi_modal_inputs" not in row
     val = dataset.ASRDataset("val", tokenizer=object(), config=config, max_samples=2)
@@ -435,7 +474,6 @@ def test_incomplete_eval_fails_before_initializing_gpu_workers(compose_recipe):
 
 def test_removed_transform_is_rejected():
     import datasets
-
     from recipe.phimm.data.dataset import process_ds
 
     with pytest.raises(ValueError, match="Unsupported Base3a data transforms"):
@@ -450,7 +488,6 @@ def test_entrypoint_sends_resolved_config_to_fresh_worker(compose_recipe, monkey
     from types import ModuleType
 
     import ray
-
     from recipe.phimm.main_asr_remax import main
 
     received = []
@@ -541,7 +578,6 @@ def test_sampling_applies_configured_no_repeat_window(compose_recipe, validate, 
 
 def test_jsonl_loading_reads_updated_manifest_without_dataset_disk_cache(tmp_path, monkeypatch):
     import datasets
-
     from recipe.phimm.data.dataset import create_audio_dataset
 
     def forbidden(*args, **kwargs):
