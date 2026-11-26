@@ -78,8 +78,11 @@ def measure(hyp, ref, tgt_lang="english", **kwargs):
     """Normalize and align text using the recipe's existing SequenceMatcher rules."""
     norm_name = kwargs.get("text_norm")
     unit = kwargs.get("unit", "word")
-    ref_text = normalize_text(ref, name=norm_name, lang=tgt_lang)
-    hyp_text = normalize_text(hyp, name=norm_name, lang=tgt_lang)
-    if kwargs.get("compound_norm", False):
-        [ref_text], [hyp_text] = normalize_compound_pairs([ref_text], [hyp_text])
+    if "normalized_pair" in kwargs:
+        ref_text, hyp_text = kwargs["normalized_pair"]
+    else:
+        ref_text = normalize_text(ref, name=norm_name, lang=tgt_lang)
+        hyp_text = normalize_text(hyp, name=norm_name, lang=tgt_lang)
+        if kwargs.get("compound_norm", False):
+            [ref_text], [hyp_text] = normalize_compound_pairs([ref_text], [hyp_text])
     return _count_ops(_split_units(ref_text, unit=unit), _split_units(hyp_text, unit=unit))

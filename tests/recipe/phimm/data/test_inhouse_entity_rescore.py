@@ -1,6 +1,7 @@
 """Rescoring consumes the exact saved recording outputs and original references."""
 
 import json
+import sys
 from unittest.mock import Mock
 
 import pytest
@@ -61,3 +62,56 @@ def test_rescore_rejects_changed_or_incomplete_inputs(monkeypatch, corruption):
     with pytest.raises(ValueError):
         rescore.rescore_row(row, expected, "/pack")
     scorer.assert_not_called()
+
+
+def test_main_accumulates_details_across_datasets(monkeypatch, tmp_path):
+    row, expected, detail = fixture()
+    compact_detail = {
+        "extra_info": detail["parent_info"],
+        "asr_segments": detail["segment_rows"],
+        "segment_outputs": detail["segment_outputs"],
+        "previous_contexts": detail["previous_contexts"],
+    }
+    row["asr_detail"] = json.dumps(compact_detail)
+    manifest = tmp_path / "manifest.jsonl"
+    manifest.write_text(json.dumps(expected) + "\n")
+    detail_path = tmp_path / "0.jsonl"
+    detail_path.write_text(json.dumps(row) + "\n")
+    summary_path = tmp_path / "summary.json"
+    summary_path.write_text(
+        json.dumps(
+            {
+                "suite": "eer",
+                "result_root": str(tmp_path),
+                "model_label": "test",
+                "prompt_style": "display",
+                "context_mode": "independent",
+                "language_hint": "English",
+                "primary_eer": 1.0,
+                "total": {"parents": 1, "segments": 2},
+                "datasets": [
+                    {
+                        "dataset": "banking",
+                        "manifest": str(manifest),
+                        "detail_path": str(detail_path),
+                        "parents": 1,
+                        "segments": 2,
+                        "eer_n_err": 1,
+                        "eer_n_ref": 1,
+                        "eer": 1.0,
+                    }
+                ],
+            }
+        )
+    )
+    out_dir = tmp_path / "out"
+    monkeypatch.setattr(rescore.measure, "ensure_pack_dir", lambda path: path)
+    monkeypatch.setattr(rescore.measure, "_compute_eer", lambda *args, **kwargs: (0, 1, 0.0))
+    monkeypatch.setattr(
+        sys, "argv", ["inhouse_entity_rescore", "--summary", str(summary_path), "--output-dir", str(out_dir)]
+    )
+    rescore.main()
+    saved_details = [json.loads(line) for line in (out_dir / "details.jsonl").read_text().splitlines()]
+    saved_summary = json.loads((out_dir / "summary.json").read_text())
+    assert len(saved_details) == 1 and saved_details[0]["id"] == "recording"
+    assert saved_summary["changed_recordings"] == 1

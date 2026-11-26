@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import ast
-import json
 import re
 from collections.abc import Mapping, Sequence
 
@@ -153,50 +151,3 @@ def has_tail_hallucination(hyp, ref=None, min_words=3, tn_name=None, lang="engli
         return False
     n_extra = (j2 - j1) - (i2 - i1)
     return n_extra >= min_words
-
-
-def to_keyword_list(raw_keywords):
-    """Normalize a keyword field into a list of strings.
-
-    Supports list/tuple/set, JSON/python-literal serialized strings, and scalars.
-    """
-    if raw_keywords is None:
-        return []
-    if is_list(raw_keywords) or isinstance(raw_keywords, tuple | set):
-        return [str(x) for x in raw_keywords]
-    if isinstance(raw_keywords, str):
-        s = raw_keywords.strip()
-        if not s:
-            return []
-        for parse_fn in (json.loads, ast.literal_eval):
-            try:
-                parsed = parse_fn(s)
-            except Exception:
-                continue
-            if is_list(parsed) or isinstance(parsed, tuple | set):
-                return [str(x) for x in parsed]
-        return [s]
-    return [str(raw_keywords)]
-
-
-def has_missing_keyword(keywords, response, norm_name=None, lang="english"):
-    """Return True when any normalized keyword is absent in normalized response.
-
-    If ``norm_name`` is not provided, falls back to ``default_tn_name(lang)``.
-    """
-    from recipe.phimm.utils.tn import default_tn_name, text_norm
-
-    norm_name = norm_name or default_tn_name(lang)
-
-    keywords = to_keyword_list(keywords)
-    if not keywords:
-        return False
-
-    norm_response = text_norm(str(response or ""), norm_name)
-    for kw in keywords:
-        norm_kw = text_norm(str(kw), norm_name).strip()
-        if not norm_kw:
-            continue
-        if re.search(re.escape(norm_kw), norm_response) is None:
-            return True
-    return False

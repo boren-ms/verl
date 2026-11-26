@@ -27,7 +27,8 @@ data:
         - {name: quartr_3rd38, sample: 12310, shuffle: true}
 
 asr:
-  context_aware: true
+  context_aware:
+    enable: true
   expected_training_rows: 50480
   expected_training_steps: 788
 

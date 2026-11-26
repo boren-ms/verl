@@ -9,6 +9,7 @@ defaults:
 asr:
   context_aware:
     enable: true
+    validation_source: generated
 
 data:
   # Reserve room for the previous segment in addition to the audio prompt.

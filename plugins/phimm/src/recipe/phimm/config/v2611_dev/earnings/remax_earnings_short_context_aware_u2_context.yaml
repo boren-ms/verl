@@ -10,3 +10,7 @@ trainer:
 
 data:
   train_data: ${_offline_train_2da16b5c01}
+
+asr:
+  context_aware:
+    validation_source: generated

@@ -8,7 +8,6 @@ from itertools import repeat
 from pathlib import Path
 
 import blobfile as bf
-
 from recipe.phimm.reward import asr_inhouse_measure as measure
 from recipe.phimm.reward.asr_response import get_hyp_text
 
@@ -83,8 +82,8 @@ def main():
         expected = _read_rows(dataset["manifest"], args.cache_dir)
         references = {row["id"]: row for row in expected}
         rows = _read_rows(dataset["detail_path"], args.cache_dir)
-        details = (json.loads(row["asr_detail"]) for row in rows)
-        ids = [detail.get("extra_info", detail.get("parent_info", {}))["id"] for detail in details]
+        parsed_details = (json.loads(row["asr_detail"]) for row in rows)
+        ids = [detail.get("extra_info", detail.get("parent_info", {}))["id"] for detail in parsed_details]
         if len(references) != len(expected) or len(set(ids)) != len(ids) or set(ids) != set(references):
             raise ValueError("Duplicate, missing or unexpected saved recording")
         with ThreadPoolExecutor(args.workers) as executor:

@@ -138,6 +138,7 @@ def openasr_en_eval(solution_str: str | list[str], ground_truth, **kwargs):
         keywords=extra_info.get("keywords"),
         text_norm="hf_english",
         tgt_lang="english",
+        include_char=False,
     )
     return {
         "score": 1.0 - result["wer"],

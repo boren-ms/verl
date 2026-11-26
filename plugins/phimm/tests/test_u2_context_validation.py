@@ -17,6 +17,7 @@ def test_u2_context_config_preserves_training_and_clip_inputs():
         config = compose(config_name="remax_earnings_short_context_aware_u2_context")
     OmegaConf.resolve(config)
     assert config.asr.context_aware.enable
+    assert config.asr.context_aware.validation_source == "generated"
     assert config.data.get("validation_reference_scope", "parent") == "parent"
     for key in ("train_data", "mix", "train_batch_size"):
         assert config.data[key] == base.data[key]
@@ -92,7 +93,6 @@ def test_full_reference_builder_retains_clips_and_uses_original_parent_text():
 
 def test_full_u2_dataset_groups_and_keeps_parent_reference_once(monkeypatch):
     import datasets
-
     from recipe.phimm.agentic import dataset
 
     rows = [
@@ -138,6 +138,7 @@ def test_u2_decode_pair_only_changes_context_and_identity():
     for config in configs:
         assert config.trainer.val_only and config.trainer.resume_mode == "disable"
         assert config.actor_rollout_ref.model.lora_rank == 0
+        assert config.asr.context_aware.validation_source == "generated"
         assert config.data.get("validation_reference_scope", "parent") == "parent"
         assert config.trainer.nnodes == 2 and config.trainer.n_gpus_per_node == 8
     # Normalize identity before resolution so all derived artifact paths match.

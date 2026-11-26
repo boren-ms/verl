@@ -15,10 +15,36 @@ from itertools import zip_longest
 from numbers import Real
 
 from jiwer import process_characters, process_words
-
 from recipe.phimm.reward.asr_metrics import measure, normalize_text
 from recipe.phimm.reward.asr_response import get_hyp_text, parse_response_outputs
 from recipe.phimm.utils.languages import LANGUAGES, get_language_code
+
+ALL_MEASURES = frozenset(
+    {
+        "fixed",
+        "char",
+        "char_del",
+        "char_ins",
+        "char_kw",
+        "word",
+        "word_del",
+        "word_ins",
+        "word_kw",
+        "keyword",
+        "punc",
+        "cap",
+        "lex",
+        "lang",
+        "fmt",
+        "char_lang",
+        "word_lang",
+        "word_fmt",
+        "bracket",
+        "bracket_del",
+        "repeat",
+        "tail_hallu",
+    }
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -309,6 +335,8 @@ def compute_kw_score(
     keywords: list[str] | None = None,
     text_norm: str | None = None,
     tgt_lang: str = "english",
+    include_char: bool = True,
+    normalized_pair: tuple[str, str] | None = None,
 ) -> dict[str, float | int]:
     """Return keyword rewards and evaluation counts.
 
@@ -318,41 +346,51 @@ def compute_kw_score(
     Both denominators are at least one for empty references.
     ``kw_nerr`` and ``kw_nref`` are keyword-only counts for evaluation reporting.
     """
-    if not keywords:
+    kw_words = [
+        words
+        for keyword in (keywords or ())
+        if keyword and (words := normalize_text(keyword, name=text_norm, lang=tgt_lang).split())
+    ]
+    if not kw_words:
         return {"word_kw": 1.0, "char_kw": 1.0, "keyword": 1.0, "kw_nerr": 0, "kw_nref": 0}
 
-    ref_words = normalize_text(ref or "", name=text_norm, lang=tgt_lang).split()
-    hyp_words = normalize_text(hyp or "", name=text_norm, lang=tgt_lang).split()
-    normalized_keywords = [normalize_text(keyword, name=text_norm, lang=tgt_lang) for keyword in keywords]
-    kw_words = [keyword.split() for keyword in normalized_keywords]
+    if normalized_pair is None:
+        ref_words = normalize_text(ref or "", name=text_norm, lang=tgt_lang).split()
+        hyp_words = normalize_text(hyp or "", name=text_norm, lang=tgt_lang).split()
+    else:
+        ref_words = normalized_pair[0].split()
+        hyp_words = normalized_pair[1].split()
     ref_keyword_indices = _keyword_indices(ref_words, kw_words)
     hyp_keyword_indices = _keyword_indices(hyp_words, kw_words)
 
     output = process_words(" ".join(ref_words), " ".join(hyp_words))
     errors, references = _keyword_error_counts(output.alignments[0], ref_keyword_indices, hyp_keyword_indices)
 
-    ref_chars = list("".join(ref_words))
-    hyp_chars = list("".join(hyp_words))
-    kw_chars = [list("".join(keyword)) for keyword in kw_words]
-    ref_keyword_char_indices = _keyword_indices(ref_chars, kw_chars)
-    hyp_keyword_char_indices = _keyword_indices(hyp_chars, kw_chars)
-    char_output = process_characters("".join(ref_chars), "".join(hyp_chars))
-    char_errors, _ = _keyword_error_counts(
-        char_output.alignments[0],
-        ref_keyword_char_indices,
-        hyp_keyword_char_indices,
-    )
+    char_kw = 1.0
+    if include_char:
+        ref_chars = list("".join(ref_words))
+        hyp_chars = list("".join(hyp_words))
+        kw_chars = [list("".join(keyword)) for keyword in kw_words]
+        ref_keyword_char_indices = _keyword_indices(ref_chars, kw_chars)
+        hyp_keyword_char_indices = _keyword_indices(hyp_chars, kw_chars)
+        char_output = process_characters("".join(ref_chars), "".join(hyp_chars))
+        char_errors, _ = _keyword_error_counts(
+            char_output.alignments[0],
+            ref_keyword_char_indices,
+            hyp_keyword_char_indices,
+        )
+        char_kw = 1.0 - char_errors / max(len(ref_chars), 1)
 
     return {
         "word_kw": 1.0 - errors / max(len(ref_words), 1),
-        "char_kw": 1.0 - char_errors / max(len(ref_chars), 1),
+        "char_kw": char_kw,
         "keyword": 1.0 - errors / max(references, 1),
         "kw_nerr": errors,
         "kw_nref": references,
     }
 
 
-def _parse_response(solution_str, ground_truth=None, **kwargs):
+def _parse_response(solution_str, ground_truth=None, *, requested=None, **kwargs):
     """Extract text, format/language, lexical, and edge-check accuracies.
 
     ``solution_str`` accepts a string or an ordered list of independent segment
@@ -385,43 +423,89 @@ def _parse_response(solution_str, ground_truth=None, **kwargs):
     version = kwargs.get("version")
     task_outputs = parse_response_outputs(solution_str, version=version)
     hyp_text = get_hyp_text(solution_str, version=version)
+    needed = ALL_MEASURES if requested is None else set(requested)
 
-    char_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", **kwargs)
-    word_error = measure(hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", **kwargs)
-    keyword_result = compute_kw_score(
-        ground_truth or "",
-        hyp_text,
-        keywords=extra_info.get("keywords"),
-        text_norm=kwargs.get("text_norm"),
-        tgt_lang=tgt_lang,
-    )
-    fmts = compute_fmt_acc(ground_truth or "", hyp_text or "")
-    openml_acc = compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs)
-    lang_acc = sum(check_lang(output, tgt_lang)["acc"] for output in task_outputs) / len(task_outputs)
-    fmt = sum(check_fmt(output) for output in task_outputs) / len(task_outputs)
-    char_acc = char_error.accuracy()
-    word_acc = word_error.accuracy()
-    n_total = max(word_error.n_ref, 1)
+    result: dict[str, float] = {"fixed": 1.0}
+    lang_acc = None
+    if needed & {"lang", "char_lang", "word_lang"}:
+        lang_acc = sum(check_lang(output, tgt_lang)["acc"] for output in task_outputs) / len(task_outputs)
+        result["lang"] = lang_acc
+    fmt = None
+    if needed & {"fmt", "word_fmt"}:
+        fmt = sum(check_fmt(output) for output in task_outputs) / len(task_outputs)
+        result["fmt"] = fmt
+    norm_pair = None
+    kw_pair = None
+    if needed & {
+        "char",
+        "char_del",
+        "char_ins",
+        "char_lang",
+        "word",
+        "word_del",
+        "word_ins",
+        "word_lang",
+        "word_fmt",
+        "word_kw",
+        "char_kw",
+        "keyword",
+    }:
+        norm_name = kwargs.get("text_norm")
+        ref_norm = normalize_text(ground_truth or "", name=norm_name, lang=tgt_lang)
+        hyp_norm = normalize_text(hyp_text, name=norm_name, lang=tgt_lang)
+        kw_pair = (ref_norm, hyp_norm)
+        if kwargs.get("compound_norm", False):
+            from recipe.phimm.utils.open_asr_normalizer.eval_utils import normalize_compound_pairs
 
-    return {
-        "fixed": 1.0,
-        "char": char_acc,
-        "char_del": char_error.accuracy(sub=0.0, ins=0.0),
-        "char_ins": char_error.accuracy(sub=0.0, **{"del": 0.0}),
-        "char_kw": keyword_result["char_kw"],
-        "word": word_acc,
-        "word_del": word_error.accuracy(sub=0.0, ins=0.0),
-        "word_ins": word_error.accuracy(sub=0.0, **{"del": 0.0}),
-        "word_kw": keyword_result["word_kw"],
-        "keyword": keyword_result["keyword"],
-        **fmts,
-        "lang": lang_acc,
-        "fmt": fmt,
-        "char_lang": 1.0 - (1.0 - char_acc) * (1.0 - lang_acc),
-        "word_lang": 1.0 - (1.0 - min(word_acc, 0.99)) * (1.0 - lang_acc),
-        "word_fmt": 1.0 - (1.0 - fmt) / n_total,
-        **openml_acc,
-    }
+            [ref_norm], [hyp_norm] = normalize_compound_pairs([ref_norm], [hyp_norm])
+        norm_pair = (ref_norm, hyp_norm)
+    if needed & {"char", "char_del", "char_ins", "char_lang"}:
+        char_error = measure(
+            hyp_text, ground_truth, tgt_lang=tgt_lang, unit="char", normalized_pair=norm_pair, **kwargs
+        )
+        char_acc = char_error.accuracy()
+        result.update(
+            char=char_acc,
+            char_del=char_error.accuracy(sub=0.0, ins=0.0),
+            char_ins=char_error.accuracy(sub=0.0, **{"del": 0.0}),
+        )
+        if lang_acc is not None:
+            result["char_lang"] = 1.0 - (1.0 - char_acc) * (1.0 - lang_acc)
+    if needed & {"word", "word_del", "word_ins", "word_lang", "word_fmt"}:
+        word_error = measure(
+            hyp_text, ground_truth, tgt_lang=tgt_lang, unit="word", normalized_pair=norm_pair, **kwargs
+        )
+        word_acc = word_error.accuracy()
+        n_total = max(word_error.n_ref, 1)
+        result.update(
+            word=word_acc,
+            word_del=word_error.accuracy(sub=0.0, ins=0.0),
+            word_ins=word_error.accuracy(sub=0.0, **{"del": 0.0}),
+        )
+        if lang_acc is not None:
+            result["word_lang"] = 1.0 - (1.0 - min(word_acc, 0.99)) * (1.0 - lang_acc)
+        if fmt is not None:
+            result["word_fmt"] = 1.0 - (1.0 - fmt) / n_total
+    if needed & {"word_kw", "char_kw", "keyword"}:
+        keyword_result = compute_kw_score(
+            ground_truth or "",
+            hyp_text,
+            keywords=extra_info.get("keywords"),
+            text_norm=kwargs.get("text_norm"),
+            tgt_lang=tgt_lang,
+            include_char="char_kw" in needed,
+            normalized_pair=kw_pair,
+        )
+        result.update(
+            char_kw=keyword_result["char_kw"],
+            word_kw=keyword_result["word_kw"],
+            keyword=keyword_result["keyword"],
+        )
+    if needed & {"punc", "cap", "lex"}:
+        result.update(compute_fmt_acc(ground_truth or "", hyp_text or ""))
+    if needed & {"bracket", "bracket_del", "repeat", "tail_hallu"}:
+        result.update(compute_openml_acc(hyp_text, ground_truth, tgt_lang, **kwargs))
+    return result
 
 
 def _lang_codes(lang) -> list[str]:
@@ -648,9 +732,11 @@ def compute_score(solution_str: str | list[str], ground_truth, **kwargs):
     scale = kwargs.get("scale", "constant")
     if scale not in ("constant", "char", "word"):
         raise ValueError(f"Unsupported score scale: {scale!r}. Expected 'constant', 'char', or 'word'.")
-    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
-
     measures = kwargs.get("measures") or {}
+    requested = set(measures) & ALL_MEASURES
+    if scale != "constant":
+        requested.add(scale)
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, requested=requested, **kwargs)
     reduction = kwargs.get("reduce", "sum")
     if isinstance(reduction, str):
         reduction = {"mode": reduction.lower()}

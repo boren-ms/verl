@@ -10,8 +10,7 @@ import math
 from numbers import Real
 
 from omegaconf import ListConfig
-
-from recipe.phimm.reward.asr_measure import _parse_response, clip, compute_delta, reduce_scores
+from recipe.phimm.reward.asr_measure import ALL_MEASURES, _parse_response, clip, compute_delta, reduce_scores
 
 
 def compute_vote(delta: float | None, low: float = -0.01, high: float = 0.01) -> float:
@@ -200,11 +199,11 @@ def compute_score(solution_str: str | list[str], ground_truth, **kwargs):
     if "score" in kwargs:
         raise ValueError("Configure ASR vote score per measure, not as a shared reward kwarg.")
 
-    parsed = _parse_response(solution_str, ground_truth=ground_truth, **kwargs)
     measures = kwargs.get("measures") or {}
-    unknown = set(measures) - parsed.keys()
+    unknown = set(measures) - ALL_MEASURES
     if unknown:
         raise ValueError(f"Unsupported ASR vote measures: {', '.join(sorted(unknown))}.")
+    parsed = _parse_response(solution_str, ground_truth=ground_truth, requested=set(measures), **kwargs)
 
     raw_scores = {}
     for name, cfg in measures.items():

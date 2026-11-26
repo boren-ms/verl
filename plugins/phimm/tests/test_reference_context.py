@@ -8,7 +8,6 @@ from pathlib import Path
 import pytest
 from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
-
 from recipe.phimm.agentic.dataset import ASRDataset
 from recipe.phimm.tools.offline_reference_context import materialize, reference_texts
 
@@ -86,7 +85,7 @@ def test_materialized_data_roundtrips_through_real_loader_without_changing_paren
     assert [seg["audio_path"] for seg in segments] == row["audio_path"]
     assert [seg["asr_reference_text"] for seg in segments] == references
     assert all("asr_reference_context" not in seg for seg in segments)
-    assert all(seg["reward_model"] == sample["reward_model"] for seg in segments)
+    assert all(set(seg) == {"audio_path", "asr_reference_text"} for seg in segments)
     assert all("asr_reference_context" not in seg for seg in ASRDataset("val", None, loaded.data)[0]["asr_segments"])
     preparation = json.loads((output / "preparation.json").read_text())
     assert preparation["validation_source"] == validation_source

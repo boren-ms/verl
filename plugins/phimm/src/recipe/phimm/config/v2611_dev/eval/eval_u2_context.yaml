@@ -20,6 +20,7 @@ data:
 asr:
   context_aware:
     enable: true
+    validation_source: generated
 
 reward_map:
   earnings21_u2: val_openasr_en
