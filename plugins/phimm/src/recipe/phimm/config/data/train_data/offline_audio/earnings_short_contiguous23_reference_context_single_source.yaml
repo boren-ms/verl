@@ -1,0 +1,22 @@
+# Shared datasource: contig23. Same 25,240 Contig23 windows with per-segment reference texts.
+# Based on offline_audio/earnings_short_contiguous23_reference_context.yaml.
+# Audit: tmp/run_openasr_exp/contig23_reftext_h2_400_20261125/preparation.json
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_000.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_001.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_002.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_003.jsonl.gz
+  - az://orngwus2cresco/data/boren/data/Training/earnings_short_contiguous23_reference_text_20261125_v1/source_004.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: contig23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - segment_reference_texts

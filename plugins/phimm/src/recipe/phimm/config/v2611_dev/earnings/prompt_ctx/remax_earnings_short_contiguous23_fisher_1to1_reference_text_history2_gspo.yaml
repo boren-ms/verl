@@ -1,0 +1,35 @@
+# @package _global_
+# Contig23 + MoE Fisher Contig23 (1:1 sample ratio) GSPO run:
+# reference-text training, generated-text validation, matched 1576 optimizer steps.
+defaults:
+  - remax_earnings_short_contiguous23_reference_text_history2_gspo
+  - /data/train_data/offline_audio/earnings_short_contiguous23_reference_context_single_source@_contig23_reference_train
+  - /data/train_data/offline_audio/moe_fisher_contiguous23@_fisher_reference_train
+  - _self_
+
+data:
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: contig23, sample: 100864, shuffle: true}
+        - {name: moe_fisher, sample: 100864, shuffle: true}
+  train_data:
+    - ${_contig23_reference_train}
+    - ${_fisher_reference_train}
+
+reward_map:
+  contig23: train_librispeech
+  moe_fisher: train_librispeech
+
+asr:
+  expected_training_rows: 201728
+  expected_training_steps: 1576
+  context_aware:
+    training_source: reference
+    validation_source: generated
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_fisher_1to1_reference_text_history2_gspo
+  # 100,864 + 100,864 = 201,728 rows = 1576 steps * 128 batch size in 1 epoch.
+  total_epochs: 1
+  total_training_steps: 1576

@@ -1,0 +1,23 @@
+# @package _global_
+# Contig23 + MoE Fisher Contig23 (1:2 sample ratio) GSPO run:
+# keeps the same 100,864 Contig23 samples, doubles Fisher to 201,728, 1.5x steps (2364).
+defaults:
+  - remax_earnings_short_contiguous23_fisher_1to1_reference_text_history2_gspo
+  - _self_
+
+data:
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: contig23, sample: 100864, shuffle: true}
+        - {name: moe_fisher, sample: 201728, shuffle: true}
+
+asr:
+  expected_training_rows: 302592
+  expected_training_steps: 2364
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_fisher_1to2_reference_text_history2_gspo
+  # 100,864 + 201,728 = 302,592 rows = 2364 steps * 128 batch size in 1 epoch.
+  total_epochs: 1
+  total_training_steps: 2364
