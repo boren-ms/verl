@@ -2,6 +2,20 @@
 
 Last updated: 11/26/2026
 
+<!-- FY24Q3-1 final processing statistics, verified 2026-11-26:
+8 shards; 4,045 disjoint source chunks; 757,156 original/raw parents.
+179,004 alignment failures + 572,239 whole-original word-duration rejects
++ 5,913 accepted originals = 757,156 accounted parents (0.78% retained).
+5,913 segmented parent rows contain 12,591 timed segment units, each <=30s.
+6,678 sliding adjacent pairs come from 3,878 eligible parents;
+2,035 accepted parents have fewer than two segments; 753,278 parents excluded from pairing.
+Reject the entire original if any selected word is outside inclusive [0.04, 3.0] seconds.
+Originals, raw predictions, timestamps and rejection reasons are retained locally and on Orange.
+All published manifests passed SHA256 readback and actual Hydra/ASRDataset checks;
+sampled native Orange timed audio reads passed. No cropped audio or training launch.
+Source: alignment_verified_aggregate_counts.json and alignment_final_deliverables_verified.json.
+-->
+
 All eight Qwen alignment shards and their Orange readbacks pass complete
 parent/reference/filter/segment/pair validation: 757,156 parents from 4,045
 source chunks. All four complete published versions also pass real Hydra/ASRDataset,
@@ -120,6 +134,20 @@ exactly matching parent slices. All complete manifests were loaded; these two
 audio reads are a sample, not a hash of every source recording.
 
 ## Reference-context training configuration
+
+The training entry point is
+[`config/v2611_dev/long/hc_fy24q3_1_reference_context.yaml`](../../../v2611_dev/long/hc_fy24q3_1_reference_context.yaml).
+It composes the verified configuration below and checks for 6,678 training pair
+rows. From the repository root in a configured ASR environment, print the
+composed config without launching training:
+
+```bash
+python -m recipe.phimm.main_asr_remax \
+  --config-path config \
+  --config-name v2611_dev/long/hc_fy24q3_1_reference_context \
+  "hydra.searchpath=[file://${PWD}/verl/trainer/config]" \
+  --cfg job
+```
 
 `hc_fy24q3_1_reference_context_training.yaml` composes the actual Hydra ASR
 configuration with paired training data and the existing OpenLong validation
