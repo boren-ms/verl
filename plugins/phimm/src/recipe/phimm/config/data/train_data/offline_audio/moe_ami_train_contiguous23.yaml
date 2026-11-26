@@ -1,0 +1,24 @@
+# Provenance: az://orngwus2cresco/data/boren/data/Training/moe_ami_train_contiguous23_20261126_v1/preparation.json
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/boren/data/Training/moe_ami_train_contiguous23_20261126_v1/part-0000.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: moe_ami_train
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - recording_id
+      - merge_parent_audio_path
+      - segment_reference_texts
+      - merge_count
+      - n_segments
+      - source_ids
+      - source_audio_lengths
+      - source_start_seconds
+      - source_end_seconds
