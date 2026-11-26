@@ -1,186 +1,138 @@
 # FY24Q3-1 long-form English
 
-Last updated: 11/25/2026
+Last updated: 11/26/2026
 
-`hc_fy24q3_1.yaml` loads the generated JSONL from Orange as `hc_fy24q3_1.jsonl.gz`.
-The existing JSONL dataset loader supports gzip-compressed manifests.
-The local JSONL is in this directory and is excluded from Git because it is a generated multi-gigabyte artifact.
-`hc_fy24q3_1.preparation.json` records the row counts, source index hash, and output SHA-256.
+All eight Qwen alignment shards and their Orange readbacks pass complete
+parent/reference/filter/segment/pair validation: 757,156 parents from 4,045
+source chunks. All four complete published versions also pass real Hydra/ASRDataset,
+reference-context and native Orange timed-selector verification.
+No training has been launched.
 
-The source partition has 4,045 chunks and 757,156 utterances. Its audio blobs occupy
-16,032,004,867,660 bytes and its transcription blobs occupy 6,309,288,980 bytes.
-Both chunk types are transferred through `orngtransfer/data/speech/` to:
+## Preserved versions
+
+| Version / configuration | Rows | Contents |
+| --- | ---: | --- |
+| `hc_fy24q3_1.yaml` | 757,156 | Original full audio selectors and exact normalized adjusted human captions |
+| Raw `aligned_v1/shard-000i/raw_segments.jsonl` | 757,156 | Every original, word timestamps, model-window predictions, seams, alignment errors and quality reasons |
+| `hc_fy24q3_1_filtered.yaml` | 5,913 | Accepted originals with full parent audio and human references |
+| `hc_fy24q3_1_segments.yaml` | 5,913 | Accepted parent rows containing 12,591 ordered word-timed segments |
+| `hc_fy24q3_1_2segments_reference_context.yaml` | 6,678 | Sliding adjacent pairs from 3,878 parents; exactly two ordered paths and own human labels |
+
+There are 179,004 alignment failures and 572,239 whole-original word-duration
+exclusions. These categories plus the 5,913 accepted originals account for all
+757,156 parents. Of the accepted originals, 2,035 have fewer than two segments;
+they remain in the original, filtered-original and segmented versions and are
+excluded from pairing. `pair_exclusions.jsonl` retains 753,278 pair exclusions
+with exact reasons and quality/outlier timestamps. Quality retention is about
+0.78%; alignment and duration thresholds were not relaxed.
+
+[The shard index](hc_fy24q3_1.aligned_v1.index.json) records verified counts,
+SHA256 hashes, exact Orange locations, local shard paths and provenance. Large
+original/raw/version files and generated receipts are ignored by Git. The local
+original is `hc_fy24q3_1.jsonl`; all eight raw and derived shards are retained in
+`aligned_v1/shard-0000/` through `aligned_v1/shard-0007/`.
 
 ```text
-az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/ChunkFiles/
+az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/hc_fy24q3_1.jsonl.gz
+az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-000i/
 ```
 
-Training references use `tn_transcription` from `.info`, requiring
-`transcription_source=display_human_caption_adjusted`. The stored `.transcription`
-text differs from this human caption. Metadata is read locally for preparation;
-the Orange chunk transfer contains `.audio` and `.transcription` files.
+Each shard retains `raw_segments.jsonl`, `filtered_originals.jsonl.gz`,
+`segments.jsonl.gz`, `pairs.jsonl.gz`, `pair_exclusions.jsonl`,
+`ALIGNMENT_COMPLETE.json`, `COMPLETE.json`, run/model-runtime receipts and the
+owned-cache release ledger. The original plain manifest is 6,494,121,026 bytes,
+SHA256 `84fd8a19498f19bf119778e85a29a65c7dcde05bcde3dc26c19336f22ab3ca1e`.
 
-Each row contains the existing `audio_chunk` locator (`file.audio:count:index`),
-human reference text, source filename, original chunk index, and normalized WER.
-`audio_length` comes from `.info.duration`; these metadata durations are distinct
-from the aggregate durations in `file_set.json`. The preparation keeps the full
-partition and its normalized human captions. Optional duration and WER filtering
-is available through the builder's CLI arguments.
+## References and selection policy
 
-For full-parent training, set `data.max_audio_dur=null`, or use an ASR segmentation
-configuration that pairs each segment with its corresponding reference. Load the
-data config using `/data/train_data/long/hc_fy24q3_1@data.train_data`.
+References are the exact normalized `tn_transcription` from locally read `.info`,
+with `transcription_source=display_human_caption_adjusted`. Stored binary
+`.transcription` text remains a source artifact; ASR hypotheses never replace
+human captions. Source `.info` chunks were not transferred to Orange.
 
-Reproduce the JSONL from a local source index and locally downloaded `.info` files:
+Reject the **entire original** if any selected word is below 0.04 seconds or above
+3 seconds; the allowed bounds are inclusive. Keep all rejected originals,
+timestamps and reasons in raw alignment and exclusion files. Alignment errors,
+word mismatch, unreliable caption mapping and invalid/overlapping timings also
+remain recorded. Forced alignment estimates timings; it does not prove the
+transcript's truth or perceptual boundary quality.
 
-```bash
-.venv/bin/python scripts/prepare_long_chunk_jsonl.py \
-  --file-set /path/to/file_set.json \
-  --info-dir /path/to/info \
-  --audio-root az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/ChunkFiles/ \
-  --output plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1.jsonl
-```
+Segments contain whole aligned words and span at most 30 seconds. Native
+`chunk.audio:count:index#start:end` selectors resolve the parent record and then
+slice its waveform in memory. No cropped audio files were saved. Internal model
+windows are at most 180 seconds, anchored by `.info.segmentation_adjusted` and
+unchanged human captions. Neighboring human context and ordered seams use actual
+retained Qwen predictions; timestamps are never clamped or replaced by guesses.
 
-The current transfer's durable job states and sanitized logs are in
-`/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/`.
-`transcription_verification.json` and `audio_verification.json` record destination
-file counts and sizes. `jsonl_complete.json` records the published training
-manifest. All 4,045 audio and transcription objects and the 757,156-row original
-manifest are verified on Orange. Alignment and derived dataset validation remain
-required before the reference-context training example is ready.
+Pairs are `(0,1), (1,2), ...` within one original. `audio_path` is an ordered list;
+`extra_info.segment_reference_texts` holds each segment's own human label. The
+first segment has empty label context; the second sees only the first segment's
+human reference.
 
-Validation: eight CPU conversion tests and Ruff checks pass. The full pre-commit
-run passes its generated-config, type, compilation, and naming checks, and reports
-existing documentation-date, license, and test-layout failures outside these changes.
+## Reproducibility and verification
 
-## Qwen alignment and preserved versions
-
-Preparation and Orange publication are complete. Qwen alignment is in the
-real-audio pilot stage on the dedicated eight-H100 pool `verl-n1-i0`.
-The original `hc_fy24q3_1.jsonl` remains unchanged.
-
-- Unfiltered alignment: each original receives `word_timestamps`, `segments`
-  (path/text pairs), `segment_metadata`, and a `word_duration_filter` report.
-  Alignment failures also remain in this raw JSONL.
-- Filtered originals: full original audio and human text, plus alignment/quality
-  provenance. No segments replace the parent audio.
-- Filtered segments: accepted parents with an ordered `audio_path` list,
-  `segment_reference_texts`, and retained `segments` pairs. Each segment spans
-  at most 30 seconds and contains whole aligned words; outer silence is omitted.
-- Reference context pairs: `(0,1), (1,2), ...` within each accepted parent.
-  Exactly two paths and own labels per sample. Parents with fewer than two
-  segments remain in the preceding versions and appear in pair exclusions.
-
-Exclude an entire original from all filtered training versions if any word is
-**below 0.04 seconds or above 3 seconds**. The bounds are inclusive. Unfiltered
-raw rows retain offending word indices, durations, and reasons. Alignment errors,
-word mismatch, overlapping/out-of-bounds times, and unreliable long-input
-caption mappings cannot enter the filtered versions. Counts distinguish model
-failures, quality exclusions, accepted parents, and generated pairs.
-
-Example retained selector:
-`az://orngwus2cresco/data/speech/.../chunk_UUID.audio:187:0#1.000:29.500`.
-The existing audio reader resolves the chunk record, then the time selector in
-memory. **No cropped WAV/FLAC files are written.**
-
-Pinned model: `Qwen/Qwen3-ForcedAligner-0.6B` at
+The runner was frozen at Git revision
+`229defa0e9c3884b779823f509dfb5fc6cb547f1`, SHA256
+`f3d0f60f79045cd20ba4e033b188866dc35921461786f1b0426486d8d71b1f17`, seed 42.
+Model: `Qwen/Qwen3-ForcedAligner-0.6B`, revision
 `c7cbfc2048c462b0d63a45797104fc9db3ad62b7`.
-Official Qwen3-ASR source revision:
-`7c6daf77a2421100f5fb066495372c00129d39ff` (`qwen-asr==0.0.6`).
-Use an isolated UV environment with `transformers==4.57.6` and
-`huggingface-hub==0.36.2`; retain all recorded package versions and runner hash.
-When Nagisa is unavailable, English-only alignment can add
-`scripts/english_alignment_shims` to its scoped `PYTHONPATH`. This shim raises if
-Japanese tokenization is requested; it does not change the verified Qwen wheel.
-Set `OAIPKG_DISABLE_META_MISSING=1` for this isolated environment to prevent
-optional imports from triggering unrelated automatic package installation.
+Official Qwen3-ASR revision: `7c6daf77a2421100f5fb066495372c00129d39ff`.
+The verified `qwen-asr==0.0.6` wheel has SHA256
+`20dab74fb1c7599ae15cfb2488d36740f04f3125cf60f1670ae3a8bcd280a5e3`.
+The isolated UV environment pins Transformers 4.57.6, Hub 0.36.2 and Accelerate
+1.12.0, preserving shared Torch 2.11/cu130 and Ray 2.54. English-only Nagisa
+handling is scoped to `scripts/english_alignment_shims`; optional automatic
+package installation is disabled with `OAIPKG_DISABLE_META_MISSING=1`.
 
-Long recordings use existing `.info.segmentation_adjusted` timings to form
-windows at most 180 seconds (the official inference helper's conservative
-limit). Matching anchors map exact normalized human words to these windows;
-text is never divided by guessed speech rate. Caption metadata is only read for
-preparation; `.info` chunk files are not transferred to Orange.
-Internal model windows include neighboring caption-mapped human words. Where
-model calls overlap, the runner selects the nearest ordered shared-word seam
-using their actual predictions. It preserves every model-window prediction and
-records the selected seams; it never clamps timestamps to hide an overlap.
-An unavailable ordered seam remains an alignment failure.
+All received model files and installed Qwen source/dictionary bytes match pinned
+receipts. All eight actual loaded runtimes compared tokenizer vocabulary/merges
+and sampled parameter values against the pinned snapshot. These are sampled
+in-memory parameter checks, not a hash of every in-memory tensor.
 
-```bash
-.venv/bin/python scripts/align_long_human_captions.py prepare \
-  --input plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1.jsonl \
-  --info-dir /home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/info \
-  --shards 8 --output-dir /path/to/new/alignment-inputs
-# On reserved GPU resources, one process per GPU with its own input/output.
-python scripts/align_long_human_captions.py align \
-  --input /path/to/alignment-inputs/input-0000.jsonl.gz \
-  --output-dir /path/to/new/aligned-0000 \
-  --owned-chunk-cache /path/to/new/exclusive-cache-0000
-python scripts/align_long_human_captions.py pairs \
-  --input /path/to/aligned-0000/raw_segments.jsonl \
-  --output-dir /path/to/new/versions-0000
-```
+Whole chunks were assigned to disjoint shards. Each worker had one exclusive
+owned cache root and released a chunk only after all its parent rows were
+committed. The post-run audit verified 4,045 unique release entries totaling
+16,032,004,867,660 bytes and zero remaining whole-chunk copies in those eight
+worker caches. Source Orange inventory verifies exact names and sizes for
+4,045 audio objects / 16,032,004,867,660 bytes and 4,045 transcription objects /
+6,309,288,980 bytes. Audio blob contents were not all hashed. All published
+alignment/version manifests and metadata have SHA256 readback verification.
 
-The `pairs` command writes `filtered_originals.jsonl.gz`, `segments.jsonl.gz`,
-`pairs.jsonl.gz`, `pair_exclusions.jsonl`, and checksum/count metadata. Preserve
-all eight raw shard JSONLs as well. Source sharding keeps entire audio chunks
-in one worker to reuse the bounded chunk index. Resume refuses changed inputs,
-runner/environment settings, corrupted JSONL, and completed outputs.
-Run a real-audio pilot in a separate directory before processing full shards.
-Each full worker needs its own fresh `--owned-chunk-cache`: 16 TB of source audio
-cannot fit on the dedicated node's disk. This option uses the unchanged native
-reader, retains one active whole chunk per worker, and releases completed copies
-after all their parent rows have been recorded. An ownership marker and exclusive
-lock prevent reuse of unrelated caches. Cache releases have a separate ledger.
+All raw parent IDs, human references and source paths were compared with the
+verified normalized inputs. Validation recomputed the original-level filter,
+word coverage, segments, complete sliding pairs and exact exclusions; source
+chunk sets are disjoint. The retained real 200-parent pilot accounted for
+50 alignment failures, 147 duration rejects, three accepted parents and one
+pair. Its accepted pair passed the real Hydra/ASRDataset/reference-context and
+native timed-reader checks. Earlier QA-only rejected parents remain rejected.
+The runner's 29 CPU checks passed; unrelated baseline repository hook failures
+remain recorded in the task receipts.
 
-The new dataset YAMLs and `hc_fy24q3_1_reference_context_training.yaml` are
-**prepared examples with publication pending**. The training example uses
-previous-reference text for training and generated context for validation.
-Supply the desired training model and resources. Before marking ready, publish
-all expected versions, verify hashes/counts and actual time-selector reads, and
-compose/test the real ASR dataset loader. No training job is requested or started.
-The inherited `actor_rollout_ref.model.path` is null and must point to a compatible
-ASR checkpoint with its matching tokenizer, audio processor, and chat template.
-The base selects `hf_qwen35_audio` and the `qwen35_audio` vLLM plugin; register
-those matching model extensions in the training environment. The forced aligner
-checkpoint is used for timing preparation. Check the configured prompt/response
-limits against actual 30-second acoustic features, one previous reference, and
-the checkpoint's context limit; the base's 1,024 prompt tokens may need adjustment.
-The pinned Qwen alignment environment does not replace the training environment.
+Detailed receipts are in
+`/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/`.
+`alignment_full_collection_status.json` confirms all eight full-shard checks;
+`alignment_verified_aggregate_counts.json` records final aggregate counts.
+`alignment_final_loader_verified.json` records the real final-loader result; its
+Orange readback SHA256 is
+`17e7181dae2fffa2932d79befd13d03f6abc6044871f27b7ff3d4af61d6edcee`.
+The accepted pair selectors produced 477,440 and 207,360 frames at 16 kHz,
+exactly matching parent slices. All complete manifests were loaded; these two
+audio reads are a sample, not a hash of every source recording.
 
-Local checks: 29 CPU preparation/segmentation/filter/version/cache tests passed;
-repository-pinned Ruff, mypy, changed-file license checks, and `git diff --check`
-passed. Hydra composition passed with recipe plus verl trainer config search
-paths. An isolated native audio-reader check resolved an indexed chunk followed
-by `#1:3` to the exact 32,000 expected frames at 16 kHz; local training package
-initialization lacks Ray. On the dedicated GPU pod, the installed 15 Qwen source
-files and 10 model snapshot files match their pinned receipts. Real Qwen
-alignment has run; native Orange reads through both `audio_path` and `audio_chunk`
-returned exact parent slices for two predicted segments, without saved audio.
-The initial 40-parent pilot retained 22 alignment failures, 17 duration rejects,
-and one accepted single-segment parent. After adding reference context and ordered
-model seams, the same 40 parents retain nine alignment failures, 30 duration rejects,
-and one accepted single-segment parent. Both produce zero training pairs. All
-earlier predictions and rejection reasons remain available. These pilot counts
-are not estimates of full-dataset retention. The 200-parent in-region cache pilot
-accounted for 50 alignment failures, 147 duration rejects, three accepted parents,
-and one pair. It crossed two native Orange chunks and released the fully committed
-4,536,640,843-byte first copy. Generated
-pilot manifests and exclusion ledgers are retained under the ignored `pilots/`
-directory and the Orange `training/pilots/` prefix. Actual Hydra composition,
-ASRDataset, reference-context prompts, and two Orange time selectors passed on
-a QA-only retained Qwen pair. That QA parent remains quality-rejected. The first
-prompt has no label context and the second has exactly the first human reference.
-`scripts/verify_long_alignment_loader.py` reproduces that check, preferring an
-accepted pair when available. Final dataset publication and loader checks against
-all published versions remain pending. The broader repository
-license scan also reports the existing `scripts/build_ls_speed_only_dataset.py`;
-no unrelated files were changed to resolve baseline checks.
+## Reference-context training configuration
 
-Automatic continuation is bound to this chat every 30 minutes by local cron:
-`/home/boren/.codex/thread-schedules/01a20f4d-26aa-7b51-8ebb-efd322ec9694/fy24q3-1-align/config.json`.
-The full executable instructions are in the sibling `prompt.txt`. The schedule
-stops after transfers, alignment/filtering, preserved versions, publication and
-actual loader/audio checks finish, or on cancellation. The local machine and
-cron must remain running; installation/thread binding and scheduled continuation
-delivery in this chat are verified.
+`hc_fy24q3_1_reference_context_training.yaml` composes the actual Hydra ASR
+configuration with paired training data and the existing OpenLong validation
+source. It sets `training_source=reference`, `max_history=1`,
+`validation_source=generated` and `data.max_audio_dur=null`.
+
+A training run requires a compatible ASR checkpoint in
+`actor_rollout_ref.model.path` (currently null), its matching tokenizer, audio
+processor and chat template, and explicit trainer/resources settings. The base
+selects `hf_qwen35_audio` and the `qwen35_audio` vLLM plugin; use the matching
+registered model extensions. The forced-aligner checkpoint is for timing.
+Ensure acoustic features, one previous reference and generated response fit
+both configured prompt/response limits and the checkpoint's context limit;
+the inherited 1,024-token prompt limit may need adjustment for 30-second audio.
+The pinned alignment environment is separate from the ASR training environment.
+No arbitrary checkpoint or training job is selected by this dataset task.

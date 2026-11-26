@@ -3,3 +3,6 @@
 *.partial
 *.jsonl.gz
 pilots/
+
+# Full alignment readbacks include model/run JSON receipts and release ledgers.
+aligned_v1/

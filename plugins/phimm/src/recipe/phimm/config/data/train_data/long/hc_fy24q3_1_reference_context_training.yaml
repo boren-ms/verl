@@ -1,5 +1,5 @@
 # @package _global_
-# Training example; align/publish/loader verification must finish first.
+# Full publication, real Hydra/ASRDataset and Orange timed-selector checks passed.
 # Set model/checkpoint and trainer resources for the actual training run.
 defaults:
   - /v2611_dev/base@_global_

@@ -1,0 +1,908 @@
+{
+  "status": "all_versions_Orange_readback_and_actual_Hydra_ASRDataset_native_selector_verified",
+  "verified_utc": "2026-11-26T06:08:58.277404+00:00",
+  "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/",
+  "original": {
+    "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/hc_fy24q3_1.jsonl.gz",
+    "local_path": "hc_fy24q3_1.jsonl",
+    "rows": 757156,
+    "plain_bytes": 6494121026,
+    "plain_sha256": "84fd8a19498f19bf119778e85a29a65c7dcde05bcde3dc26c19336f22ab3ca1e",
+    "gzip_bytes": 2496487757,
+    "gzip_sha256": "f2cf430b0dad7537258b917e3285fcec4c9c4ca6e9e0ce54bbce48052c438c7f"
+  },
+  "counts": {
+    "parents": 757156,
+    "filtered_originals": 5913,
+    "filtered_segments_parents": 5913,
+    "alignment_failures": 179004,
+    "word_duration_exclusions": 572239,
+    "fewer_than_two_segment_parents": 2035,
+    "pairs": 6678,
+    "excluded_parents": 753278,
+    "timed_segment_units": 12591,
+    "pair_eligible_parents": 3878
+  },
+  "source_chunks": 4045,
+  "source_inventory": {
+    "audio_objects": 4045,
+    "audio_bytes": 16032004867660,
+    "transcription_objects": 4045,
+    "transcription_bytes": 6309288980,
+    "verification": "fully_paginated_exact_names_and_sizes",
+    "all_audio_content_hashed": false
+  },
+  "policy": {
+    "reference_field": "tn_transcription",
+    "transcription_source": "display_human_caption_adjusted",
+    "word_seconds_inclusive": [
+      0.04,
+      3.0
+    ],
+    "reject_scope": "entire_original",
+    "segment_max_seconds": 30,
+    "audio_saved": false,
+    "pairing": "sliding_adjacent_stride_1_same_parent",
+    "pair_paths": 2,
+    "training_context_source": "reference",
+    "max_history": 1,
+    "validation_context_source": "generated"
+  },
+  "provenance": {
+    "seed": 42,
+    "runner_git_revision": "229defa0e9c3884b779823f509dfb5fc6cb547f1",
+    "runner_sha256": "f3d0f60f79045cd20ba4e033b188866dc35921461786f1b0426486d8d71b1f17",
+    "qwen_source_revision": "7c6daf77a2421100f5fb066495372c00129d39ff",
+    "qwen_wheel_sha256": "20dab74fb1c7599ae15cfb2488d36740f04f3125cf60f1670ae3a8bcd280a5e3",
+    "model": "Qwen/Qwen3-ForcedAligner-0.6B",
+    "model_revision": "c7cbfc2048c462b0d63a45797104fc9db3ad62b7",
+    "isolated_packages": {
+      "qwen-asr": "0.0.6",
+      "transformers": "4.57.6",
+      "huggingface-hub": "0.36.2",
+      "accelerate": "1.12.0"
+    },
+    "all_8_actual_model_tokenizer_runtimes_verified": true,
+    "parameter_verification": "sampled_loaded_values_compared_to_pinned_safetensors",
+    "shared_packages_preserved": true,
+    "pool_uid": "ec0137e4-5a88-45bb-825a-1a2621d7129c",
+    "image": "iridiumsdc.azurecr.io/boren/verl-remax@sha256:d92ae2602a53dbe81fea9ee6e6c51325275b56ad2f71f26659b93155f47ff830",
+    "pod_uid": "693e38ad-6c31-42d4-abf2-44862bb565eb",
+    "node": "dh115-r293-node-02",
+    "topology": "1 node / 8 H100 GPUs"
+  },
+  "shards": [
+    {
+      "shard": 0,
+      "counts": {
+        "input_sha256": "1a8edb651355cd8b75c3b499b0e304432907790f71ff579afc7a7c29add9cb2b",
+        "parents": 94751,
+        "filtered_originals": 777,
+        "filtered_segments_parents": 777,
+        "alignment_failures": 22313,
+        "word_duration_exclusions": 71661,
+        "fewer_than_two_segment_parents": 275,
+        "pairs": 842,
+        "excluded_parents": 94249,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "d59b0e92514df3cd079378e950d5e4136d37c06207e65a0792ee581a7cc236fb",
+        "filtered_originals_sha256": "5e7366eb08d3a40fa292aee5b28a2befa48c1b6347fe8bb610bc73ad7d813ba7",
+        "segments_sha256": "de7a9de648b817fb19fe0904ebe6ab22befa9b0038f477cd4a1b1db3639102d3",
+        "pair_exclusions_sha256": "ab7c64c46984a5e5a3e7e8e50d550a0c15ec9721711fbd43f98ab93135affce0",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 506,
+      "source_ids_sha256": "477577b46e6f5d5d0af0c1b22d2d3abacec2b8921589a6422f36aa38cd81f687",
+      "normalized_input_sha256": "aea04e028ca6510a5b2cac38d4ccd99d236567e21af021111ecfe3717288ad6e",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0000/raw_segments.jsonl",
+          "bytes": 14981474852,
+          "sha256": "1a8edb651355cd8b75c3b499b0e304432907790f71ff579afc7a7c29add9cb2b"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0000/filtered_originals.jsonl.gz",
+          "bytes": 1226894,
+          "sha256": "5e7366eb08d3a40fa292aee5b28a2befa48c1b6347fe8bb610bc73ad7d813ba7"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0000/segments.jsonl.gz",
+          "bytes": 1376628,
+          "sha256": "de7a9de648b817fb19fe0904ebe6ab22befa9b0038f477cd4a1b1db3639102d3"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0000/pairs.jsonl.gz",
+          "bytes": 319073,
+          "sha256": "d59b0e92514df3cd079378e950d5e4136d37c06207e65a0792ee581a7cc236fb"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0000/pair_exclusions.jsonl",
+          "bytes": 925428277,
+          "sha256": "ab7c64c46984a5e5a3e7e8e50d550a0c15ec9721711fbd43f98ab93135affce0"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/model_runtime.json",
+          "local_path": "aligned_v1/shard-0000/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0000/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "3ed7b80c99cf88555bc67074c1e598bbd8c5146f6c56240d560182b079ad866b"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0000/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "05202c032a789eb7b3ac2cebfe999a383e7be7f86db6b1ab0d19320dd6f9a527"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/run.json",
+          "local_path": "aligned_v1/shard-0000/run.json",
+          "bytes": 1012,
+          "sha256": "2cc0221a6b31f5f9605dae5c9617b193fecdc0be98a5e6d6512e71a0e63b9ba6"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/PROCESS.json",
+          "local_path": "aligned_v1/shard-0000/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "1ec72ad608de3386a3681a45c4813ff685ab83ec600779bac794c68aa2ba09ae"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0000/chunk_cache_releases.jsonl",
+          "bytes": 119416,
+          "sha256": "ef437b304a6accef2419b778c845e3fa7f00ed5579f3e7ad861d3fc5f7e6ca69"
+        }
+      }
+    },
+    {
+      "shard": 1,
+      "counts": {
+        "input_sha256": "6f35f2d690dcf9b1715d2b647e1776583a31ff5a41b18580c11aefc7104e166a",
+        "parents": 94895,
+        "filtered_originals": 709,
+        "filtered_segments_parents": 709,
+        "alignment_failures": 22341,
+        "word_duration_exclusions": 71845,
+        "fewer_than_two_segment_parents": 248,
+        "pairs": 842,
+        "excluded_parents": 94434,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "3e827e3c851758878f010163dd544633436c67e6e664771caa05c7afbf90736a",
+        "filtered_originals_sha256": "23248f6f37b54e2d016103244bf81fe5ccc76cfff55d5de183427b79e3d381e3",
+        "segments_sha256": "54903498560b9b236381c199f6daa0bbc3c2e7709f00490d0b54042c5ee72961",
+        "pair_exclusions_sha256": "091f79fd61920f0ed39d39b1e9aee58c998cf6094b585a32608c30a7e875c6f1",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 506,
+      "source_ids_sha256": "1f1e1a7a1ecc1e65421469c73e8fbb70a50328d0965b202d3ea64121fa371e80",
+      "normalized_input_sha256": "9718a2e345c19ea9e8e3374250a8357c9009e09383c4528d9e697cafd9b4c4f4",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0001/raw_segments.jsonl",
+          "bytes": 14885911117,
+          "sha256": "6f35f2d690dcf9b1715d2b647e1776583a31ff5a41b18580c11aefc7104e166a"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0001/filtered_originals.jsonl.gz",
+          "bytes": 1201304,
+          "sha256": "23248f6f37b54e2d016103244bf81fe5ccc76cfff55d5de183427b79e3d381e3"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0001/segments.jsonl.gz",
+          "bytes": 1348085,
+          "sha256": "54903498560b9b236381c199f6daa0bbc3c2e7709f00490d0b54042c5ee72961"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0001/pairs.jsonl.gz",
+          "bytes": 319813,
+          "sha256": "3e827e3c851758878f010163dd544633436c67e6e664771caa05c7afbf90736a"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0001/pair_exclusions.jsonl",
+          "bytes": 915868686,
+          "sha256": "091f79fd61920f0ed39d39b1e9aee58c998cf6094b585a32608c30a7e875c6f1"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/model_runtime.json",
+          "local_path": "aligned_v1/shard-0001/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0001/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "f2a98c8f84a84fabb8ff2b6682acb8fd136070053dae1d52bb0cf5ec9242af99"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0001/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "4b3b4b21dbf4f11c23dd8a6b43955a449afa691c1fb98b3283f62c9210e31f74"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/run.json",
+          "local_path": "aligned_v1/shard-0001/run.json",
+          "bytes": 1012,
+          "sha256": "9289c9ac9110f8b8aeb13436353f8aaa414c2202ca05d1f67effdef95f3f13e3"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/PROCESS.json",
+          "local_path": "aligned_v1/shard-0001/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "c73b58f38201958f43e03c8d7fdd6541ebb847b88a546fc9b94434e6d43bcf79"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0001/chunk_cache_releases.jsonl",
+          "bytes": 119416,
+          "sha256": "93fade0959ad8296b14ad2ed2e15fad00de58f8e5a5db6674a9b01c5c68aac49"
+        }
+      }
+    },
+    {
+      "shard": 2,
+      "counts": {
+        "input_sha256": "2975874e01053064981e2fc1d9043745f4b6e5c6d0633a337c37a7ed6d5df35c",
+        "parents": 94415,
+        "filtered_originals": 778,
+        "filtered_segments_parents": 778,
+        "alignment_failures": 22328,
+        "word_duration_exclusions": 71309,
+        "fewer_than_two_segment_parents": 254,
+        "pairs": 924,
+        "excluded_parents": 93891,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "a651887c1f31a9cbd9c8c5867f6ce6f4e8734497fbe427e947846e95068f4f1d",
+        "filtered_originals_sha256": "d7601cc8af03d49057a9825023ef54b53c13e131b934693a9fc47ee9267cbea0",
+        "segments_sha256": "f5bb6c0923e2e7033bc5cc1f2523fe2bdce1dd9527ec7f5ac98c1f4ae0f15d76",
+        "pair_exclusions_sha256": "420f7666d051643b4833ea4e26381a7af30f56c404116c09c28f8f05bb81e7d3",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 506,
+      "source_ids_sha256": "6dd3985863c701514d81800e005596b20538604d425abee635f91a5fadb1acc2",
+      "normalized_input_sha256": "d60fdbf4c9288d151f17b4b11d1d13253b0b7af28cdd6b49d0952e660ea529d2",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0002/raw_segments.jsonl",
+          "bytes": 14924513257,
+          "sha256": "2975874e01053064981e2fc1d9043745f4b6e5c6d0633a337c37a7ed6d5df35c"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0002/filtered_originals.jsonl.gz",
+          "bytes": 1341921,
+          "sha256": "d7601cc8af03d49057a9825023ef54b53c13e131b934693a9fc47ee9267cbea0"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0002/segments.jsonl.gz",
+          "bytes": 1507805,
+          "sha256": "f5bb6c0923e2e7033bc5cc1f2523fe2bdce1dd9527ec7f5ac98c1f4ae0f15d76"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0002/pairs.jsonl.gz",
+          "bytes": 354305,
+          "sha256": "a651887c1f31a9cbd9c8c5867f6ce6f4e8734497fbe427e947846e95068f4f1d"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0002/pair_exclusions.jsonl",
+          "bytes": 919791983,
+          "sha256": "420f7666d051643b4833ea4e26381a7af30f56c404116c09c28f8f05bb81e7d3"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/model_runtime.json",
+          "local_path": "aligned_v1/shard-0002/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0002/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "51d66ac6eb377f680ac9ed954017dd6849da231587653f5cbae62b124455fe50"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0002/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "d9c661d1379aa54279d983e2bac42375fc837f589c6e5edcb0dacbb533b16a99"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/run.json",
+          "local_path": "aligned_v1/shard-0002/run.json",
+          "bytes": 1012,
+          "sha256": "f00afba045dac95bffdcdac99359888b9f730364dc6d56b93412492734b02c3a"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/PROCESS.json",
+          "local_path": "aligned_v1/shard-0002/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "f091ca33f0f86244e27865661af69a113fef6a0b5a533b76d5017704ed8c6dad"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0002/chunk_cache_releases.jsonl",
+          "bytes": 119414,
+          "sha256": "c743ea8f320ac99d530988f3657bbedd74209a47729b6193ceff617ecbac049d"
+        }
+      }
+    },
+    {
+      "shard": 3,
+      "counts": {
+        "input_sha256": "8917aea426c4032043ad8de72672e4b37482d12651202db22b508b3f0d53a0ad",
+        "parents": 94760,
+        "filtered_originals": 704,
+        "filtered_segments_parents": 704,
+        "alignment_failures": 22751,
+        "word_duration_exclusions": 71305,
+        "fewer_than_two_segment_parents": 249,
+        "pairs": 772,
+        "excluded_parents": 94305,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "670ffe32dc6ff82618965d630d438ad0c7d762ac6fff81caaf38dc88f476b57b",
+        "filtered_originals_sha256": "c8e3313b15b3adaac4ebca1797e54a2b58bb4788ddb4b8642dea48063e553343",
+        "segments_sha256": "7a4d4c95ea32643d113798f7bcde58cd2151ba77dcd96fe47fd354d14152784f",
+        "pair_exclusions_sha256": "dc5fe9745b2e9afb45a8e4590ade7139c29cf452dd482a7bcc6184e1b8bebece",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 506,
+      "source_ids_sha256": "f46bca4612a60c0431957646d5881366794a268a14fd6d660baec9f6dae528fa",
+      "normalized_input_sha256": "56acf4a735b41e96e582de5cd06c3390eda818ccd34fd457ee6c8a4fc7615ba9",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0003/raw_segments.jsonl",
+          "bytes": 15057995087,
+          "sha256": "8917aea426c4032043ad8de72672e4b37482d12651202db22b508b3f0d53a0ad"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0003/filtered_originals.jsonl.gz",
+          "bytes": 1119099,
+          "sha256": "c8e3313b15b3adaac4ebca1797e54a2b58bb4788ddb4b8642dea48063e553343"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0003/segments.jsonl.gz",
+          "bytes": 1249370,
+          "sha256": "7a4d4c95ea32643d113798f7bcde58cd2151ba77dcd96fe47fd354d14152784f"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0003/pairs.jsonl.gz",
+          "bytes": 296792,
+          "sha256": "670ffe32dc6ff82618965d630d438ad0c7d762ac6fff81caaf38dc88f476b57b"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0003/pair_exclusions.jsonl",
+          "bytes": 933000259,
+          "sha256": "dc5fe9745b2e9afb45a8e4590ade7139c29cf452dd482a7bcc6184e1b8bebece"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/model_runtime.json",
+          "local_path": "aligned_v1/shard-0003/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0003/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "e4d9c2263da9a70ebf22e10967608fc7b505170ce358114582a9fae9938b5472"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0003/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "8edf0f4fa395119a8d39b4fb30b44f271b133b875415c639cb75ef9ab4ab9645"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/run.json",
+          "local_path": "aligned_v1/shard-0003/run.json",
+          "bytes": 1012,
+          "sha256": "b163dd3f1ef1ae348aaac3e6699b10799cc0a6d0fb666488fcce8440652e242c"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/PROCESS.json",
+          "local_path": "aligned_v1/shard-0003/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "716bc408fcf3ead93d1bd196ccf593a8eced8e069cd8395a7b88f4ea279933f7"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0003/chunk_cache_releases.jsonl",
+          "bytes": 119407,
+          "sha256": "24da2b7bd6a088d0e67fc0c8020592e30dc4b2d19bcf7a19213f2a869701a6bf"
+        }
+      }
+    },
+    {
+      "shard": 4,
+      "counts": {
+        "input_sha256": "c8ab74806e8a42cae96197f6cafc7537088d86d87e0797772eb449ad29e44f1a",
+        "parents": 94718,
+        "filtered_originals": 751,
+        "filtered_segments_parents": 751,
+        "alignment_failures": 22161,
+        "word_duration_exclusions": 71806,
+        "fewer_than_two_segment_parents": 270,
+        "pairs": 798,
+        "excluded_parents": 94237,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "2237a163341d2dda2650f49b1bad1319074cd3492f77a51f9e69242b196d0d60",
+        "filtered_originals_sha256": "86893db4c8defa7a08a7f2ecee9e6eabd2e8dd69dafd2da8b273b869482b6f8f",
+        "segments_sha256": "a0554438893f371e3b2fe1cf8bfbf460da3f0e3913b68093435a506f05b22bca",
+        "pair_exclusions_sha256": "a09bcd6cb12952630a277ef71e90eb5ef261051e8e271d7f80acb5a80a72a660",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 506,
+      "source_ids_sha256": "e20b5f68155b1cab6697af5c976a601b61558305305cb1b456fb8afa3852eda9",
+      "normalized_input_sha256": "2e7f6ae69b17f32ded885bb99585232431baa86d55acf6084e93e12a54683c8b",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0004/raw_segments.jsonl",
+          "bytes": 14920497984,
+          "sha256": "c8ab74806e8a42cae96197f6cafc7537088d86d87e0797772eb449ad29e44f1a"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0004/filtered_originals.jsonl.gz",
+          "bytes": 1202378,
+          "sha256": "86893db4c8defa7a08a7f2ecee9e6eabd2e8dd69dafd2da8b273b869482b6f8f"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0004/segments.jsonl.gz",
+          "bytes": 1343870,
+          "sha256": "a0554438893f371e3b2fe1cf8bfbf460da3f0e3913b68093435a506f05b22bca"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0004/pairs.jsonl.gz",
+          "bytes": 314285,
+          "sha256": "2237a163341d2dda2650f49b1bad1319074cd3492f77a51f9e69242b196d0d60"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0004/pair_exclusions.jsonl",
+          "bytes": 921417834,
+          "sha256": "a09bcd6cb12952630a277ef71e90eb5ef261051e8e271d7f80acb5a80a72a660"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/model_runtime.json",
+          "local_path": "aligned_v1/shard-0004/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0004/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "d777ecd12337d11be427bbc806c2a1923777e09f2c68a808a0a460d831558948"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0004/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "e55de7b8391bc8c88b437dba970a70f591dffed11aebbccf51bbc973ceebf41a"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/run.json",
+          "local_path": "aligned_v1/shard-0004/run.json",
+          "bytes": 1012,
+          "sha256": "77c597e1606c17738031b6dc9fb8356cce5f8325a237ebf39178ad4590237e12"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/PROCESS.json",
+          "local_path": "aligned_v1/shard-0004/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "d48f52728e20373d2e9d7a8c291fbe2e21c0aedc8f2c9b95e881c1fa3b4cc8d1"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0004/chunk_cache_releases.jsonl",
+          "bytes": 119416,
+          "sha256": "ae495fe81c8cef1d7b0188c3d945bbb45f57128ec137636a2e4e42a3c6ec1e49"
+        }
+      }
+    },
+    {
+      "shard": 5,
+      "counts": {
+        "input_sha256": "38ab09eab291d72abc58ae71f9f35a09856fe5dc913c2be98df78e768634df2e",
+        "parents": 94488,
+        "filtered_originals": 717,
+        "filtered_segments_parents": 717,
+        "alignment_failures": 22316,
+        "word_duration_exclusions": 71455,
+        "fewer_than_two_segment_parents": 238,
+        "pairs": 822,
+        "excluded_parents": 94009,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "25d5a3b781279003667d5112d327589b25757cd69cbe280c1e6a1edf17867ee7",
+        "filtered_originals_sha256": "63f1c2ececec8ddfbd553e09e1a79da39bfef86f23627570d45b8e2eafdc5028",
+        "segments_sha256": "7fafae97f08a58c9d0e2a24a3eb913e128809ec4048e0e2372aee92a7298f696",
+        "pair_exclusions_sha256": "f001e77c13c4d38dcf019609fabee9bf2dee58eb399d5c757e5507d762509c50",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 505,
+      "source_ids_sha256": "ce385b3ae09956ab63e232137ae8f1541874c39be893bac3af8b3ff79bc6ad91",
+      "normalized_input_sha256": "ed6c8e078a00cf3436edb0b763895c960d0ae69fb9e26173146b28b4e05dbc16",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0005/raw_segments.jsonl",
+          "bytes": 14955448016,
+          "sha256": "38ab09eab291d72abc58ae71f9f35a09856fe5dc913c2be98df78e768634df2e"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0005/filtered_originals.jsonl.gz",
+          "bytes": 1182389,
+          "sha256": "63f1c2ececec8ddfbd553e09e1a79da39bfef86f23627570d45b8e2eafdc5028"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0005/segments.jsonl.gz",
+          "bytes": 1328055,
+          "sha256": "7fafae97f08a58c9d0e2a24a3eb913e128809ec4048e0e2372aee92a7298f696"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0005/pairs.jsonl.gz",
+          "bytes": 315484,
+          "sha256": "25d5a3b781279003667d5112d327589b25757cd69cbe280c1e6a1edf17867ee7"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0005/pair_exclusions.jsonl",
+          "bytes": 923749502,
+          "sha256": "f001e77c13c4d38dcf019609fabee9bf2dee58eb399d5c757e5507d762509c50"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/model_runtime.json",
+          "local_path": "aligned_v1/shard-0005/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0005/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "06d00b93998b93394d6c7a0c2fb305a515c9d1000117ffe7bdcfe2da74ea3ced"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0005/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "8a2a8b3b46a2e2fac7863db9c52f8f2f2dbdb784b9dcb682c013612abd6687b8"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/run.json",
+          "local_path": "aligned_v1/shard-0005/run.json",
+          "bytes": 1012,
+          "sha256": "ccb91d4cd5be2806e46f21993157d118ba02f2ae868505c9c1c9867b9ab74153"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/PROCESS.json",
+          "local_path": "aligned_v1/shard-0005/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "60ad3ea9f38e9f4fd0e2a0cd7f008a4f5c05615b369577c39bbbbd52426d27d6"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0005/chunk_cache_releases.jsonl",
+          "bytes": 119180,
+          "sha256": "7bdaccdc573d0ff10501a94dba39d1ed6bd73f2ae4a761cb71b8f56e5d119ca4"
+        }
+      }
+    },
+    {
+      "shard": 6,
+      "counts": {
+        "input_sha256": "b26a4b43095b1b4cba87cff71d0ca56cbf9c7babfb3b70ce9b7ada9da08f19ff",
+        "parents": 94564,
+        "filtered_originals": 701,
+        "filtered_segments_parents": 701,
+        "alignment_failures": 22497,
+        "word_duration_exclusions": 71366,
+        "fewer_than_two_segment_parents": 240,
+        "pairs": 745,
+        "excluded_parents": 94103,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "d78cd932141c5658d6d7f5881817ec0d9ea3cfd6c6360f66d424a74b8c41eeec",
+        "filtered_originals_sha256": "1a9f8173358eb3dc2d3681885c650f87ef0055bc8afb12ffd0b8035aa283f167",
+        "segments_sha256": "1dc6fb350625d7ebbcf9fff3c54f863ed725915910b95964ad4cfcd253de928f",
+        "pair_exclusions_sha256": "c9090c07970540cefaaa86c2147109e0706d856b4bf825dd0f4e930318854f78",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 505,
+      "source_ids_sha256": "e5cfc760ea82683e2c4db71aa5270da044df3eef0155e48ab806a0de4c712e5f",
+      "normalized_input_sha256": "3c77d06ae2785948bd2e4b000679588e9a7fdb5cacfcef42b324a2fd1892051e",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0006/raw_segments.jsonl",
+          "bytes": 14944290303,
+          "sha256": "b26a4b43095b1b4cba87cff71d0ca56cbf9c7babfb3b70ce9b7ada9da08f19ff"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0006/filtered_originals.jsonl.gz",
+          "bytes": 1085676,
+          "sha256": "1a9f8173358eb3dc2d3681885c650f87ef0055bc8afb12ffd0b8035aa283f167"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0006/segments.jsonl.gz",
+          "bytes": 1213131,
+          "sha256": "1dc6fb350625d7ebbcf9fff3c54f863ed725915910b95964ad4cfcd253de928f"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0006/pairs.jsonl.gz",
+          "bytes": 284769,
+          "sha256": "d78cd932141c5658d6d7f5881817ec0d9ea3cfd6c6360f66d424a74b8c41eeec"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0006/pair_exclusions.jsonl",
+          "bytes": 929551285,
+          "sha256": "c9090c07970540cefaaa86c2147109e0706d856b4bf825dd0f4e930318854f78"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/model_runtime.json",
+          "local_path": "aligned_v1/shard-0006/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0006/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "3defbb88c1ea2490206dea2d5815b163a7a5f2ba43c70aa11ca1947a227409db"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0006/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "9e52e6897071109cf2cc98087169df6a04ac9e4f75e1a059e6a3e9b3936afec2"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/run.json",
+          "local_path": "aligned_v1/shard-0006/run.json",
+          "bytes": 1012,
+          "sha256": "7e3292aa4d17afaa802e8beb24ba18059babb66b293ea7336f1269530964f299"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/PROCESS.json",
+          "local_path": "aligned_v1/shard-0006/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "6ba18115898098e1a2985942b9502ad82d403ea19512ae52d26c75ef3d9bc4f5"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0006/chunk_cache_releases.jsonl",
+          "bytes": 119180,
+          "sha256": "28a055ad405857b99052d53e6dc1b98cc72cf9614988420ed9be52ec883b2f4d"
+        }
+      }
+    },
+    {
+      "shard": 7,
+      "counts": {
+        "input_sha256": "2b52331a264b995c31c6a44de058caf23c97aed34c3b7be489470cd64016804a",
+        "parents": 94565,
+        "filtered_originals": 776,
+        "filtered_segments_parents": 776,
+        "alignment_failures": 22297,
+        "word_duration_exclusions": 71492,
+        "fewer_than_two_segment_parents": 261,
+        "pairs": 933,
+        "excluded_parents": 94050,
+        "pairing_policy": "sliding_adjacent_stride_1_same_parent",
+        "pairs_sha256": "ad80d147b7fc7a255d8c53f71e367a68c16db2a3cbd5b70a4ba49eef2c4076d6",
+        "filtered_originals_sha256": "1959d52677d4ed8619ef497d9decc9e9368cb78c274a2fb5e0346ac66642d869",
+        "segments_sha256": "a4112894cb666c0fc4961d2c17475a78c5f7c722b3ee3844b3437df43bc55982",
+        "pair_exclusions_sha256": "f8c441b1520b026c11ee96e8e5439a34c91449aa217d8c6f4e24ecb77c23a949",
+        "word_duration_limits": [
+          0.04,
+          3.0
+        ]
+      },
+      "source_chunk_count": 505,
+      "source_ids_sha256": "caba7e639388bd5b07d73a0f3e58d5297b13cd14180ecc15a1435761610b8a85",
+      "normalized_input_sha256": "f017dc5bca694680216854d73d2219fd93a4f4e108fd1370b7b742953e309ef9",
+      "files": {
+        "raw_segments.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/raw_segments.jsonl",
+          "local_path": "aligned_v1/shard-0007/raw_segments.jsonl",
+          "bytes": 14806498433,
+          "sha256": "2b52331a264b995c31c6a44de058caf23c97aed34c3b7be489470cd64016804a"
+        },
+        "filtered_originals.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/filtered_originals.jsonl.gz",
+          "local_path": "aligned_v1/shard-0007/filtered_originals.jsonl.gz",
+          "bytes": 1351562,
+          "sha256": "1959d52677d4ed8619ef497d9decc9e9368cb78c274a2fb5e0346ac66642d869"
+        },
+        "segments.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/segments.jsonl.gz",
+          "local_path": "aligned_v1/shard-0007/segments.jsonl.gz",
+          "bytes": 1517363,
+          "sha256": "a4112894cb666c0fc4961d2c17475a78c5f7c722b3ee3844b3437df43bc55982"
+        },
+        "pairs.jsonl.gz": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/pairs.jsonl.gz",
+          "local_path": "aligned_v1/shard-0007/pairs.jsonl.gz",
+          "bytes": 357214,
+          "sha256": "ad80d147b7fc7a255d8c53f71e367a68c16db2a3cbd5b70a4ba49eef2c4076d6"
+        },
+        "pair_exclusions.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/pair_exclusions.jsonl",
+          "local_path": "aligned_v1/shard-0007/pair_exclusions.jsonl",
+          "bytes": 915819015,
+          "sha256": "f8c441b1520b026c11ee96e8e5439a34c91449aa217d8c6f4e24ecb77c23a949"
+        },
+        "model_runtime.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/model_runtime.json",
+          "local_path": "aligned_v1/shard-0007/model_runtime.json",
+          "bytes": 1032,
+          "sha256": "bb013b4b401eeb153e8dd77ef4f9a1ae3d84d1afc49a61ab13caeaee3852de7e"
+        },
+        "ALIGNMENT_COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/ALIGNMENT_COMPLETE.json",
+          "local_path": "aligned_v1/shard-0007/ALIGNMENT_COMPLETE.json",
+          "bytes": 1224,
+          "sha256": "6345e18caad6bc35ff77f436fd6ac37b2c045a87290d3a14f10b73e897434b59"
+        },
+        "COMPLETE.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/COMPLETE.json",
+          "local_path": "aligned_v1/shard-0007/COMPLETE.json",
+          "bytes": 810,
+          "sha256": "75ae416b2be08b5042893777fb4c48cb8f33571ed381d5a959467606bb7ea4ac"
+        },
+        "run.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/run.json",
+          "local_path": "aligned_v1/shard-0007/run.json",
+          "bytes": 1012,
+          "sha256": "294fc93ec02a38456216da8aaaae568a7008bcbe75e22f44781db7274deb9111"
+        },
+        "PROCESS.json": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/PROCESS.json",
+          "local_path": "aligned_v1/shard-0007/PROCESS.json",
+          "bytes": 1690,
+          "sha256": "d56696195aa13a11793703c58eba33a82281cb4fae7c89649645ca4d3c2cb6f9"
+        },
+        "chunk_cache_releases.jsonl": {
+          "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/chunk_cache_releases.jsonl",
+          "local_path": "aligned_v1/shard-0007/chunk_cache_releases.jsonl",
+          "bytes": 119180,
+          "sha256": "591173f297253083a97622ee7f385bc8f7991087d9f0b2bad0e347305a07dc24"
+        }
+      }
+    }
+  ],
+  "training_started": false,
+  "actual_loader": {
+    "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/FINAL_LOADER_VERIFIED.json",
+    "sha256": "17e7181dae2fffa2932d79befd13d03f6abc6044871f27b7ff3d4af61d6edcee",
+    "versions": [
+      {
+        "name": "original",
+        "rows": 757156
+      },
+      {
+        "name": "filtered",
+        "rows": 5913
+      },
+      {
+        "name": "segments",
+        "rows": 5913
+      },
+      {
+        "name": "pairs",
+        "rows": 6678
+      }
+    ],
+    "native_audio_checks": [
+      {
+        "path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/ChunkFiles/chunk_00062dea-3727-11f0-992f-7c1e52b61b20.audio:194:81#0.000:29.840",
+        "frames": 477440,
+        "sample_rate": 16000,
+        "waveform_sha256": "1715981a5d893f0fab4532b722d68017ca0401ca0505c60ffa75637934834b67"
+      },
+      {
+        "path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/ChunkFiles/chunk_00062dea-3727-11f0-992f-7c1e52b61b20.audio:194:81#29.840:42.800",
+        "frames": 207360,
+        "sample_rate": 16000,
+        "waveform_sha256": "3c77a8755804aa8f6bc9ce7be204c343a614698f4aca2c2472c68cf44ac2145e"
+      }
+    ],
+    "reference_context_verified": true,
+    "training_source": "reference",
+    "validation_source": "generated",
+    "max_history": 1,
+    "probe_source_sha256": "c9615a2ed188d9c59413e51059f40c31c48524817bfed84ba158ea28af20f9ad",
+    "tested_snapshot_head": "01019846167fdfb7b1b31dbd145bd3e2e5be8123"
+  },
+  "dataset_configs": {
+    "hc_fy24q3_1.yaml": {
+      "published_path": "configs/hc_fy24q3_1.yaml",
+      "sha256": "684e7760b0ec601325e0c6a652f52d32a81cd639ae9175e4e8d7de834adec66c",
+      "semantics_sha256": "1b200c7a80889eb2ea452930b488017a276f23a7f9ea29312cab1481bbdd2b65",
+      "tested_file_sha256": "a06c51f9e90719e5e672b3ae5693b908e2be16eb44729c8c2a0dce63a9471516",
+      "only_comments_changed_after_actual_loader_test": true
+    },
+    "hc_fy24q3_1_filtered.yaml": {
+      "published_path": "configs/hc_fy24q3_1_filtered.yaml",
+      "sha256": "7ca7c25e2f95c573009db9b4620fb2715a04e802cc4460b2d754dee892e37add",
+      "semantics_sha256": "8170a6e4ce8c433f061f74a66526eff2a8d10d722f77f707dec7526307e94c10",
+      "tested_file_sha256": "7029b9e979e0c7875c77db0295c3050d1c78a624fa162bae91354c65ad920af5",
+      "only_comments_changed_after_actual_loader_test": true
+    },
+    "hc_fy24q3_1_segments.yaml": {
+      "published_path": "configs/hc_fy24q3_1_segments.yaml",
+      "sha256": "3b36438e7207fcd9e9875280bd90f3d7aa20c4a2abc40caebb99ba556c1932e0",
+      "semantics_sha256": "d91b9e270304f8c7afc35a48d1d63a2dae24be763dc7aa13d2eacda4763d040f",
+      "tested_file_sha256": "64b6328dbb8ee3b262f2e5e5c621288677e08cac231df92ba8c6cc1e5844eb42",
+      "only_comments_changed_after_actual_loader_test": true
+    },
+    "hc_fy24q3_1_2segments_reference_context.yaml": {
+      "published_path": "configs/hc_fy24q3_1_2segments_reference_context.yaml",
+      "sha256": "7f3a006ac238c042f2f656ad16579bf82503071d3f45a84c75e05eabab08c68d",
+      "semantics_sha256": "c5ae385ec910257da13c493a149e843dc327d45c9c4af62206fe0bfbbdba4430",
+      "tested_file_sha256": "15a963b271bb2a1e0b8d44ed790113440e45db0b4c1b9df9b70a6ba0937a7e8a",
+      "only_comments_changed_after_actual_loader_test": true
+    },
+    "hc_fy24q3_1_reference_context_training.yaml": {
+      "published_path": "configs/hc_fy24q3_1_reference_context_training.yaml",
+      "sha256": "74cd3499d97ad2c8d6415f04ae9194b15643d091d5a405f6f544de7bf7d6e428",
+      "semantics_sha256": "66bb6a978f204c08e0fde02c55108a9ae6ae139c14c9ed5a4e950bae54d5491d",
+      "tested_file_sha256": "e03ea9d8f833e7b9cc8a7c8364cd4faa2f5b69760ae97d8b8a7444dabf101abe",
+      "only_comments_changed_after_actual_loader_test": true
+    }
+  }
+}

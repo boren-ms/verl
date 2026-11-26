@@ -1,4 +1,7 @@
-# Prepared after verified Qwen alignment; publication pending.
+# Real published-manifest ASRDataset verification passed; see aligned_v1 index.
+# Orange publication and full manifest/human-reference readback verified 2026-11-26.
+# Verified rows: 5,913 accepted parent rows / 12,591 ordered timed segments.
+# Hashes and retained raw/exclusions: hc_fy24q3_1.aligned_v1.index.json.
 # Original recordings are excluded if any word is below 0.04 s or above 3 s.
 # Ordered word-timed audio selectors; no cropped audio files.
 - dataset_name: jsonl

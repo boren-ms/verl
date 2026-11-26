@@ -1,3 +1,6 @@
+# Real published-manifest ASRDataset verification passed; see aligned_v1 index.
+# Original Orange publication and decompressed SHA256 verified; 757,156 rows.
+# Full alignment/version index: hc_fy24q3_1.aligned_v1.index.json.
 # Full FY24Q3-1 parent utterances with normalized adjusted human captions.
 # Binary .transcription text is retained on Orange as a source artifact.
 # Preparation reads tn_transcription from .info, with
