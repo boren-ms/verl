@@ -1,0 +1,38 @@
+# @package _global_
+# Fisher recipe from thread 01a216a4-f078-7413-8541-acaf7e6065a0.
+# Seed: user-selected GSPO best checkpoint, global_step_1600, from
+# thread 01a21499-da43-7220-a9d5-bd5540e64696.
+# Export and merge that checkpoint to hf_export/ before launching this recipe.
+
+defaults:
+  - remax_moe_fisher_contiguous23_reference_text_history2_gspo_coraal
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_fisher_openlong_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2611/remax_fl_earnings_short_random_merge23_x4_reference_context_openlong_gspo_lr2/global_step_1600/hf_export/
+  actor:
+    optim:
+      lr: 2.4e-6
+
+data:
+  val_data:
+    - ${_fisher_openlong_val}
+
+reward_map:
+  earnings21: val_openasr_en
+  earnings22: val_openasr_en
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 2
+    training_source: reference
+    validation_source: generated
+
+trainer:
+  experiment_name: remax_moe_fisher_contiguous23_reference_text_history2_gspo_openlong_refbest_lr24
+  save_freq: 100
+  test_freq: 200
