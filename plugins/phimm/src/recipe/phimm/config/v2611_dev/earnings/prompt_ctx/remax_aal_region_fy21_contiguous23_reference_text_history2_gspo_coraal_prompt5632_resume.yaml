@@ -1,0 +1,9 @@
+# @package _global_
+# Preserve the existing AAL recipe and resume state without input truncation.
+# A 5,237-token expanded acoustic prompt exceeded the 5,120-token budget.
+defaults:
+  - remax_aal_region_fy21_contiguous23_reference_text_history2_gspo_coraal_prompt5120_resume
+  - _self_
+
+data:
+  max_prompt_length: 5632
