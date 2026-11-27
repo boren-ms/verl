@@ -1,13 +1,16 @@
 # @package _global_
-# Retain the reference preset's training mix and OpenLong U2 validation.
+# Retain the reference preset's training mix; validate on complete OpenLong.
 # Training manifests retain the same windows and add segment_reference_texts.
 defaults:
   - remax_earnings_short_contiguous23_text_history2
   - /data/train_data/offline_audio/earnings_short_contiguous23_reference_context@_reference_train
+  - /data/val_data/openasr/openlong_seg_verb_langhint_zip@_openlong_full
   - _self_
 
 data:
   train_data: ${_reference_train}
+  val_data:
+    - ${_openlong_full}
 
 asr:
   context_aware:

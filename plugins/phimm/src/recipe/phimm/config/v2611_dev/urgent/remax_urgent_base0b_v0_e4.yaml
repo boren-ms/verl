@@ -1,0 +1,84 @@
+# @package _global_
+# Original URGENT E4 ReMax recipe, adapted to the current Main ASR config schema.
+# Cached LibriSpeech: speed [1,2] -> BUT ReverbDB RIR -> noise at SNR [10,12] dB.
+
+defaults:
+  - /v2611_dev/base@_global_
+  - /data/train_data/noisy/ls_rir_verb_langhint@_ls_train
+  - /data/val_data/urgent2024_delta@_urgent_val
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2609/amlt-results/fast-llm-2609-qwen9b-flashenc-mtp-s2-data-v3.5.4-r2/54000/qwen_hf
+    lora_rank: 320
+  actor:
+    optim:
+      lr: 1.0e-6
+      lr_scheduler_type: constant
+      lr_warmup_steps: 0
+    policy_loss:
+      loss_mode: vanilla
+    loss_agg_mode: token-mean
+    clip_ratio_low: 0.2
+    clip_ratio_high: 0.28
+  rollout:
+    n: 16
+    temperature: 1.0
+
+algorithm:
+  adv_estimator: remax
+  rollout_correction:
+    bypass_mode: false
+
+data:
+  train_batch_size: 128
+  shuffle: true
+  train_data:
+    - ${_ls_train}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: noisy_ls, sample: null, shuffle: true}
+  val_data:
+    - ${_urgent_val}
+
+rewards:
+  train_urgent_noisy_ls:
+    path: recipe/phimm/reward/asr_vote.py
+    name: compute_score
+    reward_kwargs:
+      reduce: {mode: average, total: 1}
+      measures:
+        char: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word: {delta: abs, beta: 1.0, vote: delta, clip: [-2, 2]}
+        word_del: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_ins: {delta: abs, beta: 0.25, vote: delta, clip: [-2, 2]}
+        word_kw: {delta: abs, beta: 0.5, vote: delta, clip: [-2, 2]}
+        lang: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+        fmt: {score: acc, beta: 0.05, vote: abs, clip: [-2, 2]}
+  val_urgent_en:
+    path: recipe/phimm/reward/asr_eval.py
+    name: openasr_en_eval
+    reward_kwargs: {}
+
+reward_map:
+  noisy_ls: train_urgent_noisy_ls
+  urgent2024_delta: val_urgent_en
+
+asr:
+  expected_training_rows: 20424
+  expected_training_steps: 636
+
+trainer:
+  experiment_name: remax_urgent_base0b_v0_e4
+  nnodes: 2
+  n_gpus_per_node: 8
+  total_epochs: 4
+  total_training_steps: null
+  save_freq: 40
+  test_freq: 80
+  val_before_train: true
+  val_only: false
+  resume_mode: disable
+  resume_from_path: null

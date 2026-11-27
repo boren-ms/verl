@@ -1,0 +1,48 @@
+# @package _global_
+# Thread 01a219ae's 1:1 GSPO recipe with thread 01a21499's full
+# FL + Earnings RM23 x4 reference-text v2 training set and LR 2.4e-6.
+# Initialize from 2611s3a merged step 40; match full Fisher in one epoch.
+# Counts: tmp/reference_context_preparation_20261123/data_verification.json.
+defaults:
+  - remax_earnings_short_contiguous23_fisher_1to1_reference_text_history2_gspo
+  - /data/train_data/foreign/fl_earnings_short_random_merge23_x4_reference_text_v2@_fl_earnings_reference_train
+  - _self_
+
+data:
+  train_batch_size: 256
+  mix:
+    - shuffle: true
+      datasource:
+        # Scale thread 1's source proportions to 266,458 rows with repeats.
+        - {name: earn_fy27, sample: 91144, shuffle: true}
+        - {name: quartr_1st23, sample: 29768, shuffle: true}
+        - {name: quartr_2nd48, sample: 60889, shuffle: true}
+        - {name: quartr_3rd38, sample: 58632, shuffle: true}
+        - {name: quartr_fl_segments, sample: 26025, shuffle: true}
+        - {name: moe_fisher, sample: 266458, shuffle: true}
+  train_data:
+    - ${_fl_earnings_reference_train}
+    - ${_fisher_reference_train}
+
+reward_map:
+  quartr_fl_segments: train_librispeech
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/xiaojul/amlt-results/fast-llm-2611-qwen3-5-9b-s2-vi-vn-it-it-flashenc-s2init-sft-only-contlora-mtpunfrozen-adapterfrozen-40steps-bv-notxt-lid/40_merged/qwen_hf/
+  actor:
+    optim:
+      lr: 2.4e-6
+
+asr:
+  expected_training_rows: 532916
+  expected_training_steps: 2081
+
+trainer:
+  experiment_name: remax_2611s3a_fl_earnings_rm23_x4_fisher_1to1_refh2_gspo_lr2p4e6_bs256_s2081
+  nnodes: 4
+  n_gpus_per_node: 8
+  # floor((266,458 + 266,458) / 256) = 2081 updates in one epoch.
+  total_epochs: 1
+  total_training_steps: 2081
+  resume_mode: auto

@@ -1,0 +1,38 @@
+# @package _global_
+# Evaluate the verified final merged checkpoint on full URGENT noisy and clean.
+# Supply actor_rollout_ref.model.path and trainer.experiment_name at submission.
+
+defaults:
+  - /v2611_dev/eval/eval_base@_global_
+  - _self_
+
+data:
+  val_data:
+    - dataset_name: jsonl
+      jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024/data_zip.jsonl
+      add_task_info:
+        style: verb
+        language: English
+        lang_hint: true
+      post_process:
+        add_field:
+          fields:
+            data_source: urgent2024
+        verl_format:
+          prompt_key: prompt
+    - dataset_name: jsonl
+      jsonl_paths: az://orngwus2cresco/data/boren/data/openasr_jsonl/urgent2024_clean/data_zip.jsonl
+      add_task_info:
+        style: verb
+        language: English
+        lang_hint: true
+      post_process:
+        add_field:
+          fields:
+            data_source: urgent2024_clean
+        verl_format:
+          prompt_key: prompt
+
+trainer:
+  nnodes: 2
+  n_gpus_per_node: 8

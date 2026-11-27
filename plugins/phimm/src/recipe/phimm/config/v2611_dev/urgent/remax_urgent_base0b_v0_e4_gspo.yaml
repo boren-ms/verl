@@ -1,0 +1,18 @@
+# @package _global_
+# URGENT E4 with ReMax greedy-baseline advantages and GSPO sequence policy loss.
+# Inherit the original speed/RIR/noise data, reward, optimizer, and validation.
+
+defaults:
+  - remax_urgent_base0b_v0_e4
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    policy_loss:
+      loss_mode: gspo
+    loss_agg_mode: seq-mean-token-mean
+    clip_ratio_low: 3.0e-4
+    clip_ratio_high: 4.0e-4
+
+trainer:
+  experiment_name: remax_urgent_base0b_v0_e4_gspo

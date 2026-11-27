@@ -1,0 +1,22 @@
+# @package _global_
+# Independent 64-GPU variant of the 2611S3A FL + Earnings/Fisher GSPO run.
+# Preserve the data mixture and one training epoch; update each PPO batch twice.
+defaults:
+  - remax_fl_earnings_rm23_x4_fisher_1to1_reference_text_history2_gspo_lr2p4e6
+  - _self_
+
+data:
+  train_batch_size: 512
+
+actor_rollout_ref:
+  actor:
+    ppo_epochs: 2
+
+asr:
+  expected_training_steps: 1040
+
+trainer:
+  experiment_name: remax_2611s3a_fl_earnings_rm23_x4_fisher_1to1_refh2_gspo_lr2p4e6_bs512_ppo2_s1040
+  nnodes: 8
+  # floor(532,916 / 512) = 1040 rollout/update steps in one data epoch.
+  total_training_steps: 1040

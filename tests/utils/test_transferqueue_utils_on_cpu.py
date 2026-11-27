@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import asyncio
 import gc
 import os
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
+import numpy as np
 import pytest
+import torch
+from tensordict import TensorDict
 
 from verl.utils import transferqueue_utils as tqu
 
@@ -67,3 +73,68 @@ def test_async_bridge_loop_reused_between_calls():
         assert tqu._ASYNC_BRIDGE_LOOP is first_loop
     finally:
         tqu._shutdown_async_bridge_runtime()
+
+
+def _metadata(size, fields, ready=True):
+    return SimpleNamespace(
+        size=size,
+        field_names=fields,
+        production_status=np.ones(size, dtype=np.int8) if ready else np.zeros(size, dtype=np.int8),
+    )
+
+
+@pytest.mark.parametrize("synchronous", [False, True])
+@pytest.mark.parametrize(
+    "first",
+    [
+        _metadata(2, []),
+        _metadata(1, ["loss_mask", "input_ids"]),
+        _metadata(2, ["input_ids"]),
+        _metadata(2, ["loss_mask", "input_ids"], ready=False),
+    ],
+)
+def test_verified_write_retries_unconfirmed_data_before_publishing_tags(monkeypatch, first, synchronous):
+    calls = []
+
+    async def put(**kwargs):
+        calls.append(kwargs)
+        return SimpleNamespace(tags=None)
+
+    client = SimpleNamespace(
+        async_kv_retrieve_meta=AsyncMock(
+            side_effect=[
+                first,
+                _metadata(2, ["loss_mask", "input_ids"]),
+            ]
+        )
+    )
+    monkeypatch.setattr(tqu, "tq", SimpleNamespace(async_kv_batch_put=put, get_client=lambda: client))
+    fields = TensorDict({"loss_mask": torch.ones(2, 3), "input_ids": torch.ones(2, 3)}, batch_size=[2])
+    tags = [{"status": "success"}] * 2
+    kwargs = dict(keys=["a", "b"], partition_id="train", fields=fields, tags=tags)
+    if synchronous:
+        result = tqu.kv_batch_put_verified(**kwargs)
+    else:
+        result = asyncio.run(tqu.async_kv_batch_put_verified(**kwargs))
+    assert len(calls) == 3
+    assert calls[0]["fields"] is calls[1]["fields"] is fields
+    assert "tags" not in calls[0] and "tags" not in calls[1]
+    assert "fields" not in calls[2] and calls[2]["tags"] is tags
+    assert result.tags is tags
+
+
+def test_verified_write_does_not_publish_success_after_retry_exhaustion(monkeypatch):
+    put = AsyncMock(return_value=SimpleNamespace(tags=None))
+    client = SimpleNamespace(async_kv_retrieve_meta=AsyncMock(return_value=_metadata(2, [])))
+    monkeypatch.setattr(tqu, "tq", SimpleNamespace(async_kv_batch_put=put, get_client=lambda: client))
+    with pytest.raises(RuntimeError, match="after 3 attempts"):
+        asyncio.run(
+            tqu.async_kv_batch_put_verified(
+                keys=["a", "b"],
+                partition_id="train",
+                fields=TensorDict({"loss_mask": torch.ones(2, 3)}, batch_size=[2]),
+                tags=[{"status": "success"}] * 2,
+            )
+        )
+    assert put.await_count == 3
+    assert all("tags" not in call.kwargs for call in put.await_args_list)

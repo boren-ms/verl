@@ -1,0 +1,14 @@
+# @package _global_
+# Learning-rate ablation: same Contig23:Fisher 1:1 data and recipe, 4x actor LR.
+defaults:
+  - remax_earnings_short_contiguous23_fisher_1to1_reference_text_history2_gspo
+  - _self_
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 4.8e-6
+
+trainer:
+  experiment_name: remax_earnings_short_contiguous23_fisher_1to1_reference_text_history2_gspo_lr4
+  resume_mode: auto
