@@ -7,3 +7,4 @@ pilots/
 # Full alignment readbacks include model/run JSON receipts and release ledgers.
 aligned_v1/
 aligned_v2_word_0_5_max1/
+aligned_v3_consecutive_max3/

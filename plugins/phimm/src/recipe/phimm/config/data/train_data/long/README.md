@@ -1,6 +1,170 @@
 # FY24Q3-1 long-form English
 
-Last updated: 11/26/2026
+Last updated: 11/27/2026
+
+<!-- FY24Q3-1 consecutive-duration filter statistics, verified 2026-11-27:
+Zero duration d=0 and long duration d>5 seconds are counted separately per original sample.
+Reject the whole sample at a same-category consecutive run >=4; runs 1-3 are allowed.
+757,156 parents = 179,004 alignment failures + 160,338 consecutive-run rejects + 417,814 retained originals.
+All 16,487 v2 accepted originals remain; 401,327 more are restored.
+Retention of the same 757,156 original samples: v1 0.780949%; v2 2.177491%; v3 55.182023%.
+Originals: 417,814 samples / 43772.3843872222 hours / 398,025,213 human words.
+Segments: 417,814 parents / 5,388,363 units / 42420.2224533333 hours / 398,025,213 human words.
+Pairs: 4,970,549 samples / 79705.4087700000 hours / 747,067,974 word occurrences.
+Every original/raw/v1/v2 source, alignment timestamp and human reference is preserved.
+All eight outputs passed independent validation and Orange SHA256 readback; sampled native audio passed. Three full filtered-original shards passed actual ASRDataset checks; remaining loader checks were explicitly waived by the user. No training or cropped audio.
+-->
+
+## Latest filter: allow 1–3 consecutive abnormal words (aligned_v3)
+
+Within **each original sample**, classify words into two separate categories:
+**zero duration (`d == 0`)** and **long duration (`d > 5` seconds)**.
+A whole sample is rejected only when either category has **at least four consecutive words**.
+Same-category runs of 1, 2 or 3 are retained, even if a sample has many separate runs.
+A normal word or a switch to the other category breaks a run. Exactly 5 seconds is normal.
+The normalized reference has no punctuation, so no sentence splitting is used.
+Negative/nonfinite timings, incomplete coverage and pre-existing alignment failures remain excluded.
+No Qwen inference is rerun and no timestamp, segment, human word or reference is altered.
+
+| Version | Samples / units | Hours | Human words / occurrences |
+| --- | ---: | ---: | ---: |
+| Retained full originals | 417,814 samples | 43772.384387 | 398,025,213 |
+| Word-timed segments | 417,814 parents / 5,388,363 segments | 42420.222453 | 398,025,213 |
+| Sliding adjacent reference pairs | 4,970,549 pairs | 79705.408770 | 747,067,974 |
+
+The new filter retains **417,814 / 757,156 original samples (55.18%)**,
+including every previously retained v1 and v2 sample. Compared with v2, it restores
+**401,327 samples** and **43510.157800 original-audio hours**.
+There are 179,004 unchanged alignment failures and 160,338 run-based rejects:
+158,450 zero-run only, 200 long-run only, and 1,688 both categories.
+403,121 parents produce pairs; 14,693 retained originals
+have fewer than two segments and remain in the retained-original and segmented manifests.
+All 354,035 pair exclusions retain reasons and original timing flags.
+Original hours are full parent waveform durations; segment hours sum timed selector spans.
+Sliding pairs repeat segments, so pair hours and word occurrences include duplication.
+Words are normalized human whitespace-delimited words, not tokenizer tokens.
+
+### Retention comparison across policies
+
+Each rate below uses the same **757,156 original samples**, including the unchanged
+179,004 alignment failures. Counts are retained whole original samples, rather than
+segment units or sliding pair rows. Every preceding version remains available.
+
+| Policy | Rule | Retained original samples | % of all original samples | % of successfully aligned samples | Index and Orange directory |
+| --- | --- | ---: | ---: | ---: | --- |
+| v1 | Reject any word outside inclusive [0.04, 3] seconds | 5,913 | 0.7809% | 1.0227% | [v1 index](hc_fy24q3_1.aligned_v1.index.json); `aligned_v1/` |
+| v2 | Reject at least two words with d <= 0 or d >= 5 anywhere in a sample | 16,487 | 2.1775% | 2.8517% | [v2 index](hc_fy24q3_1.aligned_v2_word_0_5_max1.index.json); `aligned_v2_word_0_5_max1/` |
+| v3 | Reject a same-category consecutive run >=4 of d=0 or d>5; allow runs 1-3 | 417,814 | 55.1820% | 72.2672% | [v3 index](hc_fy24q3_1.aligned_v3_consecutive_max3.index.json); `aligned_v3_consecutive_max3/` |
+
+The aligned-only denominator is **578,152 samples**. All directories share the Orange
+`training/` prefix printed below. Each contains `shard-0000/` through `shard-0007/`, with
+retained full originals in `filtered_originals.jsonl.gz`, timed segment rows in
+`segments.jsonl.gz`, and sliding reference pairs in `pairs.jsonl.gz`.
+Each index records the complete published paths and verified hashes.
+
+### Consecutive-run distribution
+
+The statistics below use all **578,152 successfully aligned original samples**, before this new filter.
+An occurrence is a **maximal contiguous same-category run**, rather than overlapping windows of 1/2/3 words.
+Run percentages divide by all runs in that category; word percentages divide by all abnormal words in that category.
+
+| Category | Run length | Runs | % of category runs | Words in runs | % of category words |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Zero duration | 1 | 28,970,532 | 88.6372% | 28,970,532 | 70.8862% |
+| Zero duration | 2 | 2,422,386 | 7.4114% | 4,844,772 | 11.8544% |
+| Zero duration | 3 | 635,711 | 1.9450% | 1,907,133 | 4.6664% |
+| Zero duration | >=4 | 655,779 | 2.0064% | 5,146,608 | 12.5929% |
+| Duration >5s | 1 | 181,743 | 91.0659% | 181,743 | 80.3629% |
+| Duration >5s | 2 | 12,273 | 6.1496% | 24,546 | 10.8537% |
+| Duration >5s | 3 | 3,593 | 1.8003% | 10,779 | 4.7662% |
+| Duration >5s | >=4 | 1,964 | 0.9841% | 9,085 | 4.0172% |
+
+A sample can contain several runs, so run counts differ from sample counts.
+This second table assigns each sample to its **maximum run length**, independently for each category.
+Percentages use all successfully aligned samples; columns cannot be added across categories.
+
+| Category | Maximum run in sample | Samples | % of aligned samples |
+| --- | ---: | ---: | ---: |
+| Zero duration | 0 | 6,104 | 1.0558% |
+| Zero duration | 1 | 196,631 | 34.0103% |
+| Zero duration | 2 | 141,173 | 24.4180% |
+| Zero duration | 3 | 74,106 | 12.8177% |
+| Zero duration | >=4 | 160,138 | 27.6983% |
+| Duration >5s | 0 | 489,708 | 84.7023% |
+| Duration >5s | 1 | 74,093 | 12.8155% |
+| Duration >5s | 2 | 9,274 | 1.6041% |
+| Duration >5s | 3 | 3,189 | 0.5516% |
+| Duration >5s | >=4 | 1,888 | 0.3266% |
+
+Full length histograms, word totals and denominators are retained in
+[the v3 index](hc_fy24q3_1.aligned_v3_consecutive_max3.index.json), `RUN_STATISTICS.json` in each shard,
+and the published root `RUN_STATISTICS.json` / `RUN_SUMMARY.json`.
+
+### Preserved data and configurations
+
+The v3 index links the unchanged original JSON, all eight immutable raw alignment shards,
+[v1 index](hc_fy24q3_1.aligned_v1.index.json) and
+[v2 index](hc_fy24q3_1.aligned_v2_word_0_5_max1.index.json), with source SHA256 hashes.
+V1 and v2 manifests/configurations stay available. Large new data is retained locally in
+`aligned_v3_consecutive_max3/shard-0000/` through `shard-0007/`, ignored by Git, and published under:
+
+```text
+az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-000i/
+```
+
+Each shard contains `filtered_originals.jsonl.gz`, `segments.jsonl.gz`, `pairs.jsonl.gz`,
+`quality_decisions.jsonl.gz`, `pair_exclusions.jsonl.gz`, `RUN_STATISTICS.json` and `COMPLETE.json`.
+Decisions account for every original, retain previous filter decisions and record all outlier
+words/timestamps, maximal runs and run-based rejection flags. Raw predictions and alignment failures
+remain referenced by immutable source path and SHA256.
+
+- [Filtered originals](hc_fy24q3_1_filtered_consecutive_max3.yaml).
+- [Word-timed segments](hc_fy24q3_1_segments_consecutive_max3.yaml).
+- [Two-segment reference pairs](hc_fy24q3_1_2segments_reference_context_consecutive_max3.yaml).
+- [Reference-context training configuration](hc_fy24q3_1_reference_context_training_consecutive_max3.yaml).
+- [Actual Hydra training entry](../../../v2611_dev/long/hc_fy24q3_1_reference_context_consecutive_max3.yaml).
+
+The actual `ASRDataset` loader completed three whole published filtered-original shards
+(shards 0000–0002; 156,584 samples), including newly retained maximum-zero-run-3 examples.
+The user explicitly requested stopping the remaining loader checks and proceeding to delivery.
+The complete segmented and paired versions were not loaded in this final probe, and no final
+cross-shard schema-unification or simultaneous full-mix loader success is claimed.
+All eight shards of the derived versions passed independent full parent/reference/timing/coverage/segment/pair validation
+and exact Orange manifest SHA256 readback. The final Hydra configuration includes all eight paths,
+uses human reference context with history one and generated validation, and leaves the model unset.
+The earlier actual reference-context/full-agent QA remains available; reader/context/agent source is unchanged.
+The native JSON reader builds Arrow tables in memory, so a training host must provide RAM for the
+complete mixed dataset. The loader log, actual completed checks and explicit waiver are retained in
+published `FINAL_LOADER_SCOPE.json` and the v3 index.
+Full `ASRAgentLoop` import is unavailable locally because of existing `torchvision` / `transfer_queue`
+dependencies; its unchanged implementation retains the earlier full-agent QA. This does not claim
+a new full-agent import. A native Orange timed selector from a newly restored parent exactly matches
+the existing full parent waveform slice at 16 kHz. This is sampled audio QA, not a hash of all audio.
+No cropped audio or training/model-checkpoint launch occurs.
+
+Print the composed configuration without starting training:
+
+```bash
+python -m recipe.phimm.main_asr_remax \
+  --config-path config \
+  --config-name v2611_dev/long/hc_fy24q3_1_reference_context_consecutive_max3 \
+  "hydra.searchpath=[file://${PWD}/verl/trainer/config]" \
+  --cfg job
+```
+
+The checkpoint remains unset. Matching ASR model/tokenizer/audio processor/chat template,
+registered model extensions and prompt/response/context/resource limits must meet the constraints
+in the training section below before a separately authorized run.
+
+Reproduce one shard from retained predictions, without GPU inference:
+
+```bash
+python scripts/refilter_consecutive_human_captions.py \
+  --input <aligned_v1/shard-000i/raw_segments.jsonl> \
+  --source-receipt <aligned_v1/shard-000i/ALIGNMENT_COMPLETE.json> \
+  --output-dir <fresh-new-output-directory> \
+  --maximum-long-word-seconds 5 --maximum-consecutive-words 3
+```
 
 <!-- FY24Q3-1 final processing statistics, verified 2026-11-26:
 8 shards; 4,045 disjoint source chunks; 757,156 original/raw parents.
