@@ -1,0 +1,16 @@
+# @package _global_
+# FY24Q3-1 final verified counts: 757,156 original/raw parents across 8 shards.
+# 179,004 alignment failures; 572,239 whole-original duration rejects; 5,913 accepted.
+# Accepted parents contain 12,591 <=30s segments; 3,878 parents yield 6,678 sliding pairs.
+# 2,035 accepted parents have fewer than two segments; 753,278 total pair exclusions.
+# Every selected word must be within inclusive [0.04, 3.0] seconds for its parent to pass.
+# Training uses the previous human reference (history 1); validation uses generated text.
+# See data/train_data/long/README.md for publication, provenance and model constraints.
+# Set a compatible ASR checkpoint and trainer resources before a separately authorized run.
+
+defaults:
+  - /data/train_data/long/hc_fy24q3_1_reference_context_training@_global_
+  - _self_
+
+asr:
+  expected_training_rows: 6678

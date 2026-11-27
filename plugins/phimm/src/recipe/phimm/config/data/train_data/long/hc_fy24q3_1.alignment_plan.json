@@ -1,0 +1,55 @@
+{
+  "status": "awaiting_verified_Orange_audio_then_Qwen_pilot",
+  "source": "FY24Q3-1 English adjusted human captions",
+  "parents": 757156,
+  "chunks": 4045,
+  "original": "hc_fy24q3_1.jsonl",
+  "model": "Qwen/Qwen3-ForcedAligner-0.6B",
+  "model_revision": "c7cbfc2048c462b0d63a45797104fc9db3ad62b7",
+  "qwen_source_revision": "7c6daf77a2421100f5fb066495372c00129d39ff",
+  "input_shards": 8,
+  "word_duration_filter": {
+    "scope": "entire_original_recording",
+    "minimum_seconds": 0.04,
+    "maximum_seconds": 3,
+    "inclusive": true,
+    "reject_if_any_word_outside": true
+  },
+  "segment_max_seconds": 30,
+  "pairing": "sliding_adjacent_stride_1_same_parent",
+  "audio_output": "original_chunk_reference#start:end; no audio files written",
+  "preserve": [
+    "original human-caption JSONL",
+    "all raw alignment JSONLs including failures",
+    "filtered_originals.jsonl.gz",
+    "segments.jsonl.gz",
+    "pairs.jsonl.gz",
+    "pair_exclusions.jsonl"
+  ],
+  "training_context": {
+    "source": "preceding_reference_only",
+    "history": 1,
+    "validation_source": "generated"
+  },
+  "artifacts": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124",
+  "continuation_config": "/home/boren/.codex/thread-schedules/01a20f4d-26aa-7b51-8ebb-efd322ec9694/fy24q3-1-align/config.json",
+  "input_preparation_status": "verified",
+  "input_shard_rows": [
+    94751,
+    94895,
+    94415,
+    94760,
+    94718,
+    94488,
+    94564,
+    94565
+  ],
+  "input_verification": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/alignment_inputs_verified.json",
+  "model_asset_status": "verified",
+  "model_asset_receipt": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/model_assets_complete.json",
+  "assets_publication_status": "verified",
+  "launch_config_receipt": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/alignment_launch_config_receipt.json",
+  "qwen_package_status": "Orange_size_md5_verified",
+  "qwen_package_receipt": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/qwen_package_complete.json",
+  "qwen_package_sha256": "20dab74fb1c7599ae15cfb2488d36740f04f3125cf60f1670ae3a8bcd280a5e3"
+}

@@ -1,0 +1,30 @@
+# @package _global_
+# Full publication, real Hydra/ASRDataset and Orange timed-selector checks passed.
+# Set model/checkpoint and trainer resources for the actual training run.
+defaults:
+  - /v2611_dev/base@_global_
+  - /data/train_data/long/hc_fy24q3_1_2segments_reference_context@_hc_pairs
+  - /data/val_data/openasr/openlong_all_2parents_error_2609r2b_u2@_hc_validation
+  - _self_
+
+data:
+  train_data:
+    - ${_hc_pairs}
+  val_data:
+    - ${_hc_validation}
+  max_audio_dur: null
+
+asr:
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 1
+    training_source: reference
+    validation_source: generated
+
+reward_map:
+  hc_fy24q3_1_2segments_reference_context: train_librispeech
+
+trainer:
+  experiment_name: hc_fy24q3_1_30s_pairs_reference_context
+  total_training_steps: null
