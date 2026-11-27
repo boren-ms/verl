@@ -1,0 +1,29 @@
+# Human Caption V3: 5,388,363 rows from 417,814 accepted original parents.
+# Reuse existing greedy word-aligned cuts <=30s; preserve every human word, including zero-duration words.
+# Audio uses existing parent timed selectors; all remote sizes verified; each JSONL has matching head/middle/tail SHA256 samples.
+# Row audio duration: mean 28.3412s; median 29.7600s; max 30.0000s.
+# Full preparation proof: az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/COMPLETE.json; loader coverage: one pair/triple per shard; remote stream-read verified on all 8 contig23 shards.
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0000/short_segments.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0001/short_segments.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0002/short_segments.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0003/short_segments.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0004/short_segments.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0005/short_segments.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0006/short_segments.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0007/short_segments.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_v3_short_segments
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - parent_id
+      - parent_audio_path
+      - segment_index

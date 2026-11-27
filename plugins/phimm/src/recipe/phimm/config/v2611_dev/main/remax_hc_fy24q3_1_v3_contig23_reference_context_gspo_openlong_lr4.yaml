@@ -1,0 +1,42 @@
+# @package _global_
+# Human Caption V3 contig23 based on Earnings reference-context ReMax + GSPO.
+# Baseline: Contig23 GSPO thread 01a213b8-98df-7f61-a69c-d500729d7728.
+# LR 2.4e-6 = 4x the original 6e-7; explicit target remains 3472 updates.
+# Preparation proof: az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/COMPLETE.json.
+# Remote file sizes, sampled SHA256 ranges and JSONL reads verified; training has not been launched.
+defaults:
+  - /v2611_dev/earnings/prompt_ctx/remax_earnings_short_contiguous23_reference_text_history2_gspo
+  - /data/train_data/long/hc_fy24q3_1_v3_contiguous23_reference_context@_hc_v3_contig23
+  - _self_
+
+data:
+  train_data:
+    - ${_hc_v3_contig23}
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: hc_v3_contig23, sample: 5336604, shuffle: true}
+
+reward_map:
+  hc_v3_contig23: train_librispeech
+
+actor_rollout_ref:
+  actor:
+    optim:
+      lr: 2.4e-6
+
+asr:
+  expected_training_rows: 5336604
+  expected_training_steps: 3472
+  context_aware:
+    enable: true
+    mode: text
+    max_history: 2
+    training_source: reference
+    validation_source: generated
+
+trainer:
+  experiment_name: remax_hc_fy24q3_1_v3_contig23_reference_context_gspo_openlong_lr4
+  total_training_steps: 3472
+  nnodes: 4
+  n_gpus_per_node: 8

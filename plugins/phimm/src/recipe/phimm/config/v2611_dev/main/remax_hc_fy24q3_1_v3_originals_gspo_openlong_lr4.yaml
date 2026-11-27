@@ -1,0 +1,31 @@
+# @package _global_
+# Human Caption V3 original long audio; matched LR4 ReMax + GSPO controls.
+# Source threads: 01a20b04-3de7-75a3-b644-2e403d7355e1 (LR4 recipe)
+# and 01a20f4d-26aa-7b51-8ebb-efd322ec9694 (aligned_v3_consecutive_max3).
+# Use all 417,814 original parents, not the adjacent reference-context pairs.
+# Keep LR4 context disabled and the absolute 3472-update comparison budget.
+# Original audio exceeds 40s; remove the loader cap to preserve complete audio.
+# Real-model long-audio preflight is required before a separately authorized run.
+
+defaults:
+  - remax_main_base3a_2611r2_gspo_openlong_lr4_steps2
+  - /data/train_data/long/hc_fy24q3_1_filtered_consecutive_max3@_hc_v3_originals
+  - _self_
+
+data:
+  train_data:
+    - ${_hc_v3_originals}
+  max_audio_dur: null
+  mix:
+    - shuffle: true
+      datasource:
+        - {name: hc_fy24q3_1_filtered_consecutive_max3, sample: 417814, shuffle: true}
+
+reward_map:
+  hc_fy24q3_1_filtered_consecutive_max3: train_librispeech
+
+trainer:
+  experiment_name: remax_hc_fy24q3_1_v3_originals_gspo_openlong_lr4
+
+asr:
+  expected_training_rows: 417814

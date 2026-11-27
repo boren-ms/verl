@@ -1,0 +1,80 @@
+{
+  "status": "all_eight_shards_materialized_reference_hashes_and_bounds_verified",
+  "counts": {
+    "parents": 417814,
+    "original_words": 398025213,
+    "short_segments": 5388363,
+    "samples_2_segments": 2956227,
+    "sample_word_occurrences": 972170273,
+    "samples_3_segments": 2380377,
+    "contig23_parents": 403121,
+    "contig23_samples": 5336604,
+    "singleton_parents": 14693
+  },
+  "duration_statistics": {
+    "segment": {
+      "count": 5388363,
+      "mean_seconds": 28.34122363916462,
+      "percentiles_seconds": {
+        "P0": 0.07999999999992724,
+        "P50": 29.759999999999998,
+        "P90": 30.0,
+        "P95": 30.0,
+        "P99": 30.0,
+        "P100": 30.0
+      },
+      "total_hours": 42420.22245333333,
+      "at_least_25s_percent": 92.04019847957534
+    },
+    "sample": {
+      "count": 5336604,
+      "mean_seconds": 69.92611547530984,
+      "percentiles_seconds": {
+        "P0": 0.7199999999999989,
+        "P50": 59.84000000000003,
+        "P90": 89.51999999999998,
+        "P95": 89.68,
+        "P99": 89.86000000000001,
+        "P100": 90.0
+      },
+      "total_hours": 103657.77431944455,
+      "at_least_25s_percent": 99.91921828938403
+    }
+  },
+  "reference_policy": "all_human_words_including_zero_duration",
+  "segmentation": "reuse_verified_greedy_maximal_aligned_word_prefix_le30s",
+  "audio_storage": "existing_parent_timed_selectors_no_new_waveforms",
+  "alignment_rerun": false,
+  "uploaded": true,
+  "training_started": false,
+  "artifact_root": "/home/boren/.codex/artifacts/hc_v3_contig23_20261127",
+  "preparation_proof": "/home/boren/.codex/artifacts/hc_v3_contig23_20261127/COMPLETE.json",
+  "loader_proof": {
+    "status": "passed",
+    "scope": "one pair and one triple from each of eight completed shards",
+    "loader_samples": 16,
+    "complete_sha256": "1899754f32bf237a1eda456748d7ffd017579a26b681270f058f4a0e28375f7a",
+    "reference_texts_audio_order_history2": "passed",
+    "full_loader_materialization": false,
+    "known_example_full_reference": "passed",
+    "training_started": false
+  },
+  "training_config": "v2611_dev/main/remax_hc_fy24q3_1_v3_contig23_reference_context_gspo_openlong_lr4",
+  "remote_artifact_root": "az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/",
+  "remote_publication_proof": "/home/boren/code/verl/tmp/hc_v3_lr4_config/full_contig23/remote_publication_verified.json",
+  "remote_file_count": 58,
+  "remote_jsonl_stream_access_verified": true,
+  "remote_verification_scope": "all file names/sizes; JSON metadata full readback; every JSONL.gz head/middle/tail ranges and exact first JSONL record",
+  "full_remote_jsonl_sha256_verified": false,
+  "comparison_baseline_config": "v2611_dev/earnings/prompt_ctx/remax_earnings_short_contiguous23_reference_text_history2_gspo",
+  "training_controls": {
+    "lr": 2.4e-06,
+    "lr_multiplier_relative_to_original_6e_7": 4,
+    "total_training_steps": 3472,
+    "max_prompt_length": 4096,
+    "context_history": 2,
+    "training_context": "reference",
+    "validation_context": "generated",
+    "resume_mode": "disable"
+  }
+}

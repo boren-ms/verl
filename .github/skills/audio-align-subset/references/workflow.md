@@ -31,23 +31,26 @@ one physical parent `audio_path` without a time selector, and
 The ranges must cover the actual parent duration once, without gaps/overlaps.
 Keep datasources separate and record parent identity, input/model/settings hashes.
 
-The runner loads the full parent waveform and aligns its full transcript once.
-`assign_parent_alignment()` validates actual bounds, removes exact zero-duration
-words, and assigns each retained word by its absolute parent midpoint to one
-original segment. A midpoint exactly on a boundary belongs to the next segment;
-crossing words are recorded in `reference_boundary_crossings`. Preserve original
-audio cuts, without re-aligning a sliced waveform against the full transcript.
+Align the full parent waveform with its full transcript once, then assign each
+word by its absolute parent midpoint to one original segment. Preserve all human
+reference words by default, including zero-duration words, and record their
+alignment flags. A midpoint exactly on a boundary belongs to the next segment;
+record crossing words in `reference_boundary_crossings`. Preserve original audio
+cuts, without re-aligning a sliced waveform against the full transcript.
 
-Outputs retain original `text` and `unaltered_word_timestamps`, plus cleaned
-`reference_text`, `word_timestamps`, `segment_reference_texts`, original character
-spans and `removed_zero_duration_words`. Exact retained transcript slices supply
-the references, including punctuation/whitespace. Downstream materialization must
-use these cleaned references for both context and reward targets, preserving the
-original transcript separately; copying full original text would reintroduce
-removed words. If every aligned word is removed, retain the parent and segment
-count with empty references and `NO_POSITIVE_DURATION_REFERENCE`; report its count
-and check loader support rather than silently excluding the sample. Punctuation-only
-parents remain explicitly `NO_LEXICAL_REFERENCE`, without invented timestamps.
+Retain original text and timestamps. Exact transcript slices supply
+`segment_reference_texts` for context and reward targets, including original
+punctuation/whitespace; verify their concatenation preserves the full reference.
+Only apply word removal or exclusion when explicitly requested by the user,
+retaining the original transcript and removal evidence. Punctuation-only parents
+remain explicitly `NO_LEXICAL_REFERENCE`, without invented timestamps.
+
+The current Mix4 runner's `assign_parent_alignment()` still implements a legacy
+zero-duration removal policy. Inspect the implementation before using it: for
+the default preservation workflow, derive references from original `text` and
+`unaltered_word_timestamps` instead of its filtered references, or adapt the
+reference assignment to preserve all words. Its existing filtered outputs are
+not full-reference outputs.
 
 For strict-bound recovery, `--duration-bounded --batch-size 1` restricts Qwen
 timestamp logits to bins inside actual audio duration **before argmax**, preserving
@@ -66,8 +69,8 @@ python -m recipe.phimm.tools.align_mix4_reference \
 
 Saved full-parent outputs can be postprocessed locally without requesting GPUs,
 provided source/recovery SHA and exact row identities are verified first. Preserve
-old journals and write a new manifest/proof. Check retained and removed word
-counts, parent/segment coverage, reference concatenation and actual loader behavior
+old journals and write a new manifest/proof. Check complete reference-word
+coverage, zero-duration flags, parent/segment coverage and actual loader behavior
 before marking the dataset ready. This workflow does not authorize resuming
 resources that the user has explicitly released.
 

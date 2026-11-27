@@ -1,0 +1,34 @@
+# Human Caption V3: 5,336,604 rows from 417,814 accepted original parents.
+# Reuse existing greedy word-aligned cuts <=30s; preserve every human word, including zero-duration words.
+# Audio uses existing parent timed selectors; all remote sizes verified; each JSONL has matching head/middle/tail SHA256 samples.
+# Earnings contig23 windows: alternating 2/3 and unique tail window; two-segment parents yield one pair.
+# 14,693 singleton parents remain in short-segment data; no window crosses an original parent.
+# segment_reference_texts supplies one exact human reference per audio path for reference-context training.
+# Row audio duration: mean 69.9261s; median 59.8400s; max 90.0000s.
+# Full preparation proof: az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/COMPLETE.json; loader coverage: one pair/triple per shard; remote stream-read verified on all 8 contig23 shards.
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0000/contig23.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0001/contig23.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0002/contig23.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0003/contig23.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0004/contig23.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0005/contig23.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0006/contig23.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/boren/data/Training/hc_fy24q3_1_v3_contig23_20261127/shard-0007/contig23.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_v3_contig23
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - parent_id
+      - parent_audio_path
+      - segment_reference_texts
+      - segment_indices
+      - source_audio_lengths

@@ -27,19 +27,19 @@ character timestamps; it does not validate the transcript's truth.
 For the available commands, metadata schema, remote GPU scaling, storage
 verification and example invocations, read [references/workflow.md](references/workflow.md).
 The reusable crop utility is [scripts/audio_subset.py](scripts/audio_subset.py).
-For existing segmented Mix4 parents, use the maintained Qwen runner
+For existing segmented Mix4 parents, inspect the maintained Qwen runner
 `plugins/phimm/src/recipe/phimm/tools/align_mix4_reference.py`; read the
 full-parent segment-reference workflow in the reference before using it.
 
 For segment-reference preparation, align the **full parent audio with its full
 parent transcript once**, then assign timestamped words to the original segments.
-Never align each cut segment against the full parent reference. Remove words
-whose start equals end from both usable timestamps and segment references;
-retain the original text and removed word/character-span evidence. Require
-positive-duration retained words within actual audio length. Preserve waveform
-length and original cuts; do not pad audio, clip timestamps, or stretch words to
-make an alignment pass. This removal policy applies to reference preparation;
-the separate crop workflow retains its user-selected flag/exclude/error policy.
+Never align each cut segment against the full parent reference. Preserve all
+human reference words and their timestamps by default, including words whose
+start equals end; record zero-duration entries as alignment flags. Remove or
+exclude them only when the user explicitly requests that policy. Validate finite,
+ordered timestamps within actual audio length. Preserve waveform length and
+original cuts; do not pad audio, clip timestamps, or stretch words to make an
+alignment pass. Honor the user's selected flag/exclude/error crop policy.
 
 ## Execute and validate
 
@@ -62,9 +62,9 @@ the separate crop workflow retains its user-selected flag/exclude/error policy.
    units against the transcript; use an explicitly defined language-appropriate
    segmenter for languages without whitespace-delimited words.
 4. Check input/output/reject counts, clip duration and source boundaries,
-   duplicate identities, alignment errors and zero-duration words. Decide
-   whether to flag, exclude, or inspect questionable alignments according to
-   the user and dataset purpose; do not silently discard validation examples.
+   duplicate identities, alignment errors and zero-duration words. Flag or
+   inspect questionable alignments; apply exclusions only under the user's
+   requested policy, and retain the decision evidence.
    Report all denominators and retain exclusion/rejection records. Generate
    requested review JSONLs, include source text/paths/timestamps, and sample
    both ordinary and flagged examples when applicable.
