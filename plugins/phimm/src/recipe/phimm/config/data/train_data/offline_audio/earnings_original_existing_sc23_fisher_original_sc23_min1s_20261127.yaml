@@ -1,0 +1,31 @@
+# Earnings is one source: whole originals plus existing partitions, unsplit duplicates removed.
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_whole_sc23_fisher_sc23_min1s_20261127_v1/earnings_original_and_segmented.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: earnings_original_and_segmented
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - audio_length
+      - random_segment_count
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/boren/data/Training/earnings_whole_sc23_fisher_sc23_min1s_20261127_v1/fisher_original_sc23.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: moe_fisher
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - audio_length
+      - random_segment_count

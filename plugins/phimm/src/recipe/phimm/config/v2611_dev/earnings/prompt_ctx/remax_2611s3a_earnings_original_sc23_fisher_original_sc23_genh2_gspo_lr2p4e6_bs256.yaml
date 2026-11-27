@@ -1,0 +1,32 @@
+# @package _global_
+# 32 GPU draft: combined Earnings whole+partitioned source vs Fisher, 1:1.
+# Identical unsplit Earnings fallback rows are included only once.
+# Chunk floor 1s; saved partitions that are too short fall back to the original clip.
+# Local preparation/statistics: tmp/random_segment23_fl_earnings_fisher_20261127/
+defaults:
+- remax_fl_earnings_rm23_x4_fisher_1to1_reference_text_history2_gspo_lr2p4e6
+- /data/train_data/offline_audio/earnings_original_existing_sc23_fisher_original_sc23_min1s_20261127@_original_segment_train
+- _self_
+data:
+  train_data: ${_original_segment_train}
+  mix:
+  - shuffle: true
+    datasource:
+    - name: earnings_original_and_segmented
+      sample: 266555
+      shuffle: true
+    - name: moe_fisher
+      sample: 266555
+      shuffle: true
+reward_map:
+  earnings_original_and_segmented: train_librispeech
+asr:
+  context_aware:
+    training_source: generated
+    validation_source: generated
+  expected_training_rows: 533110
+  expected_training_steps: 2082
+trainer:
+  experiment_name: remax_2611s3a_earnings_original_sc23_fisher_original_sc23_genh2_gspo_lr2p4e6_bs256
+  total_training_steps: 2082
+  total_epochs: 1

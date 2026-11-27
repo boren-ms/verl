@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "seed": 42,
+  "min_chunk_seconds": 1,
+  "manifests": [
+    {
+      "uri": "az://orngwus2cresco/data/boren/data/Training/earnings_whole_sc23_fisher_sc23_min1s_20261127_v1/earnings_original_and_segmented.jsonl.gz",
+      "rows": 51989,
+      "compressed_sha256": "b579cd60f58ef3ac260de80e3d5f9bcbb893ce72180227a2b6cd4b25f61609bf"
+    },
+    {
+      "uri": "az://orngwus2cresco/data/boren/data/Training/earnings_whole_sc23_fisher_sc23_min1s_20261127_v1/fisher_original_sc23.jsonl.gz",
+      "rows": 266555,
+      "compressed_sha256": "b9ff9bc0a59021806213f7d031b68a0497924064e44a9c836a8718cf7d581cae"
+    }
+  ],
+  "earnings": {
+    "source_configs": [
+      "earnings_short_sc1.yaml",
+      "earnings_short_sc2.yaml"
+    ],
+    "fl_manifest": "az://orngwus2cresco/data/boren/data/Training/offline_audio_alignment_20261117_v1/79c3f8a011053b5c/source_000.jsonl.gz",
+    "eligible_original_segments": 27580,
+    "partitioned_views": 24409,
+    "whole_original_views": 27580,
+    "deduplicated_unsplit_views": 3171,
+    "excluded_originals_under_1s": 392,
+    "policy": "Reuse saved SC1/SC2 or FL boundaries; choose deterministic SC1/SC2 with seed42 keyed to original audio path; try other partition if any chunk <1s; restore whole original if neither valid. Combine one whole view per eligible original and actual 2-3-chunk views in one source; full text retained."
+  },
+  "fisher": {
+    "source_manifest_dir": "az://orngwus2cresco/data/boren/data/Training/diarization/moe_en/full_v1/manifests/moe_fisher/",
+    "shards": [
+      "part-0000.jsonl.gz",
+      "part-0001.jsonl.gz",
+      "part-0002.jsonl.gz",
+      "part-0003.jsonl.gz",
+      "part-0004.jsonl.gz",
+      "part-0005.jsonl.gz"
+    ],
+    "original_segments": 266555,
+    "chunks_2": 133314,
+    "chunks_3": 133241,
+    "seed": "42 + int(sha256(original_audio_path).hexdigest()[:16],16)",
+    "algorithm": "recipe/phimm/tools/random_segment.py count mode",
+    "segment_count": [
+      2,
+      3
+    ],
+    "min_segment_fraction": "1 / original_duration_seconds",
+    "policy": "One original segment per sample; partition its audio with full original text. Drop diarization prompts/speaker labels; do not merge."
+  },
+  "sampling": {
+    "earnings_original_and_segmented": 266555,
+    "moe_fisher": 266555,
+    "method": "Shuffle then repeat combined Earnings pool to quota; Fisher once",
+    "total_training_rows": 533110
+  },
+  "reference_text_scope": "Full original segment; generated history2 used between chunks",
+  "audio_bytes_rewritten": false
+}
