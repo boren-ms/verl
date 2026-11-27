@@ -1,0 +1,21 @@
+# @package _global_
+# Full canonical OpenASR for GSPO step1800 on a separate critical node.
+defaults:
+  - eval_openfull_zip
+  - _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/boren/outputs/v2611/remax_main_base3a_2611s3a_gspo_openlong_lr2_steps2/global_step_1800/hf_export/
+    lora_rank: 0
+
+data:
+  max_audio_dur: null
+
+trainer:
+  project_name: v2611_eval
+  experiment_name: 2611s3a_gspo1800_openfull
+  nnodes: 1
+  n_gpus_per_node: 8
+  resume_mode: disable
+  val_only: true
