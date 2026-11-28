@@ -7,8 +7,8 @@ import blobfile as bf
 import numpy as np
 import soundfile as sf
 from cachetools import FIFOCache, cached
-from recipe.phimm.data.chunk import load_chunk_example, load_chunk_sample
 
+from recipe.phimm.data.chunk import load_chunk_example, load_chunk_sample
 from verl.audio_cache import localize_audio_source, split_audio_sources
 from verl.audio_chunk import read_chunk_audio, split_chunk_audio_source
 from verl.audio_zip import read_zip_audio, split_zip_audio_source
@@ -196,7 +196,9 @@ def _load_time_chunk(spec):
         raise ValueError(f"Range endpoints must use the same unit: {tail!r}")
 
     chunk_audio = None
-    if split_chunk_audio_source(file_path) is not None or split_zip_audio_source(file_path) is not None:
+    if not _is_time_chunk_spec(file_path) and (
+        split_chunk_audio_source(file_path) is not None or split_zip_audio_source(file_path) is not None
+    ):
         chunk_audio, sr = sf_read(file_path)
         chunk_audio = np.asarray(chunk_audio)
         frames = len(chunk_audio)
