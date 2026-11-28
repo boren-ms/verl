@@ -1,0 +1,31 @@
+# FY24Q3-1 refiltered version: 16,487 rows; 1,963,896 human words.
+# Normal word duration is strictly 0 < seconds < 5; allow at most one outlier per parent.
+# Exclude the entire parent at two or more outliers, or any retained alignment failure.
+# Existing Qwen predictions, complete human references and <=30s segments are unchanged.
+# All eight manifests passed SHA256 Orange readback and actual complete ASRDataset QA.
+# Raw lineage and decisions: hc_fy24q3_1.aligned_v2_word_0_5_max1.index.json.
+- dataset_name: jsonl
+  jsonl_block_size: 67108864
+  jsonl_paths:
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0000/filtered_originals.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0001/filtered_originals.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0002/filtered_originals.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0003/filtered_originals.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0004/filtered_originals.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0005/filtered_originals.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0006/filtered_originals.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0007/filtered_originals.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_fy24q3_1_filtered_word_0_5_max1
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - audio_length
+      - transcription_source
+      - word_duration_filter

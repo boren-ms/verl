@@ -1,0 +1,26 @@
+{
+  "reference_field": "tn_transcription",
+  "required_transcription_source": "display_human_caption_adjusted",
+  "audio_reference_format": "az://.../chunk.audio:chunk_count:record_index",
+  "audio_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/ChunkFiles/",
+  "chunks": 4045,
+  "counts": {
+    "input_rows": 757156,
+    "output_rows": 757156
+  },
+  "filters": {
+    "min_duration": 0,
+    "max_duration": null,
+    "max_wer": null
+  },
+  "audio_hours": 139449.47167222184,
+  "jsonl_bytes": 6494121026,
+  "jsonl_sha256": "84fd8a19498f19bf119778e85a29a65c7dcde05bcde3dc26c19336f22ab3ca1e",
+  "file_set_sha256": "e7534faf7639efd0e2479b631dc4e195bb819580153fbfdeea76ba4014cf28d0",
+  "parallel_groups": 8,
+  "source_storage_root": "az://highperf01safn/data/",
+  "orange_jsonl": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/hc_fy24q3_1.jsonl.gz",
+  "publication_encoding": "gzip",
+  "published_bytes": 2496487757,
+  "published_sha256": "f2cf430b0dad7537258b917e3285fcec4c9c4ca6e9e0ce54bbce48052c438c7f"
+}

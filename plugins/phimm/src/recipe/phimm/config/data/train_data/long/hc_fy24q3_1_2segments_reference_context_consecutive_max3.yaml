@@ -1,0 +1,38 @@
+# FY24Q3-1 refiltered version: 4,970,549 rows; 747,067,974 human word occurrences.
+# Count zero-second and >5-second words separately within each original parent.
+# Allow same-category consecutive runs of 1-3 words; reject a parent at 4 or more.
+# Existing Qwen predictions, complete human references and <=30s segments are unchanged.
+# All eight source/output and Orange readback hashes verified; remaining loader QA waived by user; completed partial checks retained.
+# Raw lineage and decisions: hc_fy24q3_1.aligned_v3_consecutive_max3.index.json.
+- dataset_name: jsonl
+  jsonl_paths:
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0000/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0001/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0002/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0003/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0004/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0005/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0006/pairs.jsonl.gz
+  - az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v3_consecutive_max3/shard-0007/pairs.jsonl.gz
+  add_task_info:
+    style: verb
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: hc_fy24q3_1_2segments_reference_context_consecutive_max3
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - audio_length
+      - transcription_source
+      - word_duration_filter
+      - segment_reference_texts
+      - segments
+      - segment_metadata
+      - alignment_flags
+      - parent_id
+      - parent_audio_path
+      - segment_indices
+      - pairing_policy

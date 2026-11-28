@@ -1,0 +1,13 @@
+# @package _global_
+# Verified source/output and Orange readback counts: 16,487 accepted parents.
+# 38,148 <=30s segments; 21,661 sliding adjacent pairs.
+# Strict word duration (0,5) seconds; exclude at >=2 outlier words per parent.
+# Original alignment failures remain excluded; raw data and previous filters are retained.
+# Actual final-loader verification passed; configure the ASR checkpoint before training.
+
+defaults:
+  - /data/train_data/long/hc_fy24q3_1_reference_context_training_word_0_5_max1@_global_
+  - _self_
+
+asr:
+  expected_training_rows: 21661

@@ -1,0 +1,670 @@
+{
+  "status": "all_8_source_output_Orange_readbacks_actual_loader_and_sampled_native_audio_verified",
+  "verified_utc": "2026-11-26T08:40:47.560892+00:00",
+  "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/",
+  "original": {
+    "Orange_path": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/hc_fy24q3_1.jsonl.gz",
+    "local_path": "hc_fy24q3_1.jsonl",
+    "rows": 757156,
+    "plain_bytes": 6494121026,
+    "plain_sha256": "84fd8a19498f19bf119778e85a29a65c7dcde05bcde3dc26c19336f22ab3ca1e",
+    "gzip_bytes": 2496487757,
+    "gzip_sha256": "f2cf430b0dad7537258b917e3285fcec4c9c4ca6e9e0ce54bbce48052c438c7f"
+  },
+  "counts": {
+    "parents": 757156,
+    "word_duration_exclusions": 561665,
+    "pair_excluded_parents": 745304,
+    "fewer_than_two_segment_parents": 4635,
+    "alignment_failures": 179004,
+    "filtered_originals": 16487,
+    "newly_accepted_originals": 10574,
+    "pairs": 21661,
+    "pair_eligible_parents": 11852,
+    "previous_accepted_originals": 5913
+  },
+  "versions": {
+    "filtered_originals": {
+      "rows": 16487,
+      "words": 1963896,
+      "seconds": "944015.7131875",
+      "segment_units": 0,
+      "hours": 262.2265869965278
+    },
+    "segments": {
+      "rows": 16487,
+      "words": 1963896,
+      "seconds": "879743.120",
+      "segment_units": 38148,
+      "hours": 244.3730888888889
+    },
+    "pairs": {
+      "rows": 21661,
+      "words": 2347714,
+      "seconds": "1080399.265",
+      "segment_units": 43322,
+      "hours": 300.1109069444444
+    }
+  },
+  "source_chunks": 4045,
+  "policy": {
+    "minimum_word_seconds": 0.0,
+    "maximum_word_seconds": 5.0,
+    "bounds": "strict_open",
+    "maximum_outlier_words": 1,
+    "segment_max_seconds": 30,
+    "alignment_failure_policy": "retain_and_exclude",
+    "timestamp_policy": "unchanged_original_Qwen_predictions"
+  },
+  "previous_version_index": "hc_fy24q3_1.aligned_v1.index.json",
+  "previous_version_index_sha256": "f66fdb188b5097191c7cb2d553b4b34820d16e3511eb0fd6326be71d81670117",
+  "alignment_provenance": {
+    "seed": 42,
+    "runner_git_revision": "229defa0e9c3884b779823f509dfb5fc6cb547f1",
+    "runner_sha256": "f3d0f60f79045cd20ba4e033b188866dc35921461786f1b0426486d8d71b1f17",
+    "qwen_source_revision": "7c6daf77a2421100f5fb066495372c00129d39ff",
+    "qwen_wheel_sha256": "20dab74fb1c7599ae15cfb2488d36740f04f3125cf60f1670ae3a8bcd280a5e3",
+    "model": "Qwen/Qwen3-ForcedAligner-0.6B",
+    "model_revision": "c7cbfc2048c462b0d63a45797104fc9db3ad62b7",
+    "isolated_packages": {
+      "qwen-asr": "0.0.6",
+      "transformers": "4.57.6",
+      "huggingface-hub": "0.36.2",
+      "accelerate": "1.12.0"
+    },
+    "all_8_actual_model_tokenizer_runtimes_verified": true,
+    "parameter_verification": "sampled_loaded_values_compared_to_pinned_safetensors",
+    "shared_packages_preserved": true,
+    "pool_uid": "ec0137e4-5a88-45bb-825a-1a2621d7129c",
+    "image": "iridiumsdc.azurecr.io/boren/verl-remax@sha256:d92ae2602a53dbe81fea9ee6e6c51325275b56ad2f71f26659b93155f47ff830",
+    "pod_uid": "693e38ad-6c31-42d4-abf2-44862bb565eb",
+    "node": "dh115-r293-node-02",
+    "topology": "1 node / 8 H100 GPUs"
+  },
+  "shards": [
+    {
+      "shard": 0,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0000",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0000/",
+      "counts": {
+        "parents": 94751,
+        "word_duration_exclusions": 70306,
+        "pair_excluded_parents": 93224,
+        "fewer_than_two_segment_parents": 605,
+        "alignment_failures": 22313,
+        "filtered_originals": 2132,
+        "newly_accepted_originals": 1355,
+        "pairs": 2749,
+        "pair_eligible_parents": 1527,
+        "previous_accepted_originals": 777
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2132,
+          "words": 252063,
+          "seconds": "121277.0116250",
+          "segment_units": 0,
+          "hours": 33.68805878472222
+        },
+        "segments": {
+          "rows": 2132,
+          "words": 252063,
+          "seconds": "112500.52",
+          "segment_units": 4881,
+          "hours": 31.250144444444445
+        },
+        "pairs": {
+          "rows": 2749,
+          "words": 297387,
+          "seconds": "136483.26",
+          "segment_units": 5498,
+          "hours": 37.912016666666666
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0000/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0000/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "1a8edb651355cd8b75c3b499b0e304432907790f71ff579afc7a7c29add9cb2b",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "6aace4d2168635278018442c944f41a81c3fb947c150cf01f927563c14bd90bf",
+        "segments.jsonl.gz": "ae057380a93051b909a2761af2c190848f1d0f912061603b974ada3f87a1a1b0",
+        "pairs.jsonl.gz": "7b56f9a12a7a68e4a2b221c856af20aca8e90e16558b3590e5799e076964175b",
+        "quality_decisions.jsonl.gz": "e71a8cbc59649cb71686b3a773cf62b7386eaa6e9da46f544bf78701f731b216",
+        "pair_exclusions.jsonl.gz": "07aa6066458efdbd241917181ba027867ae16e6f54291876b065ba5ea3917128",
+        "COMPLETE.json": "39171e888f0e84ca9697d4c9967de3fce4442b6a307afb294ca3b49bb6e07bfc"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "1": 1338,
+        "0": 794
+      }
+    },
+    {
+      "shard": 1,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0001",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0001/",
+      "counts": {
+        "parents": 94895,
+        "word_duration_exclusions": 70521,
+        "pair_excluded_parents": 93430,
+        "fewer_than_two_segment_parents": 568,
+        "alignment_failures": 22341,
+        "previous_accepted_originals": 709,
+        "filtered_originals": 2033,
+        "newly_accepted_originals": 1324,
+        "pairs": 2768,
+        "pair_eligible_parents": 1465
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2033,
+          "words": 248994,
+          "seconds": "120301.8473750",
+          "segment_units": 0,
+          "hours": 33.41717982638889
+        },
+        "segments": {
+          "rows": 2033,
+          "words": 248994,
+          "seconds": "111677.418",
+          "segment_units": 4801,
+          "hours": 31.021505
+        },
+        "pairs": {
+          "rows": 2768,
+          "words": 302848,
+          "seconds": "139278.266",
+          "segment_units": 5536,
+          "hours": 38.688407222222224
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0001/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0001/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "6f35f2d690dcf9b1715d2b647e1776583a31ff5a41b18580c11aefc7104e166a",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "03d0dde564c04c9a1ceda9f6dab5a521976a3ea0e255153795a9a0e46fac14da",
+        "segments.jsonl.gz": "1f8df8fb3f5d107889173fe255399fea8f266b4e4a2c574d6f9b2e0238a321c4",
+        "pairs.jsonl.gz": "1890b79cc911f0a467d5f07f1f5ece3be9b9aafb8dc2e8b1f58b2564611770f3",
+        "quality_decisions.jsonl.gz": "fc1e60086493980ae11f967196570212bd942c9c9127b342ca379f88c22f404b",
+        "pair_exclusions.jsonl.gz": "b53d5d8eaea24805bdc217a6b18906652820650dd9c0cb119debdba898818b7f",
+        "COMPLETE.json": "3c034bf10d78dcff6956660860e8c0717bdb28c5794f964dc70c9b10a769694e"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "0": 723,
+        "1": 1310
+      }
+    },
+    {
+      "shard": 2,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0002",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0002/",
+      "counts": {
+        "parents": 94415,
+        "word_duration_exclusions": 70008,
+        "pair_excluded_parents": 92908,
+        "fewer_than_two_segment_parents": 572,
+        "alignment_failures": 22328,
+        "filtered_originals": 2079,
+        "newly_accepted_originals": 1301,
+        "pairs": 2730,
+        "pair_eligible_parents": 1507,
+        "previous_accepted_originals": 778
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2079,
+          "words": 246009,
+          "seconds": "118333.1451875",
+          "segment_units": 0,
+          "hours": 32.87031810763889
+        },
+        "segments": {
+          "rows": 2079,
+          "words": 246009,
+          "seconds": "110559.627",
+          "segment_units": 4809,
+          "hours": 30.7110075
+        },
+        "pairs": {
+          "rows": 2730,
+          "words": 294352,
+          "seconds": "135882.472",
+          "segment_units": 5460,
+          "hours": 37.745131111111114
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0002/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0002/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "2975874e01053064981e2fc1d9043745f4b6e5c6d0633a337c37a7ed6d5df35c",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "c1e0d33705a7c08fc86748008e914f095c16e771f1b87f868ee8f426597305f5",
+        "segments.jsonl.gz": "ec4f59c184c013c8a4f2aa56d2ac31b93d45b145b57cfce835dbccc0f8fa685f",
+        "pairs.jsonl.gz": "5b78cf340f934b83cc349a2029f8d00ebe82d57ad603c2a30cb66f1e127b16b7",
+        "quality_decisions.jsonl.gz": "0e5b43d7cced0328aaa8f032900c099d5fb1f36a65236cb3b94c18bf5b8bdf69",
+        "pair_exclusions.jsonl.gz": "e0d4778d9448aa836440ef9c3983db52428db4f0bf42826f0ce4f0954cd10938",
+        "COMPLETE.json": "e0dad3e57045f5e1eb60748d8181c8f4d743a49245df3f81859487fb0114a4c7"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "1": 1281,
+        "0": 798
+      }
+    },
+    {
+      "shard": 3,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0003",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0003/",
+      "counts": {
+        "parents": 94760,
+        "alignment_failures": 22751,
+        "pair_excluded_parents": 93305,
+        "fewer_than_two_segment_parents": 570,
+        "word_duration_exclusions": 69984,
+        "previous_accepted_originals": 704,
+        "filtered_originals": 2025,
+        "newly_accepted_originals": 1321,
+        "pairs": 2647,
+        "pair_eligible_parents": 1455
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2025,
+          "words": 240457,
+          "seconds": "115027.7242500",
+          "segment_units": 0,
+          "hours": 31.952145625
+        },
+        "segments": {
+          "rows": 2025,
+          "words": 240457,
+          "seconds": "107369.70",
+          "segment_units": 4672,
+          "hours": 29.824916666666667
+        },
+        "pairs": {
+          "rows": 2647,
+          "words": 288208,
+          "seconds": "132115.55",
+          "segment_units": 5294,
+          "hours": 36.69876388888889
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0003/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0003/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "8917aea426c4032043ad8de72672e4b37482d12651202db22b508b3f0d53a0ad",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "b59b866a94ee2b1d8d01965b77e6aaa0dd0771437e0a798dc855cdf26e6bcf95",
+        "segments.jsonl.gz": "f67a298bbd1dda0b35e715285061524f5acd8e49d10729a1ed6053bbdd668609",
+        "pairs.jsonl.gz": "aba76b618bc03e03255b6dc9d08c456ab23df2f44a6b23881e185c1390c5fdac",
+        "quality_decisions.jsonl.gz": "8e71833820df578ed85d858ed65c0e11e243200e7b516ef13a5fa890dc384823",
+        "pair_exclusions.jsonl.gz": "73bffcfc9fb2f267a056d50355496b78e0af355e52b46dcde5ae4a020ae1404b",
+        "COMPLETE.json": "a775816d36d883f049435a47f0f6a47f1dfb54c17df75938111b3b49fce891a8"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "0": 723,
+        "1": 1302
+      }
+    },
+    {
+      "shard": 4,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0004",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0004/",
+      "counts": {
+        "parents": 94718,
+        "word_duration_exclusions": 70469,
+        "pair_excluded_parents": 93241,
+        "fewer_than_two_segment_parents": 611,
+        "filtered_originals": 2088,
+        "newly_accepted_originals": 1337,
+        "pairs": 2650,
+        "pair_eligible_parents": 1477,
+        "alignment_failures": 22161,
+        "previous_accepted_originals": 751
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2088,
+          "words": 242444,
+          "seconds": "116474.0419375",
+          "segment_units": 0,
+          "hours": 32.353900538194445
+        },
+        "segments": {
+          "rows": 2088,
+          "words": 242444,
+          "seconds": "108768.949",
+          "segment_units": 4738,
+          "hours": 30.213596944444443
+        },
+        "pairs": {
+          "rows": 2650,
+          "words": 285677,
+          "seconds": "131787.199",
+          "segment_units": 5300,
+          "hours": 36.60755527777778
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0004/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0004/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "c8ab74806e8a42cae96197f6cafc7537088d86d87e0797772eb449ad29e44f1a",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "35d4b77b8d80eeb261abfff497d87c635faefe4747ce3ee959d5aed2283889c7",
+        "segments.jsonl.gz": "6797912677a7f9c2494e879f22f48927bf9dce399760b6aa77f75e227078b57a",
+        "pairs.jsonl.gz": "f2d62dd9c27f2afb57b9394581f16e477719c8a655a1800554fd5f5f0b1ec168",
+        "quality_decisions.jsonl.gz": "39fae46d2b074bfcaff5938c585543b58cf2f6069f5c3e20f52c4ab0a4824133",
+        "pair_exclusions.jsonl.gz": "c0ca73062b0eae76ff43fd91279303272206a66484fca02bdfb96e8b4654dfc1",
+        "COMPLETE.json": "c8a11f8a3eba7967d777c5008dfb88bcf821c3edee2b04b200d673b5ad766891"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "1": 1326,
+        "0": 762
+      }
+    },
+    {
+      "shard": 5,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0005",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0005/",
+      "counts": {
+        "parents": 94488,
+        "word_duration_exclusions": 70159,
+        "pair_excluded_parents": 93022,
+        "fewer_than_two_segment_parents": 547,
+        "alignment_failures": 22316,
+        "filtered_originals": 2013,
+        "newly_accepted_originals": 1296,
+        "pairs": 2683,
+        "pair_eligible_parents": 1466,
+        "previous_accepted_originals": 717
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2013,
+          "words": 241487,
+          "seconds": "115515.6315625",
+          "segment_units": 0,
+          "hours": 32.08767543402778
+        },
+        "segments": {
+          "rows": 2013,
+          "words": 241487,
+          "seconds": "107606.26",
+          "segment_units": 4696,
+          "hours": 29.890627777777777
+        },
+        "pairs": {
+          "rows": 2683,
+          "words": 291303,
+          "seconds": "133009.92",
+          "segment_units": 5366,
+          "hours": 36.9472
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0005/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0005/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "38ab09eab291d72abc58ae71f9f35a09856fe5dc913c2be98df78e768634df2e",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "d45d1ab664aa25c950b3ac26ad0495bd8b6a72a24e9a98a58338d8040381283d",
+        "segments.jsonl.gz": "88a27d43843ba5a3c1a244417e2c0aaf45e324f72456875eeee212ec92441ce7",
+        "pairs.jsonl.gz": "d920afec448a1333d6a82d49b37c0e5f82a82c2c115484ced5e4002e8d2b8b0a",
+        "quality_decisions.jsonl.gz": "7c49e4130cc3396f7dcc64259005f3d38890df99dfee457980c816a12a74e129",
+        "pair_exclusions.jsonl.gz": "518d7db911ee310e9e711509604de8f41797a5b9624c7e09c0203887dff8d11e",
+        "COMPLETE.json": "7e664eb3b3efe2247108bf6e9a11f3b3364709ddac823be02885c0cc5fcfcb01"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "1": 1286,
+        "0": 727
+      }
+    },
+    {
+      "shard": 6,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0006",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0006/",
+      "counts": {
+        "parents": 94564,
+        "word_duration_exclusions": 70034,
+        "pair_excluded_parents": 93099,
+        "fewer_than_two_segment_parents": 568,
+        "alignment_failures": 22497,
+        "filtered_originals": 2033,
+        "newly_accepted_originals": 1332,
+        "pairs": 2658,
+        "pair_eligible_parents": 1465,
+        "previous_accepted_originals": 701
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2033,
+          "words": 240595,
+          "seconds": "115981.8607500",
+          "segment_units": 0,
+          "hours": 32.217183541666664
+        },
+        "segments": {
+          "rows": 2033,
+          "words": 240595,
+          "seconds": "108368.979",
+          "segment_units": 4691,
+          "hours": 30.102494166666666
+        },
+        "pairs": {
+          "rows": 2658,
+          "words": 285929,
+          "seconds": "132312.604",
+          "segment_units": 5316,
+          "hours": 36.75350111111111
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0006/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0006/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "b26a4b43095b1b4cba87cff71d0ca56cbf9c7babfb3b70ce9b7ada9da08f19ff",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "eee23b746a736f88211d86072fcf8215f4c4cb287ea3b7cefddfe991b0e0d780",
+        "segments.jsonl.gz": "cc838cdcf4c310f5c67f3e4196dc0a2a6f909e1ce76aa9295af4677a45fd1832",
+        "pairs.jsonl.gz": "c42057a142f982bfcb756d759b10ae297d8920e7c5296216477f1405e75d5a49",
+        "quality_decisions.jsonl.gz": "e1ecbda4cd9fbc3b59aad4a832afca57c2e20baef8e8c1879d9d49b2ff53c811",
+        "pair_exclusions.jsonl.gz": "daef65da813722362030d61b3dea1610fad0f35f5be602de50db464b0d4e4043",
+        "COMPLETE.json": "c519351a46d934fe690cdb524c7356922679943bd344424f8f0d73dbc5013717"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "1": 1315,
+        "0": 718
+      }
+    },
+    {
+      "shard": 7,
+      "local_dir": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v2_word_0_5_max1/shard-0007",
+      "Orange_root": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v2_word_0_5_max1/shard-0007/",
+      "counts": {
+        "parents": 94565,
+        "alignment_failures": 22297,
+        "pair_excluded_parents": 93075,
+        "fewer_than_two_segment_parents": 594,
+        "word_duration_exclusions": 70184,
+        "filtered_originals": 2084,
+        "newly_accepted_originals": 1308,
+        "pairs": 2776,
+        "pair_eligible_parents": 1490,
+        "previous_accepted_originals": 776
+      },
+      "versions": {
+        "filtered_originals": {
+          "rows": 2084,
+          "words": 251847,
+          "seconds": "121104.4505000",
+          "segment_units": 0,
+          "hours": 33.64012513888889
+        },
+        "segments": {
+          "rows": 2084,
+          "words": 251847,
+          "seconds": "112891.667",
+          "segment_units": 4860,
+          "hours": 31.358796388888887
+        },
+        "pairs": {
+          "rows": 2776,
+          "words": 302010,
+          "seconds": "139529.994",
+          "segment_units": 5552,
+          "hours": 38.75833166666666
+        }
+      },
+      "source_raw_alignment": "/home/boren/.codex/worktrees/hc-fy24q3-long/verl/plugins/phimm/src/recipe/phimm/config/data/train_data/long/aligned_v1/shard-0007/raw_segments.jsonl",
+      "source_raw_alignment_Orange": "az://orngwus2cresco/data/speech/users/keqideng/DataSpecs/human_caption_v3b/FY24Q3-1/WER_3600/training/aligned_v1/shard-0007/raw_segments.jsonl",
+      "source_raw_alignment_sha256": "2b52331a264b995c31c6a44de058caf23c97aed34c3b7be489470cd64016804a",
+      "refilter_runner_sha256": "234294b6fbf06749d0391b8be62ecf1fb50876238c4560bc3dec0c1c81e5325c",
+      "files_sha256": {
+        "filtered_originals.jsonl.gz": "c468a326f6af214e1c3a7265e55aa71608114cb8bd83a279d55ce080c0112ed7",
+        "segments.jsonl.gz": "9749ec4d65d7bf669d8204b88d8a6549129aa2355325bd9ec7bdc244c079f467",
+        "pairs.jsonl.gz": "5d78ad9aca0d512fdfb96c6f1211b76f678eaf427dbc5d4bc33e056cc041323e",
+        "quality_decisions.jsonl.gz": "77f929663a05f46d2766f8d1f3890736ad60f8f241a01983888a87f53e5df93a",
+        "pair_exclusions.jsonl.gz": "b136deb8bb573dcd0fa09d32fa01dc573e685ba72ef881904ffa3584e0f9eca3",
+        "COMPLETE.json": "42819931ce771a69a7a56dc1fe502f7afe5a2c16e3fb220a1e1a0c6c180b26ea"
+      },
+      "policy": {
+        "minimum_word_seconds": 0.0,
+        "maximum_word_seconds": 5.0,
+        "bounds": "strict_open",
+        "maximum_outlier_words": 1,
+        "segment_max_seconds": 30,
+        "alignment_failure_policy": "retain_and_exclude",
+        "timestamp_policy": "unchanged_original_Qwen_predictions"
+      },
+      "accepted_outlier_count_histogram": {
+        "1": 1299,
+        "0": 785
+      }
+    }
+  ],
+  "dataset_configs": {
+    "filtered_originals": "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_filtered_word_0_5_max1.yaml",
+    "segments": "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_segments_word_0_5_max1.yaml",
+    "pairs": "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_2segments_reference_context_word_0_5_max1.yaml",
+    "training": "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_reference_context_training_word_0_5_max1.yaml",
+    "entry": "plugins/phimm/src/recipe/phimm/config/v2611_dev/long/hc_fy24q3_1_reference_context_word_0_5_max1.yaml"
+  },
+  "training_started": false,
+  "verification_receipts": {
+    "outputs": {
+      "local": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/refilter_word_0_5_max1_outputs_verified.json",
+      "sha256": "e0e53944f5cc08b93bccadc7e6620dbc1204645e302b331406003bba62acf1e9"
+    },
+    "manifests_publication": {
+      "local": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/refilter_word_0_5_max1_publication_verified.json",
+      "sha256": "8f0a374276253b831930b5193b6a1549d5cccef584674deec474a347d85af806"
+    },
+    "actual_loader": {
+      "local": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/refilter_word_0_5_max1_actual_loader_verified.json",
+      "sha256": "af7a352eb53d09d9956801dc1a8d8e6180ba9bbcd57b6b1fdb30736cb4af6de4"
+    },
+    "native_audio": {
+      "local": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/refilter_word_0_5_max1_native_audio_small_buffer_verified.json",
+      "sha256": "96aea4b75966b603a0f7e92840c2683a7ae4b74e774604b2a0a3b0b6032bf64d"
+    }
+  },
+  "final_config_sha256": {
+    "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_filtered_word_0_5_max1.yaml": "e4506e1e26687be44fb47121652178742b5f07850df72f57249a6ba45d0ae291",
+    "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_segments_word_0_5_max1.yaml": "da825e1912f8d91a63533193d680453c73425e481084c152c7f011054d4d7640",
+    "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_2segments_reference_context_word_0_5_max1.yaml": "0879728ee39b6cdad8cb056b1450ece6c0e07c424aabe5efc35963fb164b7ca3",
+    "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_reference_context_training_word_0_5_max1.yaml": "264a048ad49b484375b47785caafb82c19480031bc79ab5b4aa2245a020b79ad",
+    "plugins/phimm/src/recipe/phimm/config/v2611_dev/long/hc_fy24q3_1_reference_context_word_0_5_max1.yaml": "6b899a46d07cb0f3ee6cd1099d537dfe1c06c953c9e5e041783b2ad03985302e"
+  },
+  "accepted_outlier_count_histogram": {
+    "1": 10457,
+    "0": 6030
+  },
+  "previous_full_ASRAgentLoop_QA": {
+    "local_receipt": "/home/boren/.codex/artifacts/fy24q3_1_transfer_20261124/alignment_final_loader_verified.json",
+    "sha256": "17e7181dae2fffa2932d79befd13d03f6abc6044871f27b7ff3d4af61d6edcee",
+    "unchanged_implementation_hashes": {
+      "scripts/align_long_human_captions.py": "f3d0f60f79045cd20ba4e033b188866dc35921461786f1b0426486d8d71b1f17",
+      "plugins/phimm/src/recipe/phimm/agentic/dataset.py": "1a8a0a1a9babeb95447336c6151bc2e9404d51db46408704502b7b0e87ebb1a6",
+      "plugins/phimm/src/recipe/phimm/agentic/agent_loop.py": "b8ed1ba890a6917abd61c0b43295256cdfc0160626a4d4834500fd69a1837dca"
+    },
+    "preserved_completed_v1_files_sha256": {
+      "scripts/align_long_human_captions.py": "f3d0f60f79045cd20ba4e033b188866dc35921461786f1b0426486d8d71b1f17",
+      "plugins/phimm/src/recipe/phimm/agentic/dataset.py": "1a8a0a1a9babeb95447336c6151bc2e9404d51db46408704502b7b0e87ebb1a6",
+      "plugins/phimm/src/recipe/phimm/agentic/agent_loop.py": "b8ed1ba890a6917abd61c0b43295256cdfc0160626a4d4834500fd69a1837dca",
+      "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1.yaml": "684e7760b0ec601325e0c6a652f52d32a81cd639ae9175e4e8d7de834adec66c",
+      "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_filtered.yaml": "7ca7c25e2f95c573009db9b4620fb2715a04e802cc4460b2d754dee892e37add",
+      "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_segments.yaml": "3b36438e7207fcd9e9875280bd90f3d7aa20c4a2abc40caebb99ba556c1932e0",
+      "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_2segments_reference_context.yaml": "7f3a006ac238c042f2f656ad16579bf82503071d3f45a84c75e05eabab08c68d",
+      "plugins/phimm/src/recipe/phimm/config/data/train_data/long/hc_fy24q3_1_reference_context_training.yaml": "74cd3499d97ad2c8d6415f04ae9194b15643d091d5a405f6f544de7bf7d6e428"
+    },
+    "preserved_baseline_commit": "34deef3c9d449ea311a8693f94463da8f3a4d47c",
+    "previous_QA_YAML_comments_were_finalized_before_that_commit": true
+  },
+  "verification_scope": {
+    "actual_loader": "All three complete published new manifests loaded through actual ASRDataset and the new composed Hydra entry",
+    "context": "Actual ContextPrompt, the unchanged reference builder; full ASRAgentLoop import was unavailable locally due existing torchvision/transfer_queue dependencies",
+    "native_audio": "Two timed selectors of a newly retained one-outlier parent through unchanged native sample reader, HTTPS to the same Orange blob, compared exactly to parent slices; QA-only 16384-byte Blob buffer",
+    "all_audio_contents_hashed": false
+  }
+}
