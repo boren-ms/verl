@@ -1,0 +1,44 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/data/online_meetings_biasing/validation_v1/shiproom.jsonl
+  add_task_info:
+    style: display
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: shiproom_none
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - audio_path
+      - parent_audio_path
+      - entity_transcription
+      - n_segments
+      - reference_scope
+      - source_manifest
+      - reference_manifest
+      - biasing_words
+      - biasing_list_source
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/data/online_meetings_biasing/validation_v1/product.jsonl
+  add_task_info:
+    style: display
+    language: English
+    lang_hint: true
+  post_process:
+    add_field:
+      fields:
+        data_source: product_none
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - audio_path
+      - parent_audio_path
+      - entity_transcription
+      - n_segments
+      - reference_scope
+      - source_manifest
+      - reference_manifest
+      - biasing_words
+      - biasing_list_source
