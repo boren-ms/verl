@@ -10,6 +10,7 @@ import blobfile as bf
 import pyarrow as pa
 import pyarrow.json as pjson
 from datasets import Dataset, Sequence, Value, concatenate_datasets
+
 from recipe.phimm.data.prompts import get_task_output, get_task_prompt, resolve_language
 from recipe.phimm.utils.languages import LANGUAGES
 from recipe.phimm.utils.shared import (
@@ -18,7 +19,6 @@ from recipe.phimm.utils.shared import (
     get_value,
     rank_print,
 )
-
 from verl.audio_cache import submit_audio_cache_dataset
 
 
@@ -388,7 +388,7 @@ def mask_foreign_language(ds, *, task_info, **kwargs):
     return ds.map(transform, **pop_map_kwargs(kwargs), desc="Masking foreign-language speech")
 
 
-def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs):
+def add_task_info(ds, *, style="verb", language=None, lang_hint=False, biasing=None, **kwargs):
     """Add the prompt, formatted output, and resolved language without changing text."""
 
     def add_info(row):
@@ -399,7 +399,13 @@ def add_task_info(ds, *, style="verb", language=None, lang_hint=False, **kwargs)
         hint = row.get("language") if merged_list else language
         lang = resolve_language(hint or row.get("language") or "English")
         return {
-            "prompt": get_task_prompt(style=style, language=lang, lang_hint=lang_hint),
+            "prompt": get_task_prompt(
+                style=style,
+                language=lang,
+                lang_hint=lang_hint,
+                biasing=biasing,
+                biasing_words=row.get("biasing_words"),
+            ),
             "gt_output": get_task_output(
                 style=style,
                 language=lang,

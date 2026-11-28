@@ -1,0 +1,56 @@
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/data/librispeech_biasing/offline_validation_ls_20261127/validation/clean_100.jsonl
+  add_task_info:
+    style: verb
+    lang_hint: true
+    biasing: before_audio
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_100_before
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - biasing_words
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/data/librispeech_biasing/offline_validation_ls_20261127/validation/clean_500.jsonl
+  add_task_info:
+    style: verb
+    lang_hint: true
+    biasing: before_audio
+  post_process:
+    add_field:
+      fields:
+        data_source: clean_500_before
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - biasing_words
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/data/librispeech_biasing/offline_validation_ls_20261127/validation/other_100.jsonl
+  add_task_info:
+    style: verb
+    lang_hint: true
+    biasing: before_audio
+  post_process:
+    add_field:
+      fields:
+        data_source: other_100_before
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - biasing_words
+- dataset_name: jsonl
+  jsonl_paths: az://orngwus2cresco/data/speech/users/boren/data/librispeech_biasing/offline_validation_ls_20261127/validation/other_500.jsonl
+  add_task_info:
+    style: verb
+    lang_hint: true
+    biasing: before_audio
+  post_process:
+    add_field:
+      fields:
+        data_source: other_500_before
+    verl_format:
+      prompt_key: prompt
+      extra_keys:
+      - biasing_words

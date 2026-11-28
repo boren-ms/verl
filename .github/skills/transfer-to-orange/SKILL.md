@@ -1,21 +1,24 @@
 ---
 name: transfer-to-orange
-description: "Transfer external Azure Blob data to Orange (orng) with azcopy through the orngtransfer bridge, refreshing the source SAS cache when needed. Use for highperf-to-Orange, two-stage blob transfers, and copying datasets to Orange storage."
+description: "Transfer Corp Azure Blob data to Orange (orng) with azcopy through orngtransfer, refreshing the source SAS cache when needed. For local-to-Orange uploads, use copy-to-orange with bbb cp/sync."
 ---
 
 # Transfer Data to Orange via azcopy
 
-Two-stage azcopy transfer from an external Azure Blob account (commonly `highperf01*`) to Orange (orng), routed through the shared `orngtransfer` storage account.
+Two-stage azcopy transfer from Corp Azure Blob (including `highperf01*` sources)
+to Orange, routed through the shared `orngtransfer` storage account. For local
+sources, use [copy-to-orange](../copy-to-orange/SKILL.md) with `bbb cp/sync`.
 
 ## When to Use
 
-- Transfer datasets, audio data, or models from an external Azure Blob account to Orange storage
+- Transfer datasets, audio data, or models from Corp Azure Blob to Orange storage
 - User says "copy to orange", "transfer to orng", "move data to orange blob"
 - Two-stage pipeline: source Azure Blob account → orngtransfer → orngwus2cresco (all from dev machine)
 
 ## Architecture
 
-There is no direct Corp → Orange path. Data flows through the Green-accessible `orngtransfer` bridge.
+There is no direct Corp → Orange path. Data flows through the Green-accessible
+`orngtransfer` bridge. This architecture applies to Corp Blob sources, not local files.
 
 ```
 Stage 1 (from dev machine):  source account (with SAS)  →  orngtransfer/data/speech/...
@@ -165,8 +168,8 @@ Compare file count and sizes against the source listing from Step 2.
 
 ## Important Notes
 
-- **Always use `azcopy`** for all copy operations (not bbb, sciclone, or az cli).
-- **Always use `orngtransfer/data` as the bridge for datasets transferred from outside Orange.**
+- Use `azcopy` for the Corp Blob → Orange copy operations in this skill.
+- Use `orngtransfer/data` as the bridge for Corp Blob → Orange transfers.
 - **Always set `AZCOPY_AUTO_LOGIN_TYPE=AZCLI`** for `orngtransfer` and Orange endpoints (reuses `az login` session).
 - **Always add `--s2s-preserve-access-tier=false`** — the bridge and Orange storage accounts don't support blob access tiers.
 - **Only source blobs use SAS tokens** from `/home/boren/.sas/azure_blob_sas_cache.json`. `orngtransfer` and Orange endpoints use `az login` (green tenant).

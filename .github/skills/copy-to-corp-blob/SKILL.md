@@ -1,15 +1,21 @@
 ---
 name: copy-to-corp-blob
-description: "Upload local files or directories from the development machine to corp tsstd01safn Blob storage with azcopy and a write SAS. Use for local-to-corp publication under the default users/boren/data mapping; use transfer-to-orange for corp/highperf-to-Orange transfers."
+description: "Upload local files or directories to explicitly requested Corp tsstd01safn Blob storage with azcopy and a write SAS. Use copy-to-orange for local-to-Orange and transfer-to-orange for Corp Blob-to-Orange."
 ---
 
 # Copy Local Data to Corp Blob (tsstd01safn)
 
 Single-stage azcopy upload from the local dev machine to corp `tsstd01safn`. This is a direct local → corp transfer using a write-capable SAS — **no GRN/orange gateway needed**.
 
+Use this skill when the user selects Corp or `tsstd01safn` as the destination.
+Do not infer Corp from a generic request to upload to a remote location. For an
+Orange destination, use [copy-to-orange](../copy-to-orange/SKILL.md) for local
+sources and [transfer-to-orange](../transfer-to-orange/SKILL.md) for Corp Blob
+sources. Local-to-Orange uploads use `bbb cp/sync` without staging on Corp.
+
 ## When to Use
 - Push local checkpoints, eval outputs, or datasets from `~/data/...` to corp blob
-- User says: "copy to corp blob", "upload to tsstd01safn", "push to azure speech blob", "sync ~/data to corp", "copy to remote azure blob"
+- User says: "copy to corp blob", "upload to tsstd01safn", or "sync ~/data to corp"
 - Direct local → corp path (no orange involvement)
 
 ## Default Path Mapping

@@ -1,0 +1,28 @@
+# @package _global_
+defaults:
+- bias_base
+- /data/train_data/biasing/ls_pos@_ls_pos
+- /data/train_data/biasing/ls_neg@_ls_neg
+- /data/val_data/biasing/ls_after@_ls_bias
+- _self_
+asr:
+  biasing: after_audio
+  expected_training_rows: ${eval:${data.mix.0.datasource.0.sample}+${data.mix.0.datasource.1.sample}}
+data:
+  max_prompt_length: 8192
+  val_data:
+  - ${_ls_bias.2}
+  - ${_ls_bias.3}
+  train_data:
+  - ${_ls_pos}
+  - ${_ls_neg}
+  mix:
+  - shuffle: true
+    datasource:
+    - {name: ls_pos, sample: 268760, shuffle: true}
+    - {name: ls_neg, sample: 26876, shuffle: true}
+reward_map:
+  ls_pos: train_librispeech
+  ls_neg: train_librispeech
+  other_100_after: val_openasr_en
+  other_500_after: val_openasr_en

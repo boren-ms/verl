@@ -1,0 +1,36 @@
+# @package _global_
+# ReMax + GSPO settings for offline biasing, based directly on ../base.yaml.
+defaults:
+- ../base@_global_
+- _self_
+
+actor_rollout_ref:
+  model:
+    path: az://orngwus2cresco/data/speech/projects/phi-fastllm-2611/amlt-results/fast-llm-2611-qwen9b-flashenc-mtp-s2-data-v3-8-2-1-shadow/38000/qwen_hf/
+  actor:
+    policy_loss:
+      loss_mode: gspo
+    loss_agg_mode: seq-mean-token-mean
+    clip_ratio_low: 3.0e-4
+    clip_ratio_high: 4.0e-4
+    ppo_max_token_len_per_gpu: ${data.max_model_length}
+  ref:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+  rollout:
+    log_prob_max_token_len_per_gpu: ${data.max_model_length}
+
+algorithm:
+  adv_estimator: remax
+  rollout_correction:
+    bypass_mode: false
+
+asr:
+  expected_training_steps: null
+
+trainer:
+  experiment_name: remax_base3a_biasing_${asr.biasing}
+  total_epochs: 1
+  total_training_steps: null
+  save_freq: 100
+  test_freq: 100
+  val_only: false
