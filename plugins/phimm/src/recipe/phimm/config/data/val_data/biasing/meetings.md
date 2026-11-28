@@ -66,3 +66,22 @@ pairs. Prompt positions, candidate lists, keywords, complete references and
 recording metadata were verified. No decoding or model-quality evaluation
 is implied by these data checks. Receipts are `verification.json` and
 `loader_verification.json` beside the manifests.
+
+Each sample now also contains `statistics`, retained in `extra_info`. Its
+`segments` section records every saved segment's duration (seconds), count,
+mean/min/max and duration histogram. Its `biasing` section records candidate
+count, unique ground-truth keyword count, candidate hit ratio (a fraction),
+and candidate phrase length histogram (whitespace word counts). `dataset` and
+`overall` contain the fixed dataset and combined Shiproom/Product summaries;
+these repeated metadata are summaries, not additional observations.
+`segments.ground_truth_keyword_counts` is `null` with a reason: full-recording
+transcripts do not provide aligned references for individual segments.
+
+Reproduce these fields locally with:
+
+```bash
+PYTHONPATH=plugins/phimm/src .venv/bin/python -m recipe.phimm.tools.add_meetings_statistics \
+  /home/boren/data/online_meetings_biasing/validation_v1/shiproom.jsonl \
+  /home/boren/data/online_meetings_biasing/validation_v1/product.jsonl \
+  --output-dir /home/boren/data/online_meetings_biasing/validation_v1
+```

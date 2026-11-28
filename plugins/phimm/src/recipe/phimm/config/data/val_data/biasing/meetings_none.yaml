@@ -20,6 +20,7 @@
       - reference_manifest
       - biasing_words
       - biasing_list_source
+      - statistics
 - dataset_name: jsonl
   jsonl_paths: az://orngwus2cresco/data/speech/users/boren/data/online_meetings_biasing/validation_v1/product.jsonl
   add_task_info:
@@ -42,3 +43,4 @@
       - reference_manifest
       - biasing_words
       - biasing_list_source
+      - statistics
